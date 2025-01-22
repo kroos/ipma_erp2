@@ -37,6 +37,9 @@
 /*pretty checkbox*/
 @import "../../node_modules/pretty-checkbox/dist/pretty-checkbox.css";
 
+/*select2*/
+@import "../../node_modules/select2/dist/css/select2.css";
+
 /*select2 bootstrap5 themes*/
 @import "../../node_modules/select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.css";
 
