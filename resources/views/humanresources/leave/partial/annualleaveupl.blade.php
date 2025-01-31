@@ -5,33 +5,15 @@
 					<!-- UNPAID LEAVE | UPL -->
 					@include('humanresources.leave.jspartial.fromtojs')
 
-					'<div class="form-group row m-2 form-check {{ $errors->has('leave_cat') ? 'has-error' : '' }}" id="wrapperday">' +
-						'<div class="form-group col-sm-8 offset-sm-4 form-check {{ $errors->has('half_type_id') ? 'has-error' : '' }} removehalfleave"  id="wrappertest">' +
-						'</div>' +
-					'</div>' +
+					@include('humanresources.leave.jspartial.formcheckwrapper')
 
 					@if( $userneedbackup == 1 )
-					'<div class="form-group row m-2 {{ $errors->has('staff_id') ? 'has-error' : '' }}">' +
-						'{{ Form::label('backupperson', 'Replacement : ', ['class' => 'col-sm-4 col-form-label']) }}' +
-						'<div class="col-sm-8 backup">' +
-							'<select name="staff_id" id="backupperson" class="form-control form-select form-select-sm " placeholder="Please choose" autocomplete="off"></select>' +
-						'</div>' +
-					'</div>' +
+						@include('humanresources.leave.jspartial.backupperson')
 					@endif
 
-					'<div class="form-group row m-2 {{ $errors->has('document') ? 'has-error' : '' }}">' +
-						'{{ Form::label( 'doc', 'Upload Supporting Document : ', ['class' => 'col-sm-4 col-form-label'] ) }}' +
-						'<div class="col-sm-8 supportdoc">' +
-							'{{ Form::file( 'document', ['class' => 'form-control form-control-sm form-control-file', 'id' => 'doc', 'placeholder' => 'Supporting Document']) }}' +
-						'</div>' +
-					'</div>' +
+					@include('humanresources.leave.jspartial.uploadsupportdoc')
 
-					'<div class="form-group row m-2 {{ $errors->has('documentsupport') ? 'has-error' : '' }}">' +
-						'<div class="offset-sm-4 col-sm-8 form-check">' +
-							'{{ Form::checkbox('documentsupport', 1, @$value, ['class' => 'form-check-input ', 'id' => 'suppdoc']) }}' +
-							'<label for="suppdoc" class="form-check-label p-1 bg-warning text-danger rounded">Please ensure you will submit <strong>Supporting Documents</strong> within <strong>3 Days</strong> after date leave.</label>' +
-						'</div>' +
-					'</div>' +
+					@include('humanresources.leave.jspartial.acknowledgesuppdoc')
 
 				'</div>'
 			);
@@ -39,32 +21,12 @@
 			$('#wrapper').append(
 				'<div id="remove">' +
 					<!-- ANNUAL LEAVE | AL -->
-					'<div class="form-group row m-2 {{ $errors->has('date_time_start') ? 'has-error' : '' }}">' +
-						'{{ Form::label('from', 'From : ', ['class' => 'col-sm-4 col-form-label']) }}' +
-						'<div class="col-sm-8 datetime" style="position: relative">' +
-							'{{ Form::text('date_time_start', @$value, ['class' => 'form-control form-control-sm', 'id' => 'from', 'placeholder' => 'From : ', 'autocomplete' => 'off']) }}' +
-						'</div>' +
-					'</div>' +
+					@include('humanresources.leave.jspartial.fromtojs')
 
-					'<div class="form-group row m-2 {{ $errors->has('date_time_end') ? 'has-error' : '' }}">' +
-						'{{ Form::label('to', 'To : ', ['class' => 'col-sm-4 col-form-label']) }}' +
-						'<div class="col-sm-8 datetime" style="position: relative">' +
-							'{{ Form::text('date_time_end', @$value, ['class' => 'form-control form-control-sm', 'id' => 'to', 'placeholder' => 'To : ', 'autocomplete' => 'off']) }}' +
-						'</div>' +
-					'</div>' +
-
-					'<div class="form-group row m-2 form-check {{ $errors->has('leave_cat') ? 'has-error' : '' }}" id="wrapperday">' +
-						'<div class="form-group col-sm-8 offset-sm-4 form-check {{ $errors->has('half_type_id') ? 'has-error' : '' }} removehalfleave"  id="wrappertest">' +
-						'</div>' +
-					'</div>' +
+					@include('humanresources.leave.jspartial.formcheckwrapper')
 
 					@if( $userneedbackup == 1 )
-					'<div class="form-group row m-2 {{ $errors->has('staff_id') ? 'has-error' : '' }}">' +
-						'{{ Form::label('backupperson', 'Replacement : ', ['class' => 'col-sm-4 col-form-label']) }}' +
-						'<div class="col-sm-8 backup">' +
-							'<select name="staff_id" id="backupperson" class="form-select form-select-sm " placeholder="Please choose" autocomplete="off"></select>' +
-						'</div>' +
-					'</div>' +
+						@include('humanresources.leave.jspartial.backupperson')
 					@endif
 				'</div>'
 			);
@@ -82,49 +44,11 @@
 
 		/////////////////////////////////////////////////////////////////////////////////////////
 		//enable select 2 for backup
-		$('#backupperson').select2({
-			placeholder: 'Please Choose',
-			width: '100%',
-			ajax: {
-				url: '{{ route('backupperson') }}',
-				// data: { '_token': '{!! csrf_token() !!}' },
-				type: 'POST',
-				dataType: 'json',
-				data: function (params) {
-					var query = {
-						id: {{ \Auth::user()->belongstostaff->id }},
-						_token: '{!! csrf_token() !!}',
-						date_from: $('#from').val(),
-						date_to: $('#to').val(),
-					}
-					return query;
-				}
-			},
-			allowClear: true,
-			closeOnSelect: true,
-		});
+		@include('humanresources.leave.method.backupperson')
 
 		/////////////////////////////////////////////////////////////////////////////////////////
 		// start date
-		$('#from').datetimepicker({
-			icons: {
-				time: "fas fas-regular fa-clock fa-beat",
-				date: "fas fas-regular fa-calendar fa-beat",
-				up: "fa-regular fa-circle-up fa-beat",
-				down: "fa-regular fa-circle-down fa-beat",
-				previous: 'fas fas-regular fa-arrow-left fa-beat',
-				next: 'fas fas-regular fa-arrow-right fa-beat',
-				today: 'fas fas-regular fa-calenday-day fa-beat',
-				clear: 'fas fas-regular fa-broom-wide fa-beat',
-				close: 'fas fas-regular fa-rectangle-xmark fa-beat'
-			},
-			format:'YYYY-MM-DD',
-			useCurrent: false,
-			minDate: moment().format('YYYY-MM-DD'),
-			disabledDates: data,
-			// daysOfWeekDisabled: [0],
-			// minDate: data[1],
-		})
+		@include('humanresources.leave.method.fromdatetimepicker')
 		.on('dp.change dp.update', function(e) {
 			$('#form').bootstrapValidator('revalidateField', 'date_time_start');
 			var minDaten = $('#from').val();
@@ -147,19 +71,7 @@
 					// console.log(d);
 					if(d === true) {
 						$('#wrapperday').append(
-							'{{ Form::label('leave_cat', 'Leave Category : ', ['class' => 'col-sm-4 col-form-label removehalfleave']) }}' +
-							'<div class="col-sm-6 m-2 removehalfleave " id="halfleave">' +
-								'<div class="form-check form-check-inline removehalfleave" id="removeleavehalf">' +
-									'<input type="radio" name="leave_cat" value="1" id="radio1" class="removehalfleave m-2" disabled="disabled">' +
-									'{{ Form::label('radio1', 'Full Day Off', ['class' => 'form-check-label removehalfleave']) }}' +
-								'</div>' +
-								'<div class="form-check form-check-inline removehalfleave" id="appendleavehalf">' +
-									'<input type="radio" name="leave_cat" value="2" id="radio2" class="removehalfleave m-2" checked="checked">' +
-									'{{ Form::label('radio2', 'Half Day Off', ['class' => 'form-check-label removehalfleave']) }}' +
-								'</div>' +
-							'</div>' +
-							'<div class="form-group col-sm-8 offset-sm-4 {{ $errors->has('half_type_id') ? 'has-error' : '' }} removehalfleave"  id="wrappertest">' +
-							'</div>'
+							@include('humanresources.leave.jspartial.wrapperdayleavecat1disable')
 						);
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
@@ -200,33 +112,14 @@
 							var checkedpm = '';
 						}
 						$('#wrappertest').append(
-							'<div class="form-check form-check-inline removetest">' +
-								'<input type="radio" name="half_type_id" value="1/' + obj.time_start_am + '/' + obj.time_end_am + '" id="am" ' + toggle_time_start_am + ' ' + checkedam + '>' +
-								'<label for="am" class="form-check-label m-2">' + moment(obj.time_start_am, 'HH:mm:ss').format('h:mm a') + ' to ' + moment(obj.time_end_am, 'HH:mm:ss').format('h:mm a') + '</label> ' +
-							'</div>' +
-							'<div class="form-check form-check-inline removetest">' +
-								'<input type="radio" name="half_type_id" value="2/' + obj.time_start_pm + '/' + obj.time_end_pm + '" id="pm" ' + toggle_time_start_pm + ' ' + checkedpm + '>' +
-								'<label for="pm" class="form-check-label m-2">' + moment(obj.time_start_pm, 'HH:mm:ss').format('h:mm a') + ' to ' + moment(obj.time_end_pm, 'HH:mm:ss').format('h:mm a') + '</label> ' +
-							'</div>'
+							@include('humanresources.leave.jspartial.halfday')
 						);
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
 
 					} else {
 						$('#wrapperday').append(
-							'{{ Form::label('leave_cat', 'Leave Category : ', ['class' => 'col-sm-4 col-form-label removehalfleave']) }}' +
-							'<div class="col-sm-6 m-2 removehalfleave " id="halfleave">' +
-								'<div class="form-check form-check-inline removehalfleave" id="removeleavehalf">' +
-									'<input type="radio" name="leave_cat" value="1" id="radio1" class="m-2 removehalfleave" checked="checked">' +
-									'{{ Form::label('radio1', 'Full Day Off', ['class' => 'form-check-label removehalfleave m-2']) }}' +
-								'</div>' +
-								'<div class="form-check form-check-inline removehalfleave" id="appendleavehalf">' +
-									'<input type="radio" name="leave_cat" value="2" id="radio2" class="m-2 removehalfleave" >' +
-									'{{ Form::label('radio2', 'Half Day Off', ['class' => 'form-check-label removehalfleave m-2']) }}' +
-								'</div>' +
-							'</div>' +
-							'<div class="form-group col-sm-8 offset-sm-4 {{ $errors->has('half_type_id') ? 'has-error' : '' }} removehalfleave"  id="wrappertest">' +
-							'</div>'
+							@include('humanresources.leave.jspartial.wrapperdayleavecat1check')
 						);
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
@@ -241,24 +134,7 @@
 		});
 		// end date from
 
-		$('#to').datetimepicker({
-			icons: {
-				time: "fas fas-regular fa-clock fa-beat",
-				date: "fas fas-regular fa-calendar fa-beat",
-				up: "fas fas-regular fa-arrow-up fa-beat",
-				down: "fas fas-regular fa-arrow-down fa-beat",
-				previous: 'fas fas-regular fa-arrow-left fa-beat',
-				next: 'fas fas-regular fa-arrow-right fa-beat',
-				today: 'fas fas-regular fa-calenday-day fa-beat',
-				clear: 'fas fas-regular fa-broom-wide fa-beat',
-				close: 'fas fas-regular fa-rectangle-xmark fa-beat'
-			},
-			format:'YYYY-MM-DD',
-			useCurrent: false,
-			minDate: moment().format('YYYY-MM-DD'),
-			disabledDates:data,
-			//daysOfWeekDisabled: [0],
-		})
+		@include('humanresources.leave.method.todatetimepicker')
 		.on('dp.change dp.update', function(e) {
 			$('#form').bootstrapValidator('revalidateField', 'date_time_end');
 			var maxDate = $('#to').val();
@@ -280,19 +156,7 @@
 					console.log(d, itime_start, itime_end);
 					if(d === true) {
 						$('#wrapperday').append(
-							'{{ Form::label('leave_cat', 'Leave Category : ', ['class' => 'col-sm-4 col-form-label removehalfleave']) }}' +
-							'<div class="col-sm-6 m-2 removehalfleave " id="halfleave">' +
-								'<div class="form-check form-check-inline removehalfleave" id="removeleavehalf">' +
-									'<input type="radio" name="leave_cat" value="1" id="radio1" class="m-2 removehalfleave" disabled="disabled">' +
-									'{{ Form::label('radio1', 'Full Day Off', ['class' => 'form-check-label removehalfleave']) }}' +
-								'</div>' +
-								'<div class="form-check form-check-inline removehalfleave" id="appendleavehalf">' +
-									'<input type="radio" name="leave_cat" value="2" id="radio2" class="m-2 removehalfleave" checked="checked">' +
-									'{{ Form::label('radio2', 'Half Day Off', ['class' => 'form-check-label removehalfleave']) }}' +
-								'</div>' +
-							'</div>' +
-							'<div class="form-group col-sm-8 offset-sm-4 {{ $errors->has('half_type_id') ? 'has-error' : '' }} removehalfleave"  id="wrappertest">' +
-							'</div>'
+							@include('humanresources.leave.jspartial.wrapperdayleavecat1disable')
 						);
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
@@ -334,33 +198,14 @@
 							var checkedpm = '';
 						}
 						$('#wrappertest').append(
-							'<div class="form-check form-check-inline removetest">' +
-								'<input type="radio" name="half_type_id" value="1/' + obj.time_start_am + '/' + obj.time_end_am + '" id="am" ' + toggle_time_start_am + ' ' + checkedam + '>' +
-								'<label for="am" class="form-check-label m-2">' + moment(obj.time_start_am, 'HH:mm:ss').format('h:mm a') + ' to ' + moment(obj.time_end_am, 'HH:mm:ss').format('h:mm a') + '</label> ' +
-							'</div>' +
-							'<div class="form-check form-check-inline removetest">' +
-								'<input type="radio" name="half_type_id" value="2/' + obj.time_start_pm + '/' + obj.time_end_pm + '" id="pm" ' + toggle_time_start_pm + ' ' + checkedpm + '>' +
-								'<label for="pm" class="form-check-label m-2">' + moment(obj.time_start_pm, 'HH:mm:ss').format('h:mm a') + ' to ' + moment(obj.time_end_pm, 'HH:mm:ss').format('h:mm a') + '</label> ' +
-							'</div>'
+							@include('humanresources.leave.jspartial.halfday')
 						);
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
 
 					} else {
 						$('#wrapperday').append(
-							'{{ Form::label('leave_cat', 'Leave Category : ', ['class' => 'col-sm-4 col-form-label removehalfleave']) }}' +
-							'<div class="col-sm-6 m-2 removehalfleave " id="halfleave">' +
-								'<div class="form-check form-check-inline removehalfleave" id="removeleavehalf">' +
-									'<input type="radio" name="leave_cat" value="1" id="radio1" class="removehalfleave m-2" checked="checked">' +
-									'{{ Form::label('radio1', 'Full Day Off', ['class' => 'form-check-label removehalfleave']) }}' +
-								'</div>' +
-								'<div class="form-check form-check-inline removehalfleave" id="appendleavehalf">' +
-									'<input type="radio" name="leave_cat" value="2" id="radio2" class="removehalfleave m-2" >' +
-									'{{ Form::label('radio2', 'Half Day Off', ['class' => 'form-check-label removehalfleave']) }}' +
-								'</div>' +
-							'</div>' +
-							'<div class="form-group col-sm-8 offset-sm-4 {{ $errors->has('half_type_id') ? 'has-error' : '' }} removehalfleave"  id="wrappertest">' +
-							'</div>'
+							@include('humanresources.leave.jspartial.wrapperdayleavecat1check')
 						);
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
@@ -408,14 +253,7 @@
 				// checking so there is no double
 				if( $('.removetest').length == 0 ) {
 					$('#wrappertest').append(
-						'<div class="form-check form-check-inline removetest">' +
-							'<input type="radio" name="half_type_id" value="1/' + obj.time_start_am + '/' + obj.time_end_am + '" id="am" checked="checked">' +
-							'<label for="am" class="form-check-label m-2">' + moment(obj.time_start_am, 'HH:mm:ss').format('h:mm a') + ' to ' + moment(obj.time_end_am, 'HH:mm:ss').format('h:mm a') + '</label> ' +
-						'</div>' +
-						'<div class="form-check form-check-inline removetest">' +
-							'<input type="radio" name="half_type_id" value="2/' + obj.time_start_pm + '/' + obj.time_end_pm + '" id="pm">' +
-							'<label for="pm" class="form-check-label m-2">' + moment(obj.time_start_pm, 'HH:mm:ss').format('h:mm a') + ' to ' + moment(obj.time_end_pm, 'HH:mm:ss').format('h:mm a') + '</label> ' +
-						'</div>'
+						@include('humanresources.leave.jspartial.halfdaycheck')
 					);
 					$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
 					$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));

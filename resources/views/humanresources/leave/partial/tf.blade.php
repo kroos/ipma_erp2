@@ -22,30 +22,16 @@
 							'</div>' +
 					'</div>' +
 				'</div>' +
+
 				@if( $userneedbackup == 1 )
 				'<div id="backupwrapper">' +
-					'<div class="form-group row m-2 {{ $errors->has('staff_id') ? 'has-error' : '' }}" id="backupremove">' +
-						'{{ Form::label('backupperson', 'Backup Person : ', ['class' => 'col-sm-4 col-form-label']) }}' +
-						'<div class="col-sm-8 backup">' +
-							'<select name="staff_id" id="backupperson" class="form-control form-select form-select-sm" placeholder="Please choose" autocomplete="off"></select>' +
-						'</div>' +
-					'</div>' +
+					@include('humanresources.leave.jspartial.backupperson')
 				'</div>' +
 				@endif
-				'<div class="form-group row m-2 {{ $errors->has('document') ? 'has-error' : '' }}">' +
-					'{{ Form::label( 'doc', 'Upload Supporting Document : ', ['class' => 'col-sm-4 col-form-label'] ) }}' +
-					'<div class="col-sm-8 supportdoc">' +
-						'{{ Form::file( 'document', ['class' => 'form-control form-control-file', 'id' => 'doc', 'placeholder' => 'Supporting Document']) }}' +
-					'</div>' +
-				'</div>' +
 
-				'<div class="form-group row m-2 {{ $errors->has('akuan') ? 'has-error' : '' }}">' +
-					'{{ Form::label('suppdoc', 'Supporting Document : ', ['class' => 'col-sm-4 col-form-label']) }}' +
-					'<div class="col-sm-8 suppdoc form-check">' +
-						'{{ Form::checkbox('documentsupport', 1, @$value, ['class' => 'form-check-input', 'id' => 'suppdoc']) }}' +
-						' <label for="suppdoc" class="form-check-label p-1 bg-warning text-danger rounded">Please ensure you will submit <strong>Supporting Document</strong> within a period of <strong>3 Days</strong> upon return.</label>' +
-					'</div>' +
-				'</div>' +
+				@include('humanresources.leave.jspartial.uploadsupportdoc')
+
+				@include('humanresources.leave.jspartial.acknowledgesuppdoc')
 
 			'</div>'
 		);
@@ -87,24 +73,7 @@
 
 		/////////////////////////////////////////////////////////////////////////////////////////
 		// enable datetime for the 1st one
-		$('#from').datetimepicker({
-			icons: {
-				time: "fas fas-regular fa-clock fa-beat",
-				date: "fas fas-regular fa-calendar fa-beat",
-				up: "fas fa-regular fa-circle-up",
-				down: "fas fa-regular fa-circle-down",
-				previous: 'fas fas-regular fa-arrow-left fa-beat',
-				next: 'fas fas-regular fa-arrow-right fa-beat',
-				today: 'fas fas-regular fa-calenday-day fa-beat',
-				clear: 'fas fas-regular fa-broom-wide fa-beat',
-				close: 'fas fas-regular fa-rectangle-xmark fa-beat'
-			},
-			format:'YYYY-MM-DD',
-			useCurrent: false,
-			disabledDates:data4,
-			// minDate: moment().format('YYYY-MM-DD'),
-			// daysOfWeekDisabled: [0],
-		})
+		@include('humanresources.leave.method.fromdatetimepickerdata4')
 		.on('dp.change ', function(e) {
 			$('#form').bootstrapValidator('revalidateField', 'date_time_start');
 
@@ -116,35 +85,11 @@
 				// console.log($( '#rembackup').children().length + ' <= rembackup length' );
 				if( $('#backupwrapper').children().length == 0 ) {
 					$('#backupwrapper').append(
-						'<div class="form-group row {{ $errors->has('staff_id') ? 'has-error' : '' }}">' +
-							'{{ Form::label('backupperson', 'Backup : ', ['class' => 'col-sm-4 col-form-label']) }}' +
-							'<div class="col-sm-8 backup">' +
-								'<select name="staff_id" id="backupperson" class="form-control form-select form-select-sm" placeholder="Please choose" autocomplete="off"></select>' +
-							'</div>' +
-						'</div>'
+						@include('humanresources.leave.jspartial.backupperson')
+						''
 					);
 					$('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
-					$('#backupperson').select2({
-						placeholder: 'Please Choose',
-						width: '100%',
-						ajax: {
-							url: '{{ route('backupperson') }}',
-							// data: { '_token': '{!! csrf_token() !!}' },
-							type: 'POST',
-							dataType: 'json',
-							data: function (params) {
-								var query = {
-									id: {{ \Auth::user()->belongstostaff->id }},
-									_token: '{!! csrf_token() !!}',
-									date_from: $('#from').val(),
-									date_to: $('#to').val(),
-								}
-								return query;
-							}
-						},
-						allowClear: true,
-						closeOnSelect: true,
-					});
+					@include('humanresources.leave.method.backupperson')
 				}
 			} else {
 				$('#form').bootstrapValidator('removeField', $('.backup').find('[name="staff_id"]'));

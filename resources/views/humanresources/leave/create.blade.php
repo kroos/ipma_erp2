@@ -50,7 +50,9 @@
 		<div class="form-group row m-2 {{ $errors->has('akuan') ? 'has-error' : '' }}">
 			<div class="col-sm-8 offset-sm-4 form-check">
 				{{ Form::checkbox('akuan', 1, @$value, ['class' => 'form-check-input ', 'id' => 'akuan1']) }}
-				<label for="akuan1" class="form-check-label p-1 bg-warning text-danger rounded"><p>I hereby confirmed that all details and information filled in are <strong>CORRECT</strong> and <strong>CHECKED</strong> before sending.</p></label>
+				<label for="akuan1" class="form-check-label p-1 bg-warning text-danger rounded">
+					<p class="my-auto">I hereby confirmed that all details and information filled in are <strong>CORRECT</strong> and <strong>CHECKED</strong> before sending.</p>
+				</label>
 			</div>
 		</div>
 
@@ -113,7 +115,7 @@ $('#leave_id').on('change', function() {
 	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	if ($selection.val() == '2') {
-		@include('humanresources.leave.partial.leaveid2')
+		@include('humanresources.leave.partial.mc')
 	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // replacement leave
@@ -141,7 +143,7 @@ if ($selection.val() == '9') {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // mc-upl
 	if ($selection.val() == '11') {
-		@include('humanresources.leave.partial.mcupl')
+		@include('humanresources.leave.partial.elmc')
 	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // el replacement leave
