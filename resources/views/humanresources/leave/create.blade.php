@@ -104,6 +104,27 @@ $setHalfDayMC = \App\Models\Setting::find(2)->active;
 // checking for overlapp leave on half day (if it is turn on)
 @include('humanresources.leave.method.overlappleave')
 
+function obj1(datenow) {
+	var data1 = $.ajax({
+		url: "{{ route('leavedate.timeleave') }}",
+		type: "POST",
+		data: {date: datenow, _token: '{!! csrf_token() !!}', id: {{ \Auth::user()->belongstostaff->id }} },
+		dataType: 'json',
+		global: false,
+		async:false,
+		success: function (response) {
+			// you will get response from your php page (what you echo or print)
+			return response;
+		},
+		error: function(jqXHR, textStatus, errorThrown) {
+			console.log(textStatus, errorThrown);
+		}
+	}).responseText;
+
+	// convert data1 into json
+	return obj = $.parseJSON( data1 );
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // start here when user start to select the leave type option
 $('#leave_id').on('change', function() {
