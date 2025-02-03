@@ -19,7 +19,7 @@ $currentYear = Carbon::now()->year;
 	<link href="{{ URL::asset('css/app.css') }}" rel="stylesheet">
 	@stack('styles')
 </head>
-	<body class="min-vh-100 row justify-content-center align-items-center mx-auto">
+	<body class="min-vh-100 row justify-content-center align-items-center mx-auto bg-secondary bg-opacity-10">
 		<header class="row align-self-start justify-content-center m-0">
 			@include('layouts.navigation')
 			<div class="col-sm-12 row align-self-start justify-content-center m-0">
@@ -44,14 +44,9 @@ $currentYear = Carbon::now()->year;
 		</div>
 	</body>
 
-	<!-- <script type="module" src="{{ asset('js/fullcalendar/bootstrap5/index.global.js') }}"></script> -->
-	<!-- <script type="module" src="{{ asset('js/fullcalendar/daygrid/index.global.js') }}"></script> -->
-	<!-- <script type="module" src="{{ asset('js/fullcalendar/multimonth/index.global.js') }}"></script> -->
-	<script src="{{ asset('js/fullcalendar/index.global.js') }}"></script>
-	<!-- <script src="https://unpkg.com/popper.js/dist/umd/popper.min.js"></script> -->
-	<!-- <script src="https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js"></script> -->
-	<script src="{{ asset('js/chartjs/chart.umd.js') }}"></script>
-	<script src="{{ asset('js/app.js') }}"></script>
+	<script src="{{ mix('js/fullcalendar/index.global.js') }}"></script>
+	<script src="{{ mix('js/chart.js/dist/chart.umd.js') }}"></script>
+	<script src="{{ mix('js/app.js') }}"></script>
 	<script src="{{ asset('js/ckeditor/ckeditor.js') }}"></script>
 	<script src="{{ asset('js/ckeditor/adapters/jquery.js') }}"></script>
 	<script >

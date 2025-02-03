@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Playfair&#43;Display:700,900&amp;display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap');
 
 /* animate.css */
 @import "../../node_modules/animate.css/source/animate.css";
@@ -53,10 +53,22 @@
 
 /*Style*/
 body {
-    font-family: 'Playfair', serif !important;
-    font-size: 15px;
-    font-weight: 700;
-    font-style: normal;
+  font-family: "Roboto Flex", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings:
+    "slnt" 0,
+    "wdth" 100,
+    "GRAD" 0,
+    "XOPQ" 96,
+    "XTRA" 468,
+    "YOPQ" 79,
+    "YTAS" 750,
+    "YTDE" -203,
+    "YTFI" 738,
+    "YTLC" 514,
+    "YTUC" 712;
 }
 /* for template */
 .bd-placeholder-img {

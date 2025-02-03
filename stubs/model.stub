@@ -27,4 +27,6 @@ class {{ class }} extends Model
     // const CREATED_AT = '';
     // const UPDATED_AT = '';
     // protected $rememberTokenName = '';
+
+
 }
