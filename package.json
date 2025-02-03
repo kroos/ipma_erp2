@@ -34,7 +34,6 @@
     "moment-range": "^4.0.2",
     "moment-timezone": "^0.5.43",
     "pc-bootstrap4-datetimepicker": "^4.17.51",
-    "popper.js": "^1.16.1",
     "postcss": "^8.4.6",
     "postcss-custom-properties": "^13.2.1",
     "pretty-checkbox": "^3.0.3",
