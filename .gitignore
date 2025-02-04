@@ -17,7 +17,6 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
-/laravel10_erp.db
 /*.editorconfig
 /testweb.sql
 /*.log
@@ -33,3 +32,4 @@ yarn-error.log
 /public/fonts
 /public/css
 /public/mix-manifest.json
+/public/vendor
