@@ -48,7 +48,7 @@
 
 		/////////////////////////////////////////////////////////////////////////////////////////
 		// start date
-		@include('humanresources.leave.method.fromdatetimepicker')
+		@include('humanresources.leave.method.fromdatetimepicker', ['type' => 1])
 		.on('dp.change dp.update', function(e) {
 			$('#form').bootstrapValidator('revalidateField', 'date_time_start');
 			var minDaten = $('#from').val();

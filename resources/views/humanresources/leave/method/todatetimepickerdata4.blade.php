@@ -12,7 +12,7 @@ $('#to').datetimepicker({
 	},
 	format:'YYYY-MM-DD',
 	useCurrent: false,
-	disabledDates:data4,
+	disabledDates:fetchData(4),
 	// minDate: moment().format('YYYY-MM-DD'),
 	// daysOfWeekDisabled: [0],
 })

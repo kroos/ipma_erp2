@@ -13,6 +13,6 @@
 			format:'YYYY-MM-DD',
 			useCurrent: false,
 			minDate: moment().format('YYYY-MM-DD'),
-			disabledDates:data,
+			disabledDates: fetchData(1),
 			//daysOfWeekDisabled: [0],
 		})
