@@ -4,6 +4,13 @@
 <div class="col-sm-12 row">
 @include('humanresources.hrdept.navhr')
 	<div class="row justify-content-center">
+
+		<!-- Progress Bar -->
+		<div id="progress-bar" class="progress" role="progressbar" aria-label="Loading Progress.." aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="display: none;">
+			<div id="progress" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%">0%</div>
+		</div>
+
+
 		<div class="col-sm-12 m-3">
 			<h4>Overall Summary</h4>
 			<div class="table-responsive">
@@ -36,10 +43,25 @@
 @section('js')
 /////////////////////////////////////////////////////////////////////////////////////////
 $(document).ready(function () {
+
+	// Show the progress bar
+	$("#progress-bar").show();
+
+	// Simulate progress (optional)
+	let progress = 0;
+	const progressInterval = setInterval(() => {
+		progress += 5;
+		console.log(progress);
+		$('#progress-bar').attr('aria-valuenow', progress);
+		$('#progress').css('width', progress + '%').html(progress +'%');
+		if (progress >= 100) clearInterval(progressInterval);
+	}, 300);
+
+
 	$.ajax({
-			url: "{{ route('staffdaily', ['_token' => csrf_token()]) }}",
-			type: "POST",
-			dataType: "json"
+		url: "{{ route('staffdaily', ['_token' => csrf_token()]) }}",
+		type: "POST",
+		dataType: "json"
 	})
 	.done(function (data) {
 			let summaryTable = $("#summary");
@@ -75,6 +97,11 @@ $(document).ready(function () {
 	})
 	.fail(function (jqXHR, textStatus, errorThrown) {
 			console.error("AJAX Error:", textStatus, errorThrown);
+	})
+	.always(function () {
+		// Hide the progress bar when the request is complete
+		$("#progress-bar").hide();
+		clearInterval(progressInterval); // Stop the progress simulation
 	});
 
 	function formatLocations(locations) {
