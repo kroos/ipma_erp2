@@ -105,6 +105,17 @@ if ($me1) {																				// hod
 		</table>
 	</div>
 	<div class="d-flex justify-content-center">
+		@if ($overtime->onFirstPage())
+		<span class="btn btn-sm btn-secondary disabled">Previous</span>
+		@else
+		<a href="{{ $overtime->previousPageUrl() }}" class="btn btn-sm btn-outline-secondary">Previous</a>
+		@endif
+
+		@if ($overtime->hasMorePages())
+		<a href="{{ $overtime->nextPageUrl() }}" class="btn btn-sm btn-outline-secondary">Next</a>
+		@else
+		<span class="btn btn-sm btn-secondary disabled">Next</span>
+		@endif
 	</div>
 </div>
 @endsection

@@ -43,6 +43,25 @@ class OvertimeController extends Controller
   public function index(): View
   {
     Paginator::useBootstrapFive();
+
+// SELECT
+//     COUNT(`hr_overtimes`.`staff_id`) As totalstaff,
+//     YEAR(`hr_overtimes`.`ot_date`) AS `year`,
+//     MONTH(`hr_overtimes`.`ot_date`) AS `month`
+// FROM
+//     `hr_overtimes`
+// WHERE
+//     `hr_overtimes`.`active` = 1
+//     AND `hr_overtimes`.`deleted_at` IS NULL
+// GROUP BY
+//     `year`, `month`
+// ORDER BY
+//     `year` DESC, `month` DESC;
+
+
+
+
+
     // $sa = HROvertime::SelectRaw('COUNT(staff_id) as totalstaff, ot_date')
     // 				->where('active', 1)
     // 				// ->groupByRaw('YEAR(ot_date)')
