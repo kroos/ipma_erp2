@@ -10,6 +10,7 @@ use \Carbon\Carbon;
 @include('humanresources.hrdept.navhr')
 	<h2>Staffs Overtime&nbsp;<a class="btn btn-sm btn-outline-secondary" href="{{ route('overtime.create') }}"><i class="fa-solid fa-person-circle-plus fa-beat"></i> Add Staff Overtime</a></h2>
 	<div class="d-flex justify-content-center">
+		{!! $sa->links() !!}
 	</div>
 	<div class="table-responsive">
 		<table id="overtime" class="table table-hover table-sm align-middle" style="font-size:12px">
@@ -105,17 +106,7 @@ if ($me1) {																				// hod
 		</table>
 	</div>
 	<div class="d-flex justify-content-center">
-		@if ($overtime->onFirstPage())
-		<span class="btn btn-sm btn-secondary disabled">Previous</span>
-		@else
-		<a href="{{ $overtime->previousPageUrl() }}" class="btn btn-sm btn-outline-secondary">Previous</a>
-		@endif
 
-		@if ($overtime->hasMorePages())
-		<a href="{{ $overtime->nextPageUrl() }}" class="btn btn-sm btn-outline-secondary">Next</a>
-		@else
-		<span class="btn btn-sm btn-secondary disabled">Next</span>
-		@endif
 	</div>
 </div>
 @endsection

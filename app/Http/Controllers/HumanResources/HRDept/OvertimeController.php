@@ -43,34 +43,24 @@ class OvertimeController extends Controller
 	{
 		Paginator::useBootstrapFive();
 
-		// SELECT
-		//     COUNT(`hr_overtimes`.`staff_id`) As totalstaff,
-		//     YEAR(`hr_overtimes`.`ot_date`) AS `year`,
-		//     MONTH(`hr_overtimes`.`ot_date`) AS `month`
-		// FROM
-		//     `hr_overtimes`
-		// WHERE
-		//     `hr_overtimes`.`active` = 1
-		//     AND `hr_overtimes`.`deleted_at` IS NULL
-		// GROUP BY
-		//     `year`, `month`
-		// ORDER BY
-		//     `year` DESC, `month` DESC;
-
-		$sa = HROvertime::SelectRaw('COUNT(`hr_overtimes`.`staff_id`) As totalstaff, YEAR(`hr_overtimes`.`ot_date`) AS `year`, MONTH(`hr_overtimes`.`ot_date`) AS `month`')
+		$sa = HROvertime::SelectRaw('COUNT(`hr_overtimes`.`staff_id`) As totalstaff, YEAR(`hr_overtimes`.`ot_date`) AS `year`, MONTH(`hr_overtimes`.`ot_date`) AS `month`, `ot_date`')
 						->where('active', 1)
-						->groupBy('year', 'month')
-						->orderByDesc('year')
-						->orderByDesc('month')
+						->groupByRaw('YEAR(ot_date)')
+						->groupByRaw('MONTH(ot_date)')
+						->orderByDesc('ot_date')
+						// ->orderByDesc('month')
 						// ->get();
-						->cursorPaginate(1);
+						->paginate(1);
 						// ->ddRawSql();
 		// dd($sa);
 		$overtime = HROvertime::select('*')
-						// ->whereYear('ot_date', $sa->first()?->ot_date)
+						->whereYear('ot_date', $sa->first()?->year)
+						->whereMonth('ot_date', $sa->first()?->month)
 						->where('active', 1)
 						->orderBy('ot_date', 'DESC')
-						->cursorPaginate($sa->first()?->totalstaff);
+						// ->ddRawSql();
+						->get();
+						// ->paginate($sa->first()?->totalstaff);
 
 		// $overtime = HROvertime::select('*')
 		// 				// ->whereYear('ot_date', $sa->first()?->ot_date)
@@ -78,7 +68,8 @@ class OvertimeController extends Controller
 		// 				->orderBy('ot_date', 'DESC')
 		// 				->get();
 
-	return view('humanresources.hrdept.overtime.index', ['overtime' => $overtime/*, 'sa' => $sa*/]);
+	// return view('humanresources.hrdept.overtime.index', ['overtime' => $overtime]);
+	return view('humanresources.hrdept.overtime.index', ['overtime' => $overtime, 'sa' => $sa]);
 }
 
 	/**
