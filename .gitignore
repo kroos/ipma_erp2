@@ -34,3 +34,5 @@ yarn-error.log
 /public/mix-manifest.json
 /public/vendor
 /public/js/jquery-chained
+jquery-chained
+/public/js/jquery-chained/jquery.chained.js
