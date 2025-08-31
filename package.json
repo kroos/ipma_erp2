@@ -105,7 +105,6 @@
     "callsites": "^3.1.0",
     "camel-case": "^4.1.2",
     "caniuse-api": "^3.0.0",
-    "caniuse-lite": "^1.0.30001513",
     "chalk": "^4.1.2",
     "charenc": "^0.0.2",
     "chokidar": "^3.5.3",

@@ -113,7 +113,6 @@ $setHalfDayMC = \App\Models\Setting::find(2)->active;
 
 function getUnavailableDates(type) {
 	var result;
-
 	$.ajax({
 		url: "{{ route('leavedate.unavailabledate') }}",
 		type: "POST",
@@ -133,16 +132,13 @@ function getUnavailableDates(type) {
 			result = []; // fallback in case of error
 		}
 	});
-
 	return result;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // checking for overlapp leave on half day (if it is turn on)
-
 function getUnblockhalfdayleave() {
 	var result;
-
 	$.ajax({
 		url: "{{ route('unblockhalfdayleave.unblockhalfdayleave') }}",
 		type: "POST",
@@ -161,10 +157,8 @@ function getUnblockhalfdayleave() {
 			result = []; // fallback in case of error
 		}
 	});
-
 	return result;
 }
-// console.log(getUnblockhalfdayleave());
 
 const datetimeIcons = {
 	time: "fas fa-regular fa-clock fa-beat",
@@ -178,36 +172,21 @@ const datetimeIcons = {
 	close: 'fas fa-regular fa-rectangle-xmark fa-beat'
 };
 
-function initDatepicker(selector, no){
+function initDatepicker(selector, no) {
 	let options = {
 		icons: datetimeIcons,
 		format: 'YYYY-MM-DD',
 		useCurrent: false,
 		disabledDates: getUnavailableDates(no),
 	};
-
-	// only add minDate if no == 1
 	if (no === 1) {
 		options.minDate = moment().format('YYYY-MM-DD');
 	}
-
 	return $(selector).datetimepicker(options);
 }
 
-// concept of checking overlapped half day leave
-// var d = false;
-// var itime_start = 0;
-// var itime_end = 0;
-// $.each(getUnblockhalfdayleave(), function() {
-// 	console.log(this.date_half_leave);
-// 	if(this.date_half_leave == '2023-09-09') {	// half day leave date
-// 		return [d = true, itime_start = this.time_start, itime_end = this.time_end];
-// 	}
-// });
-
 function getHalfdayInfo(selector) {
 	let d = false, itime_start = 0, itime_end = 0;
-
 	$.each(getUnblockhalfdayleave(), function() {
 		if (this.date_half_leave == selector) {
 			d = true;
@@ -216,16 +195,11 @@ function getHalfdayInfo(selector) {
 			return false; // break
 		}
 	});
-
 	return [d, itime_start, itime_end];
 }
-// console.log(d);
-// console.log(itime_start);
-// console.log(itime_end);
 
 function getTimeLeave(date) {
 	let result = null;
-
 	$.ajax({
 		url: "{{ route('leavedate.timeleave') }}",
 		type: "POST",
@@ -243,18 +217,88 @@ function getTimeLeave(date) {
 			console.error("Error fetching timeleave:", status, error);
 		}
 	});
-
 	return result;
 }
 
+// 🔹 This is the reusable logic for half-day checks
+function handleHalfDay(date) {
+	let [d, itime_start, itime_end] = getHalfdayInfo(date);
+
+	if (d === true) {
+		$('#wrapperday').append(leave_cat);
+		$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
+		$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
+
+		let obj = getTimeLeave(date);
+
+		let toggle_time_start_am = '', toggle_time_start_pm = '';
+		let checkedam = 'checked', checkedpm = 'checked';
+
+		if (obj.time_start_am == itime_start) {
+			toggle_time_start_am = 'disabled';
+			checkedam = '';
+			checkedpm = 'checked';
+		}
+		if (obj.time_start_pm == itime_start) {
+			toggle_time_start_pm = 'disabled';
+			checkedam = 'checked';
+			checkedpm = '';
+		}
+
+		$('#wrappertest').append(toggle_time(obj));
+		$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
+		$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
+	} else {
+		$('#wrapperday').append(leave_cat);
+		$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
+		$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
+	}
+}
+
+// 🔹 Generalized date change handler
+function setupDateChange(selector, type, no, allowHalfDayMC = false) {
+	initDatepicker(selector, no)
+	.on('dp.change dp.update', function(e) {
+		let dateVal = $(selector).val();
+
+		// Revalidate field
+		$('#form').bootstrapValidator('revalidateField',
+		type === 'from' ? 'date_time_start' : 'date_time_end'
+		);
+
+		// Sync min/max dates
+		if (type === 'from') {
+			$('#to').datetimepicker('minDate', dateVal);
+		} else {
+			$('#from').datetimepicker('maxDate', dateVal);
+		}
+
+		// Half-day logic
+		if ($('#from').val() === $('#to').val()) {
+			if ($('.removehalfleave').length === 0) {
+				if (no === 1 || allowHalfDayMC) {
+					handleHalfDay(dateVal);
+				}
+			}
+		} else {
+			$('.removehalfleave').remove();
+			$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
+			$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_end"]'));
+		}
+	});
+}
+
 let replacementForm = `
+	<?php
+	$oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_balance', '<>', 0)->get();
+	?>
 	<div class="form-group row m-2 {{ $errors->has('leave_id') ? 'has-error' : '' }}">
 		<label for="nrla" class="col-sm-4 col-form-label">Please Choose Your Replacement Leave : </label>
 		<div class="col-sm-8 nrl">
 			<p>Total Replacement Leave = {{ $oi->sum('leave_balance') }} days</p>
 			<select name="id" id="nrla" class="form-control form-select form-select-sm">
 				<option value="">Please select</option>
-			@foreach( $oi as $p )
+			@foreach( $oi as $po )
 				<option value="{{ $po->id }}" data-nrlbalance="{{ $po->leave_balance }}">On ${moment( '{{ $po->date_start }}', 'YYYY-MM-DD' ).format('ddd Do MMM YYYY')}, your leave balance = {{ $po->leave_balance }} day</option>
 			@endforeach
 			</select>
@@ -329,15 +373,6 @@ let leave_cat = `
 		</div>
 	</div>
 	<div class="form-group col-sm-8 offset-sm-4 {{ $errors->has('half_type_id') ? 'has-error' : '' }} removehalfleave"  id="wrappertest">
-	</div>
-`;
-
-let backupperson = `
-	<div class="form-group row {{ $errors->has('staff_id') ? 'has-error' : '' }}">
-		<label for="backupperson" class="col-sm-4 col-form-label">Backup Person : </label>
-		<div class="col-sm-8 backup">
-			<select name="staff_id" id="backupperson" class="form-control form-select form-select-sm" placeholder="Please choose" autocomplete="off"></select>
-		</div>
 	</div>
 `;
 
@@ -441,117 +476,14 @@ $('#leave_id').on('change', function() {
 
 		/////////////////////////////////////////////////////////////////////////////////////////
 		// start date
-		initDatepicker('#from', 1)
-		.on('dp.change dp.update', function(e) {
-			$('#form').bootstrapValidator('revalidateField', 'date_time_start');
-			var minDaten = $('#from').val();
-			// console.log(minDaten);
-			$('#to').datetimepicker('minDate', minDaten);
-			if($('#from').val() === $('#to').val()) {
-				if( $('.removehalfleave').length === 0) {
-
-					////////////////////////////////////////////////////////////////////////////////////////
-					// checking half day leave
-					let [d, itime_start, itime_end] = getHalfdayInfo($('#from').val());
-
-					if(d === true) {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-						var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
-						let obj = getTimeLeave($('#from').val());
-
-						var checkedam = 'checked';
-						var checkedpm = 'checked';
-						if(obj.time_start_am == itime_start) {
-							var toggle_time_start_am = 'disabled';
-							var checkedam = '';
-							var checkedpm = 'checked';
-						}
-
-						if(obj.time_start_pm == itime_start) {
-							var toggle_time_start_pm = 'disabled';
-							var checkedam = 'checked';
-							var checkedpm = '';
-						}
-						$('#wrappertest').append(toggle_time(obj));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-					} else {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-					}
-				}
-			}
-			if($('#from').val() !== $('#to').val()) {
-				$('.removehalfleave').remove();
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_end"]'));
-			}
-		});
-		// end date from
-
-		initDatepicker('#to', 1)
-		.on('dp.change dp.update', function(e) {
-			$('#form').bootstrapValidator('revalidateField', 'date_time_end');
-			var maxDate = $('#to').val();
-			$('#from').datetimepicker('maxDate', maxDate);
-			if($('#from').val() === $('#to').val()) {
-				if( $('.removehalfleave').length === 0) {
-
-					////////////////////////////////////////////////////////////////////////////////////////
-					// checking half day leave
-					let [d, itime_start, itime_end] = getHalfdayInfo($('#to').val());
-					console.log(d, itime_start, itime_end);
-					if(d === true) {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-						var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
-						let obj = getTimeLeave($('#from').val());
-
-						var checkedam = 'checked';
-						var checkedpm = 'checked';
-						console.log(obj.time_start_am, itime_start);
-						if(obj.time_start_am == itime_start) {
-							var toggle_time_start_am = 'disabled';
-							var checkedam = '';
-							var checkedpm = 'checked';
-						}
-
-						if(obj.time_start_pm == itime_start) {
-							var toggle_time_start_pm = 'disabled';
-							var checkedam = 'checked';
-							var checkedpm = '';
-						}
-						$('#wrappertest').append(toggle_time(obj));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-					} else {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-					}
-				}
-			}
-			if($('#from').val() !== $('#to').val()) {
-				$('.removehalfleave').remove();
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_end"]'));
-			}
-		});
-		// end date to
+		setupDateChange('#from', 'from', 1);
+		setupDateChange('#to', 'to', 1);
 
 		/////////////////////////////////////////////////////////////////////////////////////////
 		// enable radio
 		$(document).on('change', '#appendleavehalf :radio', function () {
 			if (this.checked) {
-				var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
+
 				let obj = getTimeLeave($('#from').val());
 
 				// checking so there is no double
@@ -584,9 +516,6 @@ $('#leave_id').on('change', function() {
 					to +
 					@if($setHalfDayMC == 1)
 					wrapperday +
-					@endif
-					@if( $userneedbackup == 99 ) <!-- mc got no backup -->
-					userneedbackup +
 					@endif
 					doc +
 					suppdoc +
@@ -627,122 +556,14 @@ $('#leave_id').on('change', function() {
 		});
 
 		// enable datetime for the 1st one
-		initDatepicker('#from', 2)
-		.on('dp.change dp.update', function(e) {
-			$('#form').bootstrapValidator('revalidateField', 'date_time_start');
-			var minDaten = $('#from').val();
-			$('#to').datetimepicker('minDate', minDaten);
-
-			@if($setHalfDayMC == 1)
-			if($('#from').val() === $('#to').val()) {
-				if( $('.removehalfleave').length === 0) {
-
-					////////////////////////////////////////////////////////////////////////////////////////
-					// checking half day leave
-					let [d, itime_start, itime_end] = getHalfdayInfo($('#from').val());
-					// console.log(d);
-					if(d === true) {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-						var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
-						let obj = getTimeLeave($('#from').val());
-
-						var checkedam = 'checked';
-						var checkedpm = 'checked';
-						if(obj.time_start_am == itime_start) {
-							var toggle_time_start_am = 'disabled';
-							var checkedam = '';
-							var checkedpm = 'checked';
-						}
-
-						if(obj.time_start_pm == itime_start) {
-							var toggle_time_start_pm = 'disabled';
-							var checkedam = 'checked';
-							var checkedpm = '';
-						}
-						$('#wrappertest').append(toggle_time(obj));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-					} else {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-					}
-				}
-			}
-			if($('#from').val() !== $('#to').val()) {
-				$('.removehalfleave').remove();
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_end"]'));
-			}
-			@endif
-		});
-		// end date from
-
-		initDatepicker('#to', 2)
-		.on('dp.change dp.update', function(e) {
-			$('#form').bootstrapValidator('revalidateField', 'date_time_end');
-			var maxDate = $('#to').val();
-			$('#from').datetimepicker('maxDate', maxDate);
-
-			@if($setHalfDayMC == 1)
-			if($('#from').val() === $('#to').val()) {
-				if( $('.removehalfleave').length === 0) {
-
-					////////////////////////////////////////////////////////////////////////////////////////
-					// checking half day leave
-					let [d, itime_start, itime_end] = getHalfdayInfo($('#to').val());
-					// console.log(d);
-					if(d === true) {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-						var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
-						let obj = getTimeLeave($('#from').val());
-
-						var checkedam = 'checked';
-						var checkedpm = 'checked';
-						if(obj.time_start_am == itime_start) {
-							var toggle_time_start_am = 'disabled';
-							var checkedam = '';
-							var checkedpm = 'checked';
-						}
-
-						if(obj.time_start_pm == itime_start) {
-							var toggle_time_start_pm = 'disabled';
-							var checkedam = 'checked';
-							var checkedpm = '';
-						}
-						$('#wrappertest').append(toggle_time(obj));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-					} else {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-					}
-				}
-			}
-			if($('#from').val() !== $('#to').val()) {
-				$('.removehalfleave').remove();
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_end"]'));
-			}
-			@endif
-		});
-		// end date to
+		setupDateChange('#from', 'from', 2, {{ $setHalfDayMC }});
+		setupDateChange('#to', 'to', 2, {{ $setHalfDayMC }});
 
 		@if($setHalfDayMC == 1)
-		/////////////////////////////////////////////////////////////////////////////////////////
 		// enable radio
 		$(document).on('change', '#appendleavehalf :radio', function () {
 			if (this.checked) {
-				var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
+
 				let obj = getTimeLeave($('#from').val());
 
 				// checking so there is no double
@@ -825,117 +646,14 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 
 		/////////////////////////////////////////////////////////////////////////////////////////
 		// enable datetime for the 1st one
-		initDatepicker('#from', 1)
-		.on('dp.change dp.update', function(e) {
-			$('#form').bootstrapValidator('revalidateField', 'date_time_start');
-			var minDaten = $('#from').val();
-			// console.log(minDaten);
-			$('#to').datetimepicker('minDate', minDaten);
-
-			if($('#from').val() === $('#to').val()) {
-				if( $('.removehalfleave').length === 0) {
-
-					////////////////////////////////////////////////////////////////////////////////////////
-					// checking half day leave
-					let [d, itime_start, itime_end] = getHalfdayInfo($('#from').val());
-					// console.log(d);
-					if(d === true) {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-						var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
-						let obj = getTimeLeave($('#from').val());
-
-						var checkedam = 'checked';
-						var checkedpm = 'checked';
-						if(obj.time_start_am == itime_start) {
-							var toggle_time_start_am = 'disabled';
-							var checkedam = '';
-							var checkedpm = 'checked';
-						}
-
-						if(obj.time_start_pm == itime_start) {
-							var toggle_time_start_pm = 'disabled';
-							var checkedam = 'checked';
-							var checkedpm = '';
-						}
-						$('#wrappertest').append(toggle_time(obj));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-					} else {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-					}
-				}
-			}
-			if($('#from').val() !== $('#to').val()) {
-				$('.removehalfleave').remove();
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_end"]'));
-			}
-		});
-		// end date from
-
-		initDatepicker('#to', 1)
-		.on('dp.change dp.update', function(e) {
-			$('#form').bootstrapValidator('revalidateField', 'date_time_end');
-			var maxDate = $('#to').val();
-			$('#from').datetimepicker('maxDate', maxDate);
-			if($('#from').val() === $('#to').val()) {
-				if( $('.removehalfleave').length === 0) {
-
-					////////////////////////////////////////////////////////////////////////////////////////
-					// checking half day leave
-					let [d, itime_start, itime_end] = getHalfdayInfo($('#to').val());
-					// console.log(d);
-					if(d === true) {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-						var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
-						let obj = getTimeLeave($('#from').val());
-
-						var checkedam = 'checked';
-						var checkedpm = 'checked';
-						if(obj.time_start_am == itime_start) {
-							var toggle_time_start_am = 'disabled';
-							var checkedam = '';
-							var checkedpm = 'checked';
-						}
-
-						if(obj.time_start_pm == itime_start) {
-							var toggle_time_start_pm = 'disabled';
-							var checkedam = 'checked';
-							var checkedpm = '';
-						}
-						$('#wrappertest').append(toggle_time(obj));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-					} else {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-					}
-				}
-			}
-			if($('#from').val() !== $('#to').val()) {
-				$('.removehalfleave').remove();
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_end"]'));
-			}
-		});
-		// end date to
+		setupDateChange('#from', 'from', 1);
+		setupDateChange('#to', 'to', 1);
 
 		/////////////////////////////////////////////////////////////////////////////////////////
 		// enable radio
 		$(document).on('change', '#appendleavehalf :radio', function () {
 			if (this.checked) {
-				var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
+
 				let obj = getTimeLeave($('#from').val());
 
 				// checking so there is no double
@@ -965,9 +683,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 			<!-- maternity leave -->
 			from +
 			to +
-			@if( $userneedbackup == 99 )
-			userneedbackup +
-			@endif
 			'</div>'
 		);
 
@@ -1081,7 +796,7 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
 
-						var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
+
 						let obj = getTimeLeave($('#from').val());
 
 						var checkedam = 'checked';
@@ -1121,7 +836,7 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 				// console.log( moment().add(1, 'days').format('YYYY-MM-DD') );
 				// console.log($( '#rembackup').children().length + ' <= rembackup length' );
 				if( $('#backupwrapper').children().length == 0 ) {
-					$('#backupwrapper').append(backupperson);
+					$('#backupwrapper').append(userneedbackup);
 					$('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
 					$('#backupperson').select2({
 						placeholder: 'Please Choose',
@@ -1173,7 +888,7 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
 
-						var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
+
 						let obj = getTimeLeave($('#from').val());
 
 						var checkedam = 'checked';
@@ -1214,7 +929,7 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 				// console.log( moment().add(1, 'days').format('YYYY-MM-DD') );
 				// console.log($( '#rembackup').children().length + ' <= rembackup length' );
 				if( $('#backupwrapper').children().length == 0 ) {
-					$('#backupwrapper').append(backupperson);
+					$('#backupwrapper').append(userneedbackup);
 					$('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
 					$('#backupperson').select2({
 						placeholder: 'Please Choose',
@@ -1253,7 +968,7 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		// enable radio
 		$(document).on('change', '#appendleavehalf :radio', function () {
 			if (this.checked) {
-				var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
+
 				let obj = getTimeLeave($('#from').val());
 
 				// checking so there is no double
@@ -1347,7 +1062,7 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 				// console.log( moment().add(1, 'days').format('YYYY-MM-DD') );
 				// console.log($( '#rembackup').children().length + ' <= rembackup length' );
 				if( $('#backupwrapper').children().length == 0 ) {
-					$('#backupwrapper').append(backupperson);
+					$('#backupwrapper').append(userneedbackup);
 					$('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
 					$('#backupperson').select2({
 						placeholder: 'Please Choose',
@@ -1422,10 +1137,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 				wrapperday +
 				@endif
 
-				@if( $userneedbackup == 99 )
-				userneedbackup +
-				@endif
-
 				doc +
 				suppdoc +
 			'</div>'
@@ -1444,184 +1155,15 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 
 		/////////////////////////////////////////////////////////////////////////////////////////
 		// enable datetime for the 1st one
-		initDatepicker('#from', 2)
-		.on('dp.change dp.update', function(e) {
-			$('#form').bootstrapValidator('revalidateField', 'date_time_start');
-			var minDaten = $('#from').val();
-			$('#to').datetimepicker('minDate', minDaten);
+		setupDateChange('#from', 'from', 2, {{ $setHalfDayMC }});
+		setupDateChange('#to', 'to', 2, {{ $setHalfDayMC }});
 
-			@if($setHalfDayMC == 1)
-			if($('#from').val() === $('#to').val()) {
-				if( $('.removehalfleave').length === 0) {
-
-					////////////////////////////////////////////////////////////////////////////////////////
-					// checking half day leave
-					let [d, itime_start, itime_end] = getHalfdayInfo($('#from').val());
-					// console.log(d);
-					if(d === true) {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-						var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
-						let obj = getTimeLeave($('#from').val());
-
-						var checkedam = 'checked';
-						var checkedpm = 'checked';
-						if(obj.time_start_am == itime_start) {
-							var toggle_time_start_am = 'disabled';
-							var checkedam = '';
-							var checkedpm = 'checked';
-						}
-
-						if(obj.time_start_pm == itime_start) {
-							var toggle_time_start_pm = 'disabled';
-							var checkedam = 'checked';
-							var checkedpm = '';
-						}
-						$('#wrappertest').append(toggle_time(obj));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-					} else {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-					}
-				}
-			}
-			@endif
-			if($('#from').val() !== $('#to').val()) {
-				$('.removehalfleave').remove();
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_end"]'));
-			}
-
-			// for backup person based on from date
-			@if( $userneedbackup == 99 )
-			// enable backup if date from is greater or equal than today.
-			//cari date now dulu
-			if( $('#from').val() >= moment().format('YYYY-MM-DD') ) {
-				// console.log( moment().add(1, 'days').format('YYYY-MM-DD') );
-				// console.log($( '#rembackup').children().length + ' <= rembackup length' );
-				if( $('#backupwrapper').children().length == 0 ) {
-					$('#backupwrapper').append(backupperson);
-					$('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
-					$('#backupperson').select2({
-						placeholder: 'Please Choose',
-						width: '100%',
-						ajax: {
-							url: '{{ route('backupperson') }}',
-							// data: { '_token': '{!! csrf_token() !!}' },
-							type: 'POST',
-							dataType: 'json',
-							data: function (params) {
-								var query = {
-									id: {{ \Auth::user()->belongstostaff->id }},
-									_token: '{!! csrf_token() !!}',
-									date_from: $('#from').val(),
-									date_to: $('#to').val(),
-								}
-								return query;
-							}
-						},
-						allowClear: true,
-						closeOnSelect: true,
-					});
-				}
-			} else {
-				$('#form').bootstrapValidator('removeField', $('.backup').find('[name="staff_id"]'));
-				$('#backupwrapper').children().remove();
-			}
-			@endif
-		});
-
-		initDatepicker('#to', 2)
-		.on('dp.change dp.update', function(e) {
-			$('#form').bootstrapValidator('revalidateField', 'date_time_end');
-			var maxDate = $('#to').val();
-			$('#from').datetimepicker('maxDate', maxDate);
-
-			@if($setHalfDayMC == 1)
-			if($('#from').val() === $('#to').val()) {
-				if( $('.removehalfleave').length === 0) {
-
-					////////////////////////////////////////////////////////////////////////////////////////
-					// checking half day leave
-					let [d, itime_start, itime_end] = getHalfdayInfo($('#to').val());
-					// console.log(d);
-					if(d === true) {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-						var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
-						let obj = getTimeLeave($('#from').val());
-
-						var checkedam = 'checked';
-						var checkedpm = 'checked';
-						if(obj.time_start_am == itime_start) {
-							var toggle_time_start_am = 'disabled';
-							var checkedam = '';
-							var checkedpm = 'checked';
-						}
-
-						if(obj.time_start_pm == itime_start) {
-							var toggle_time_start_pm = 'disabled';
-							var checkedam = 'checked';
-							var checkedpm = '';
-						}
-						$('#wrappertest').append(toggle_time(obj));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-					} else {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-					}
-				}
-			}
-			@endif
-			if($('#from').val() !== $('#to').val()) {
-				$('.removehalfleave').remove();
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_end"]'));
-			}
-		});
-		// end date
-
-		/////////////////////////////////////////////////////////////////////////////////////////
-		//enable select 2 for backup
-		@if( $userneedbackup == 99 )
-		$('#backupperson').select2({
-			placeholder: 'Please Choose',
-			width: '100%',
-			ajax: {
-				url: '{{ route('backupperson') }}',
-				// data: { '_token': '{!! csrf_token() !!}' },
-				type: 'POST',
-				dataType: 'json',
-				data: function (params) {
-					var query = {
-						id: {{ \Auth::user()->belongstostaff->id }},
-						_token: '{!! csrf_token() !!}',
-						date_from: $('#from').val(),
-						date_to: $('#to').val(),
-					}
-					return query;
-				}
-			},
-			allowClear: true,
-			closeOnSelect: true,
-		});
-		@endif
 		/////////////////////////////////////////////////////////////////////////////////////////
 		@if($setHalfDayMC == 1)
 		// enable radio
 		$(document).on('change', '#appendleavehalf :radio', function () {
 			if (this.checked) {
-				var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
+
 				let obj = getTimeLeave($('#from').val());
 
 				// checking so there is no double
@@ -1654,9 +1196,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 				from +
 				to +
 				wrapperday +
-				@if( $userneedbackup == 99 )
-				userneedbackup +
-				@endif
 				doc +
 				suppdoc +
 			'</div>'
@@ -1708,154 +1247,14 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 
 		/////////////////////////////////////////////////////////////////////////////////////////
 		// enable datetime for the 1st one
-		initDatepicker('#from', 2)
-		.on('dp.change dp.update', function(e) {
-			$('#form').bootstrapValidator('revalidateField', 'date_time_start');
-			var minDaten = $('#from').val();
-			$('#to').datetimepicker('minDate', minDaten);
-
-			if($('#from').val() === $('#to').val()) {
-				if( $('.removehalfleave').length === 0) {
-
-					////////////////////////////////////////////////////////////////////////////////////////
-					// checking half day leave
-					let [d, itime_start, itime_end] = getHalfdayInfo($('#from').val());
-					// console.log(d);
-					if(d === true) {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-						var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
-						let obj = getTimeLeave($('#from').val());
-
-						var checkedam = 'checked';
-						var checkedpm = 'checked';
-						if(obj.time_start_am == itime_start) {
-							var toggle_time_start_am = 'disabled';
-							var checkedam = '';
-							var checkedpm = 'checked';
-						}
-
-						if(obj.time_start_pm == itime_start) {
-							var toggle_time_start_pm = 'disabled';
-							var checkedam = 'checked';
-							var checkedpm = '';
-						}
-						$('#wrappertest').append(toggle_time(obj));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-					} else {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-					}
-				}
-			}
-			if($('#from').val() !== $('#to').val()) {
-				$('.removehalfleave').remove();
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_end"]'));
-			}
-
-			@if( $userneedbackup == 99 )
-			// enable backup if date from is greater or equal than today.
-			//cari date now dulu
-			if( $('#from').val() >= moment().format('YYYY-MM-DD') ) {
-				// console.log( moment().add(1, 'days').format('YYYY-MM-DD') );
-				// console.log($( '#rembackup').children().length + ' <= rembackup length' );
-				if( $('#backupwrapper').children().length == 0 ) {
-					$('#backupwrapper').append(backupperson);
-					$('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
-					$('#backupperson').select2({
-						placeholder: 'Please Choose',
-						width: '100%',
-						ajax: {
-							url: '{{ route('backupperson') }}',
-							// data: { '_token': '{!! csrf_token() !!}' },
-							type: 'POST',
-							dataType: 'json',
-							data: function (params) {
-								var query = {
-									id: {{ \Auth::user()->belongstostaff->id }},
-									_token: '{!! csrf_token() !!}',
-									date_from: $('#from').val(),
-									date_to: $('#to').val(),
-								}
-								return query;
-							}
-						},
-						allowClear: true,
-						closeOnSelect: true,
-					});
-				}
-			} else {
-				$('#form').bootstrapValidator('removeField', $('.backup').find('[name="staff_id"]'));
-				$('#backupwrapper').children().remove();
-			}
-			@endif
-		});
-		// end date from
-
-		initDatepicker('#to', 2)
-		.on('dp.change dp.update', function(e) {
-			$('#form').bootstrapValidator('revalidateField', 'date_time_end');
-			var maxDate = $('#to').val();
-			$('#from').datetimepicker('maxDate', maxDate);
-
-			if($('#from').val() === $('#to').val()) {
-				if( $('.removehalfleave').length === 0) {
-
-					////////////////////////////////////////////////////////////////////////////////////////
-					// checking half day leave
-					let [d, itime_start, itime_end] = getHalfdayInfo($('#to').val());
-					// console.log(d);
-					if(d === true) {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-						var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
-						let obj = getTimeLeave($('#from').val());
-
-						var checkedam = 'checked';
-						var checkedpm = 'checked';
-						if(obj.time_start_am == itime_start) {
-							var toggle_time_start_am = 'disabled';
-							var checkedam = '';
-							var checkedpm = 'checked';
-						}
-
-						if(obj.time_start_pm == itime_start) {
-							var toggle_time_start_pm = 'disabled';
-							var checkedam = 'checked';
-							var checkedpm = '';
-						}
-						$('#wrappertest').append(toggle_time(obj));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-					} else {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-					}
-				}
-			}
-			if($('#from').val() !== $('#to').val()) {
-				$('.removehalfleave').remove();
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_end"]'));
-			}
-		});
-		// end date to
+		setupDateChange('#from', 'from', 2, {{ $setHalfDayMC }});
+		setupDateChange('#to', 'to', 2, {{ $setHalfDayMC }});
 
 		/////////////////////////////////////////////////////////////////////////////////////////
 		// enable radio
 		$(document).on('change', '#appendleavehalf :radio', function () {
 			if (this.checked) {
-				var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
+
 				let obj = getTimeLeave($('#from').val());
 
 				// checking so there is no double
@@ -1888,11 +1287,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 				from +
 				to +
 				wrapperday +
-
-				@if( $userneedbackup == 99 )
-				userneedbackup +
-				@endif
-
 				doc +
 				suppdoc +
 			'</div>'
@@ -1936,163 +1330,20 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 
 		/////////////////////////////////////////////////////////////////////////////////////////
 		// start date
-		initDatepicker('#from', 2)
-		.on('dp.change dp.update', function(e) {
-			$('#form').bootstrapValidator('revalidateField', 'date_time_start');
-			var minDaten = $('#from').val();
-			$('#to').datetimepicker('minDate', minDaten);
-
-			if($('#from').val() === $('#to').val()) {
-				if( $('.removehalfleave').length === 0) {
-
-					////////////////////////////////////////////////////////////////////////////////////////
-					// checking half day leave
-					let [d, itime_start, itime_end] = getHalfdayInfo($('#from').val());
-					// console.log(d);
-					if(d === true) {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-						var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
-						let obj = getTimeLeave($('#from').val());
-
-						var checkedam = 'checked';
-						var checkedpm = 'checked';
-						if(obj.time_start_am == itime_start) {
-							var toggle_time_start_am = 'disabled';
-							var checkedam = '';
-							var checkedpm = 'checked';
-						}
-
-						if(obj.time_start_pm == itime_start) {
-							var toggle_time_start_pm = 'disabled';
-							var checkedam = 'checked';
-							var checkedpm = '';
-						}
-						$('#wrappertest').append(toggle_time(obj));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-					} else {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-					}
-				}
-			}
-			if($('#from').val() !== $('#to').val()) {
-				$('.removehalfleave').remove();
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_end"]'));
-			}
-
-			@if( $userneedbackup == 99 )
-			// enable backup if date from is greater or equal than today.
-			//cari date now dulu
-			if( $('#from').val() >= moment().format('YYYY-MM-DD') ) {
-				// console.log( moment().add(1, 'days').format('YYYY-MM-DD') );
-				// console.log($( '#rembackup').children().length + ' <= rembackup length' );
-				if( $('#backupwrapper').children().length == 0 ) {
-					$('#backupwrapper').append(backupperson);
-					$('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
-					$('#backupperson').select2({
-						placeholder: 'Please Choose',
-						width: '100%',
-						ajax: {
-							url: '{{ route('backupperson') }}',
-							// data: { '_token': '{!! csrf_token() !!}' },
-							type: 'POST',
-							dataType: 'json',
-							data: function (params) {
-								var query = {
-									id: {{ \Auth::user()->belongstostaff->id }},
-									_token: '{!! csrf_token() !!}',
-									date_from: $('#from').val(),
-									date_to: $('#to').val(),
-								}
-								return query;
-							}
-						},
-						allowClear: true,
-						closeOnSelect: true,
-					});
-				}
-			} else {
-				$('#form').bootstrapValidator('removeField', $('.backup').find('[name="staff_id"]'));
-				$('#backupwrapper').children().remove();
-			}
-			@endif
-		});
-		// end date from
-
-		initDatepicker('#to', 2)
-		.on('dp.change dp.update', function(e) {
-			$('#form').bootstrapValidator('revalidateField', 'date_time_end');
-			var maxDate = $('#to').val();
-			$('#from').datetimepicker('maxDate', maxDate);
-
-			if($('#from').val() === $('#to').val()) {
-				if( $('.removehalfleave').length === 0) {
-
-					////////////////////////////////////////////////////////////////////////////////////////
-					// checking half day leave
-					let [d, itime_start, itime_end] = getHalfdayInfo($('#to').val());
-					// console.log(d);
-					if(d === true) {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-						var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
-						let obj = getTimeLeave($('#from').val());
-
-						var checkedam = 'checked';
-						var checkedpm = 'checked';
-						if(obj.time_start_am == itime_start) {
-							var toggle_time_start_am = 'disabled';
-							var checkedam = '';
-							var checkedpm = 'checked';
-						}
-
-						if(obj.time_start_pm == itime_start) {
-							var toggle_time_start_pm = 'disabled';
-							var checkedam = 'checked';
-							var checkedpm = '';
-						}
-						$('#wrappertest').append(toggle_time(obj));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
-					} else {
-						$('#wrapperday').append(leave_cat);
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
-						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-					}
-				}
-			}
-			if($('#from').val() !== $('#to').val()) {
-				$('.removehalfleave').remove();
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
-				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_end"]'));
-			}
-		});
-		// end date to
+		setupDateChange('#from', 'from', 2, {{ $setHalfDayMC }});
+		setupDateChange('#to', 'to', 2, {{ $setHalfDayMC }});
 
 		/////////////////////////////////////////////////////////////////////////////////////////
 		// enable radio
 		$(document).on('change', '#appendleavehalf :radio', function () {
 			if (this.checked) {
-				var daynow = moment($('#from').val(), 'YYYY-MM-DD').format('dddd');
 				let obj = getTimeLeave($('#from').val());
-
 				// checking so there is no double
 				if( $('.removetest').length == 0 ) {
 					$('#wrappertest').append(toggle_time_checked(obj));
 				}
 			}
 		});
-
 		$(document).on('change', '#removeleavehalf :radio', function () {
 		//$('#removeleavehalf :radio').change(function() {
 			if (this.checked) {
