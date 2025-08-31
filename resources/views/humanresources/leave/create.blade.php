@@ -65,7 +65,7 @@
 
 @endsection
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
+
 $('#leave_id').select2({
 	placeholder: 'Please choose',
 	allowClear: true,
@@ -86,30 +86,11 @@ $('#leave_id').select2({
 	},
 });
 
-/////////////////////////////////////////////////////////////////////////////////////////
-//enable ckeditor
-// its working, i just disable it
-// $(document).ready(function() {
-// 	var editor = CKEDITOR.replace( 'reason', {});
-// 	// editor is object of your CKEDITOR
-// 	editor.on('change',function(){
-// 	     // console.log();
-// 	    $('#form').bootstrapValidator('revalidateField', 'reason');
-// 	});
-// });
-// // with jquery adapter
-// $('textarea#reason').ckeditor();
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// start setting up the leave accordingly.
 <?php
 $user = \Auth::user()->belongstostaff;
 $userneedbackup = $user->belongstoleaveapprovalflow?->backup_approval;
 $setHalfDayMC = \App\Models\Setting::find(2)->active;
 ?>
-
-/////////////////////////////////////////////////////////////////////////////////////////
-//  global variable : ajax to get the unavailable date
 
 function getUnavailableDates(type) {
 	var result;
@@ -135,8 +116,6 @@ function getUnavailableDates(type) {
 	return result;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-// checking for overlapp leave on half day (if it is turn on)
 function getUnblockhalfdayleave() {
 	var result;
 	$.ajax({
@@ -220,7 +199,6 @@ function getTimeLeave(date) {
 	return result;
 }
 
-// 🔹 This is the reusable logic for half-day checks
 function handleHalfDay(date) {
 	let [d, itime_start, itime_end] = getHalfdayInfo(date);
 
@@ -255,25 +233,21 @@ function handleHalfDay(date) {
 	}
 }
 
-// 🔹 Generalized date change handler
 function setupDateChange(selector, type, no, allowHalfDayMC = false) {
 	initDatepicker(selector, no)
 	.on('dp.change dp.update', function(e) {
 		let dateVal = $(selector).val();
 
-		// Revalidate field
 		$('#form').bootstrapValidator('revalidateField',
 		type === 'from' ? 'date_time_start' : 'date_time_end'
 		);
 
-		// Sync min/max dates
 		if (type === 'from') {
 			$('#to').datetimepicker('minDate', dateVal);
 		} else {
 			$('#from').datetimepicker('maxDate', dateVal);
 		}
 
-		// Half-day logic
 		if ($('#from').val() === $('#to').val()) {
 			if ($('.removehalfleave').length === 0) {
 				if (no === 1 || allowHalfDayMC) {
@@ -292,7 +266,7 @@ let replacementForm = `
 	<?php
 	$oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_balance', '<>', 0)->get();
 	?>
-	<div class="form-group row m-2 {{ $errors->has('leave_id') ? 'has-error' : '' }}">
+	<div class="form-group row m-2 {{ $errors->has('nrla') ? 'has-error' : '' }}">
 		<label for="nrla" class="col-sm-4 col-form-label">Please Choose Your Replacement Leave : </label>
 		<div class="col-sm-8 nrl">
 			<p>Total Replacement Leave = {{ $oi->sum('leave_balance') }} days</p>
@@ -406,20 +380,14 @@ function toggle_time_checked(obj){
 	`;
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////
-// start here when user start to select the leave type option
 $('#leave_id').on('change', function() {
 	$selection = $(this).find(':selected');
-	// console.log($selection.val());
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// annual leave & UPL
 	if ($selection.val() == '1' || $selection.val() == '3') {
 		$('#remove').remove();
 		if($selection.val() == '3') {
 			$('#wrapper').append(
 				'<div id="remove">' +
-					<!-- UNPAID LEAVE | UPL -->
 					from +
 					to +
 					wrapperday +
@@ -431,7 +399,6 @@ $('#leave_id').on('change', function() {
 		} else {
 			$('#wrapper').append(
 				'<div id="remove">' +
-					<!-- ANNUAL LEAVE | AL -->
 					from +
 					to +
 					wrapperday +
@@ -450,14 +417,11 @@ $('#leave_id').on('change', function() {
 			$('#form').bootstrapValidator('addField', $('.suppdoc').find('[name="documentsupport"]'));
 		}
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		//enable select 2 for backup
 		$('#backupperson').select2({
 			placeholder: 'Please Choose',
 			width: '100%',
 			ajax: {
 				url: '{{ route('backupperson') }}',
-				// data: { '_token': '{!! csrf_token() !!}' },
 				type: 'POST',
 				dataType: 'json',
 				data: function (params) {
@@ -474,13 +438,9 @@ $('#leave_id').on('change', function() {
 			closeOnSelect: true,
 		});
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// start date
 		setupDateChange('#from', 'from', 1);
 		setupDateChange('#to', 'to', 1);
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// enable radio
 		$(document).on('change', '#appendleavehalf :radio', function () {
 			if (this.checked) {
 
@@ -496,7 +456,6 @@ $('#leave_id').on('change', function() {
 		});
 
 		$(document).on('change', '#removeleavehalf :radio', function () {
-		//$('#removeleavehalf :radio').change(function() {
 			if (this.checked) {
 				$('.removetest').remove();
 				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
@@ -505,13 +464,11 @@ $('#leave_id').on('change', function() {
 		});
 	}
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	if ($selection.val() == '2') {
 
 		$('#remove').remove();
 		$('#wrapper').append(
 			'<div id="remove">' +
-				<!-- mc leave -->
 					from +
 					to +
 					@if($setHalfDayMC == 1)
@@ -522,9 +479,6 @@ $('#leave_id').on('change', function() {
 			'</div>'
 		);
 
-		@if( $userneedbackup == 1 )
-		// $('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
-		@endif
 		$('#form').bootstrapValidator('addField', $('.datetime').find('[name="date_time_start"]'));
 		$('#form').bootstrapValidator('addField', $('.datetime').find('[name="date_time_end"]'));
 		$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
@@ -532,13 +486,11 @@ $('#leave_id').on('change', function() {
 		$('#form').bootstrapValidator('addField', $('.supportdoc').find('[name="document"]'));
 		$('#form').bootstrapValidator('addField', $('.suppdoc').find('[name="documentsupport"]'));
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		$('#backupperson').select2({
+			$('#backupperson').select2({
 			placeholder: 'Please Choose',
 			width: '100%',
 			ajax: {
 				url: '{{ route('backupperson') }}',
-				// data: { '_token': '{!! csrf_token() !!}' },
 				type: 'POST',
 				dataType: 'json',
 				data: function (params) {
@@ -555,12 +507,10 @@ $('#leave_id').on('change', function() {
 			closeOnSelect: true,
 		});
 
-		// enable datetime for the 1st one
 		setupDateChange('#from', 'from', 2, {{ $setHalfDayMC }});
 		setupDateChange('#to', 'to', 2, {{ $setHalfDayMC }});
 
 		@if($setHalfDayMC == 1)
-		// enable radio
 		$(document).on('change', '#appendleavehalf :radio', function () {
 			if (this.checked) {
 
@@ -586,8 +536,6 @@ $('#leave_id').on('change', function() {
 		@endif
 	}
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// replacement leave
 <?php
 $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_balance', '<>', 0)->get();
 ?>
@@ -603,8 +551,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 			'</div>'
 		);
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// more option
 		$('#form').bootstrapValidator('addField', $('.nrl').find('[name="leave_id"]'));
 		@if( $userneedbackup == 1 )
 		$('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
@@ -615,19 +561,14 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
 
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// enable select2 on nrla
 		$('#nrla').select2({ placeholder: 'Please select', 	width: '100%',
 		});
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// enable select2
 		$('#backupperson').select2({
 			placeholder: 'Please Choose',
 			width: '100%',
 			ajax: {
 				url: '{{ route('backupperson') }}',
-				// data: { '_token': '{!! csrf_token() !!}' },
 				type: 'POST',
 				dataType: 'json',
 				data: function (params) {
@@ -644,19 +585,12 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 			closeOnSelect: true,
 		});
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// enable datetime for the 1st one
 		setupDateChange('#from', 'from', 1);
 		setupDateChange('#to', 'to', 1);
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// enable radio
 		$(document).on('change', '#appendleavehalf :radio', function () {
 			if (this.checked) {
-
 				let obj = getTimeLeave($('#from').val());
-
-				// checking so there is no double
 				if( $('.removetest').length == 0 ) {
 					$('#wrappertest').append(toggle_time_checked(obj));
 				}
@@ -664,7 +598,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		});
 
 		$(document).on('change', '#removeleavehalf :radio', function () {
-		// $('#removeleavehalf :radio').change(function() {
 			if (this.checked) {
 				$('.removetest').remove();
 				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
@@ -673,24 +606,17 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		});
 	}
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// maternity leave
 	if ($selection.val() == '7') {
 
 		$('#remove').remove();
 		$('#wrapper').append(
 			'<div id="remove">' +
-			<!-- maternity leave -->
 			from +
 			to +
 			'</div>'
 		);
 
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// more option
-		//add bootstrapvalidator
-		// more option
 		$('#form').bootstrapValidator('addField', $('.nrl').find('[name="leave_id"]'));
 		@if( $userneedbackup == 1 )
 		// $('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
@@ -700,14 +626,11 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		$('#form').bootstrapValidator('addField', $('.supportdoc').find('[name="document"]'));
 		$('#form').bootstrapValidator('addField', $('.suppdoc').find('[name="documentsupport"]'));
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		//enable select 2 for backup
 		$('#backupperson').select2({
 			placeholder: 'Please Choose',
 			width: '100%',
 			ajax: {
 				url: '{{ route('backupperson') }}',
-				// data: { '_token': '{!! csrf_token() !!}' },
 				type: 'POST',
 				dataType: 'json',
 				data: function (params) {
@@ -724,8 +647,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 			closeOnSelect: true,
 		});
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// enable datetime for the 1st one
 		initDatepicker('#from', 1)
 		.on('dp.change dp.update', function(e) {
 			$('#form').bootstrapValidator('revalidateField', 'date_time_start');
@@ -744,13 +665,11 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		});
 	}
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	if ($selection.val() == '5' || $selection.val() == '6') {		// el-al and el-upl
 
 		$('#remove').remove();
 		$('#wrapper').append(
 			'<div id="remove">' +
-				<!-- emergency leave -->
 				from +
 				to +
 				wrapperday +
@@ -762,9 +681,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 				suppdoc +
 			'</div>'
 		);
-		/////////////////////////////////////////////////////////////////////////////////////////
-		//add bootstrapvalidator
-		// more option
 		$('#form').bootstrapValidator('addField', $('.nrl').find('[name="leave_id"]'));
 		@if( $userneedbackup == 1 )
 			$('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
@@ -776,8 +692,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		$('#form').bootstrapValidator('addField', $('.supportdoc').find('[name="document"]'));
 		$('#form').bootstrapValidator('addField', $('.suppdoc').find('[name="documentsupport"]'));
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// enable datetime for the 1st one
 		initDatepicker('#from', 2)
 		.on('dp.change dp.update', function(e) {
 			$('#form').bootstrapValidator('revalidateField', 'date_time_start');
@@ -786,16 +700,11 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 
 			if($('#from').val() === $('#to').val()) {
 				if( $('.removehalfleave').length === 0) {
-
-					////////////////////////////////////////////////////////////////////////////////////////
-					// checking half day leave
 					let [d, itime_start, itime_end] = getHalfdayInfo($('#from').val());
-					// console.log(d);
 					if(d === true) {
 						$('#wrapperday').append(leave_cat);
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
 
 						let obj = getTimeLeave($('#from').val());
 
@@ -830,11 +739,7 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 			}
 
 			@if( $userneedbackup == 1 )
-			// enable backup if date from is greater or equal than today.
-			// cari date now dulu
 			if( $('#from').val() >= moment().format('YYYY-MM-DD') ) {
-				// console.log( moment().add(1, 'days').format('YYYY-MM-DD') );
-				// console.log($( '#rembackup').children().length + ' <= rembackup length' );
 				if( $('#backupwrapper').children().length == 0 ) {
 					$('#backupwrapper').append(userneedbackup);
 					$('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
@@ -868,7 +773,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 			}
 			@endif
 		});
-		// end date from
 
 		initDatepicker('#to', 2)
 		.on('dp.change dp.update', function(e) {
@@ -878,16 +782,11 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 
 			if($('#from').val() === $('#to').val()) {
 				if( $('.removehalfleave').length === 0) {
-
-					////////////////////////////////////////////////////////////////////////////////////////
-					// checking half day leave
 					let [d, itime_start, itime_end] = getHalfdayInfo($('#to').val());
-					// console.log(d);
 					if(d === true) {
 						$('#wrapperday').append(leave_cat);
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_start"]'));
 						$('#form').bootstrapValidator('addField', $('.time').find('[name="time_end"]'));
-
 
 						let obj = getTimeLeave($('#from').val());
 
@@ -921,13 +820,8 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_end"]'));
 			}
 
-			// check for user backup
 			@if( $userneedbackup == 1 )
-			// enable backup if date from is greater or equal than today.
-			// cari date now dulu
 			if( $('#from').val() >= moment().format('YYYY-MM-DD') ) {
-				// console.log( moment().add(1, 'days').format('YYYY-MM-DD') );
-				// console.log($( '#rembackup').children().length + ' <= rembackup length' );
 				if( $('#backupwrapper').children().length == 0 ) {
 					$('#backupwrapper').append(userneedbackup);
 					$('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
@@ -962,10 +856,7 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 			}
 			@endif
 		});
-		// end date to
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// enable radio
 		$(document).on('change', '#appendleavehalf :radio', function () {
 			if (this.checked) {
 
@@ -986,7 +877,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		});
 	}
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	if ($selection.val() == '9') { // time off
 
 		$('#remove').remove();
@@ -1013,8 +903,7 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 				suppdoc +
 			'</div>'
 		);
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// more option
+				// more option
 		//add bootstrapvalidator
 		@if( $userneedbackup == 1 )
 		$('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
@@ -1025,8 +914,7 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		$('#form').bootstrapValidator('addField', $('.supportdoc').find('[name="document"]'));
 		$('#form').bootstrapValidator('addField', $('.suppdoc').find('[name="documentsupport"]'));
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		//enable select 2 for backup
+				//enable select 2 for backup
 		$('#backupperson').select2({
 			placeholder: 'Please Choose',
 			width: '100%',
@@ -1049,8 +937,7 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 			closeOnSelect: true,
 		});
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// enable datetime for the 1st one
+				// enable datetime for the 1st one
 		initDatepicker('#from', 2)
 		.on('dp.change ', function(e) {
 			$('#form').bootstrapValidator('revalidateField', 'date_time_start');
@@ -1093,15 +980,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 			@endif
 		});
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// time start
-		// need to get working hour for each user
-		// lazy to implement this 1. :P
-		// moment(obj.time_start_am, 'HH:mm:ss').format('h:mm a')
-		// moment(obj.time_end_am, 'HH:mm:ss').format('h:mm a')
-		// moment(obj.time_start_pm, 'HH:mm:ss').format('h:mm a')
-		// moment(obj.time_end_pm, 'HH:mm:ss').format('h:mm a')
-
 		$('#start').datetimepicker({
 			icons: datetimeIcons,
 			format: 'h:mm A',
@@ -1109,7 +987,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		})
 		.on('dp.change dp.update', function(e){
 			$('#form').bootstrapValidator('revalidateField', 'time_start');
-			// $('#end').datetimepicker('minDate', moment($('#start').val(), 'h:mm A'));
 		});
 
 		$('#end').datetimepicker({
@@ -1123,13 +1000,11 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		});
 	}
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	if ($selection.val() == '11') {				// mc-upl
 
 		$('#remove').remove();
 		$('#wrapper').append(
 			'<div id="remove">' +
-				<!-- mc leave -->
 				from +
 				to +
 
@@ -1142,7 +1017,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 			'</div>'
 		);
 
-		//add bootstrapvalidator
 		@if( $userneedbackup == 1 )
 		$('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
 		@endif
@@ -1153,20 +1027,15 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		$('#form').bootstrapValidator('addField', $('.supportdoc').find('[name="document"]'));
 		$('#form').bootstrapValidator('addField', $('.suppdoc').find('[name="documentsupport"]'));
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// enable datetime for the 1st one
 		setupDateChange('#from', 'from', 2, {{ $setHalfDayMC }});
 		setupDateChange('#to', 'to', 2, {{ $setHalfDayMC }});
 
-		/////////////////////////////////////////////////////////////////////////////////////////
 		@if($setHalfDayMC == 1)
-		// enable radio
 		$(document).on('change', '#appendleavehalf :radio', function () {
 			if (this.checked) {
 
 				let obj = getTimeLeave($('#from').val());
 
-				// checking so there is no double
 				if( $('.removetest').length == 0 ) {
 					$('#wrappertest').append(toggle_time_checked(obj));
 				}
@@ -1174,7 +1043,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		});
 
 		$(document).on('change', '#removeleavehalf :radio', function () {
-		//$('#removeleavehalf :radio').change(function() {
 			if (this.checked) {
 				$('.removetest').remove();
 			}
@@ -1182,8 +1050,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		@endif
 	}
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// el replacement leave
 <?php
 $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_balance', '<>', 0)->get();
 ?>
@@ -1201,8 +1067,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 			'</div>'
 		);
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// more option
 		$('#form').bootstrapValidator('addField', $('.nrl').find('[name="leave_id"]'));
 		@if( $userneedbackup == 1 )
 		// $('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
@@ -1214,15 +1078,11 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		$('#form').bootstrapValidator('addField', $('.supportdoc').find('[name="document"]'));
 		$('#form').bootstrapValidator('addField', $('.suppdoc').find('[name="documentsupport"]'));
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// enable select2
 		$('#nrla').select2({
 			placeholder: 'Please select',
 			width: '100%',
 		});
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		//enable select 2 for backup
 		$('#backupperson').select2({
 			placeholder: 'Please Choose',
 			width: '100%',
@@ -1245,19 +1105,14 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 			closeOnSelect: true,
 		});
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// enable datetime for the 1st one
 		setupDateChange('#from', 'from', 2, {{ $setHalfDayMC }});
 		setupDateChange('#to', 'to', 2, {{ $setHalfDayMC }});
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// enable radio
 		$(document).on('change', '#appendleavehalf :radio', function () {
 			if (this.checked) {
 
 				let obj = getTimeLeave($('#from').val());
 
-				// checking so there is no double
 				if( $('.removetest').length == 0 ) {
 					$('#wrappertest').append(toggle_time_checked(obj));
 				}
@@ -1265,7 +1120,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		});
 
 		$(document).on('change', '#removeleavehalf :radio', function () {
-		// $('#removeleavehalf :radio').change(function() {
 			if (this.checked) {
 				$('.removetest').remove();
 				$('#form').bootstrapValidator('removeField', $('.time').find('[name="time_start"]'));
@@ -1274,16 +1128,11 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		});
 	}
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// S-UPL
 	if ($selection.val() == '12') {
 
 		$('#remove').remove();
 		$('#wrapper').append(
-
 			'<div id="remove">' +
-				<!-- annual leave -->
-
 				from +
 				to +
 				wrapperday +
@@ -1291,9 +1140,7 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 				suppdoc +
 			'</div>'
 			);
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// add more option
-		//add bootstrapvalidator
+
 		@if( $userneedbackup == 1 )
 		$('#form').bootstrapValidator('addField', $('.backup').find('[name="staff_id"]'));
 		@endif
@@ -1304,8 +1151,6 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 		$('#form').bootstrapValidator('addField', $('.supportdoc').find('[name="document"]'));
 		$('#form').bootstrapValidator('addField', $('.suppdoc').find('[name="documentsupport"]'));
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		//enable select 2 for backup
 		$('#backupperson').select2({
 			placeholder: 'Please Choose',
 			width: '100%',
@@ -1328,30 +1173,26 @@ $oi = \Auth::user()->belongstostaff->hasmanyleavereplacement()->where('leave_bal
 			},
 		});
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// start date
 		setupDateChange('#from', 'from', 2, {{ $setHalfDayMC }});
 		setupDateChange('#to', 'to', 2, {{ $setHalfDayMC }});
 
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// enable radio
 		$(document).on('change', '#appendleavehalf :radio', function () {
 			if (this.checked) {
 				let obj = getTimeLeave($('#from').val());
-				// checking so there is no double
 				if( $('.removetest').length == 0 ) {
 					$('#wrappertest').append(toggle_time_checked(obj));
 				}
 			}
 		});
 		$(document).on('change', '#removeleavehalf :radio', function () {
-		//$('#removeleavehalf :radio').change(function() {
 			if (this.checked) {
 				$('.removetest').remove();
 			}
 		});
 	}
 });
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // validator
