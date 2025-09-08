@@ -134,17 +134,10 @@ $evaluatees = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
               <!-- POP UP -->
               <div class="modal fade" id="form{{ $staff->id }}" aria-labelledby="formlabel{{ $staff->id }}" aria-hidden="true">
                 <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-                  {!! Form::model($staff, [
-                  'route' => ['appraisalapoint.update', $staff->id],
-                  'method' => 'PATCH',
-                  'id' => 'form_update',
-                  'autocomplete' => 'off',
-                  'files' => true,
-                  'class' => 'form-appraisal-category',
-                  'data-id' => $staff->id,
-                  'data-toggle' => 'validator',
-                  ]) !!}
-                  <div class="modal-content">
+                  <form method="POST" action="{{ route('appraisalapoint.update', $staff->id) }}" accept-charset="UTF-8" id="form_update" autocomplete="off" class="form-appraisal-category" data-id="{{ $staff->id }}" data-toggle="validator" enctype="multipart/form-data">
+                    @method('PATCH')
+                    @csrf
+                   <div class="modal-content">
                     <div class="modal-header">
                       <h1 class="modal-title fs-5" id="formlabel{{ $staff->id }}">Appraisal Form : {{ $staff->username }} - {{ $staff->name }}
                       </h1>
@@ -153,15 +146,20 @@ $evaluatees = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
                     <div class="modal-body align-items-start justify-content-center">
                       <div class="row mb-1">
                         <div class="mb-1">
-                          {!! Form::select( 'appraisal_category_id'. $staff->id, $appraisal_category, @$value, ['class' => 'form-control select-input form-select', 'id' => 'appraisal_category_id'. $staff->id, 'placeholder' => 'Please Select'] ) !!}
+                          <select name="appraisal_category_id{{ $staff->id }}" id="appraisal_category_id{{ $staff->id }}" class="form-control select-input form-select form-select-sm">
+                            <option value="">Please choose</option>
+                            @foreach($appraisal_category as $id => $name)
+                            <option value="{{ $id }}" {{ old('appraisal_category_id' . $staff->id) == $id ? 'selected' : '' }}>{{ $name }}</option>
+                            @endforeach
+                          </select>
                         </div>
                       </div>
                     </div>
                     <div class="modal-footer">
-                      {{ Form::submit('Submit', ['class' => 'btn btn-sm btn-outline-secondary']) }}
+                      <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                     </div>
                   </div>
-                  {{ Form::close() }}
+                  </form>
                 </div>
               </div>
               <!-- POP UP -->
@@ -188,14 +186,20 @@ $evaluatees = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
     </div>
 
     <div class="col-6">
-      {{ Form::open(['route' => ['appraisalapoint.store'], 'id' => 'form_store', 'class' => 'form-horizontal', 'autocomplete' => 'off', 'files' => true]) }}
+      <form method="POST" action="{{ route('appraisalapoint.store') }}" accept-charset="UTF-8" id="form_update" autocomplete="off" class="form-appraisal-category" data-toggle="validator" enctype="multipart/form-data">
+        @csrf
 
       <div class="row mb-3">
         <div class="col-2">
           Evaluator
         </div>
         <div class="col-10">
-          {!! Form::select( 'evaluator_id', $evaluator, @$value, ['class' => 'form-control select-input form-select', 'id' => 'evaluator_id', 'placeholder' => 'Please Select'] ) !!}
+          <select name="evaluator_id" id="evaluator_id" class="form-control select-input form-select form-select-sm">
+            <option value="">Please choose</option>
+            @foreach($evaluator as $r1 => $r2)
+            <option value="{{ $r1 }}">{{ $r2 }}</option>
+            @endforeach
+          </select>
         </div>
       </div>
 
@@ -216,10 +220,10 @@ $evaluatees = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
       </div>
 
       <div class="d-flex justify-content-center m-3">
-        {!! Form::submit('SUBMIT', ['class' => 'btn btn-sm btn-outline-secondary']) !!}
+        <button type="submit" class="btn btn-sm btn-outline-secondary">SUBMIT</button>
       </div>
 
-      {{ Form::close() }}
+      </form>
     </div>
   </div>
 
