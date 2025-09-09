@@ -143,7 +143,7 @@ class AttendanceController extends Controller
 
 		$attendance->save();
 
-		Session::flash('flash_message', 'Data successfully updated!');
+		Session::flash('message', 'Data successfully updated!');
 		return redirect()->route('attendance.index');
 	}
 

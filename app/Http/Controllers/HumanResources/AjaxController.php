@@ -358,7 +358,7 @@ class AjaxController extends Controller
 					'remarks' => ucwords(Str::lower($request->remarks)),
 				]);
 			} else {
-				Session::flash('flash_message', 'Verification Code was incorrect');
+				Session::flash('message', 'Verification Code was incorrect');
 				return redirect()->back()->withInput();
 			}
 		} elseif($request->leave_status_id == 4) {								// leave rejected
@@ -438,7 +438,7 @@ class AjaxController extends Controller
 				HRAttendance::where('id', $s->id)->update(['leave_id' => null]);
 			}
 		}
-		// Session::flash('flash_message', 'Successfully make an approval.');
+		// Session::flash('message', 'Successfully make an approval.');
 		// return redirect()->back();
 		return response()->json([
 				'status' => 'success',
@@ -489,7 +489,7 @@ class AjaxController extends Controller
 					'remarks' => ucwords(Str::lower($request->remarks)),
 				]);
 			} else {
-				Session::flash('flash_message', 'Verification Code was incorrect');
+				Session::flash('message', 'Verification Code was incorrect');
 				return redirect()->back()->withInput();
 			}
 		} elseif($request->leave_status_id == 4) {								// leave rejected
@@ -569,7 +569,7 @@ class AjaxController extends Controller
 				HRAttendance::where('id', $s->id)->update(['leave_id' => null]);
 			}
 		}
-		// Session::flash('flash_message', 'Successfully make an approval.');
+		// Session::flash('message', 'Successfully make an approval.');
 		// return redirect()->back();
 		return response()->json([
 				'status' => 'success',
@@ -620,7 +620,7 @@ class AjaxController extends Controller
 					'remarks' => ucwords(Str::lower($request->remarks)),
 				]);
 			} else {
-				Session::flash('flash_message', 'Verification Code was incorrect');
+				Session::flash('message', 'Verification Code was incorrect');
 				return redirect()->back()->withInput();
 			}
 		} elseif($request->leave_status_id == 4) {								// leave rejected
@@ -751,7 +751,7 @@ class AjaxController extends Controller
 				$sal->hasmanyleaveapprovalhr()->update([/*'staff_id' => \Auth::user()->belongstostaff->id,*/ 'leave_status_id' => $request->leave_status_id, 'remarks' => ucwords(Str::lower($request->remarks))]);
 			}
 		}
-		// Session::flash('flash_message', 'Successfully make an approval.');
+		// Session::flash('message', 'Successfully make an approval.');
 		// return redirect()->back();
 		return response()->json([
 				'status' => 'success',
@@ -803,7 +803,7 @@ class AjaxController extends Controller
 				]);
 				$sal->update(['leave_status_id' => $request->leave_status_id]);
 			} else {
-				Session::flash('flash_message', 'Verification Code was incorrect');
+				Session::flash('message', 'Verification Code was incorrect');
 				return redirect()->back()->withInput();
 			}
 		} elseif($request->leave_status_id == 4) {								// leave rejected
@@ -885,7 +885,7 @@ class AjaxController extends Controller
 		} elseif($request->leave_status_id == 6) {								// leave waived, so need to put back all leave period.
 
 		}
-		// Session::flash('flash_message', 'Successfully make an approval.');
+		// Session::flash('message', 'Successfully make an approval.');
 		// return redirect()->back();
 		return response()->json([
 				'status' => 'success',
@@ -922,7 +922,7 @@ class AjaxController extends Controller
 											'password' => $request->password,
 											'active' => 1,
 										]);
-		Session::flash('flash_message', 'Successfully activate ex-staff '.$staff->name);
+		Session::flash('message', 'Successfully activate ex-staff '.$staff->name);
 		return redirect()->route('staff.show', $staff->id);
 	}
 

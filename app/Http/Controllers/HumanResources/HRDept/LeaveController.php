@@ -594,7 +594,7 @@ class LeaveController extends Controller
 
 		// test
 		// $hrleave->update(['leave_status_id' => $b4leavestatus]);
-		// Session::flash('flash_message', 'Pass Checkpoint 1');
+		// Session::flash('message', 'Pass Checkpoint 1');
 		// return redirect()->back()->withInput();
 		// exit;
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1528,7 +1528,7 @@ class LeaveController extends Controller
 		}
 		$hrleave->update(['leave_status_id' => $b4leavestatus]);
 		$request->session()->forget('hrleave');
-		Session::flash('flash_message', 'Successfully edit leave. Please check the date of leave at the attendance section for a verification');
+		Session::flash('message', 'Successfully edit leave. Please check the date of leave at the attendance section for a verification');
 		return redirect()->route('hrleave.show', $hrleave->id);
 	}
 

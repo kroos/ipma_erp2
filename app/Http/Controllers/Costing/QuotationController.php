@@ -148,7 +148,7 @@ class QuotationController extends Controller
 			}
 		}
 
-		Session::flash('flash_message', 'Data successfully stored!');
+		Session::flash('message', 'Data successfully stored!');
 		return redirect(route('quot.index'));
 	}
 
@@ -341,7 +341,7 @@ class QuotationController extends Controller
 			}
 		}
 
-		Session::flash('flash_message', 'Data successfully stored!');
+		Session::flash('message', 'Data successfully stored!');
 		return redirect(route('quot.index'));
 	}
 
