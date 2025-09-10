@@ -38,19 +38,19 @@
   </style>
 
   <?php
-  
+
   use Carbon\Carbon;
   use App\Models\Staff;
   use App\Models\HumanResources\HRAppraisalMark;
-  
+
   $staff = Staff::join('pivot_apoint_appraisals', 'pivot_apoint_appraisals.evaluatee_id', '=', 'staffs.id')->join('logins', 'logins.staff_id', '=', 'staffs.id')->where('pivot_apoint_appraisals.id', $id)->where('logins.active', 1)->select('staffs.id as staffid', 'staffs.appraisal_category_id as catid', 'staffs.*', 'logins.*', 'pivot_apoint_appraisals.*')->first();
-  
+
   $pivotappraisal = DB::table('pivot_category_appraisals')
       ->join('option_appraisal_categories', 'option_appraisal_categories.id', '=', 'pivot_category_appraisals.category_id')
       ->where('pivot_category_appraisals.category_id', $staff->catid)
       ->orderBy('version', 'DESC')
       ->first();
-  
+
   $appraisals = DB::table('pivot_category_appraisals')
       ->where('category_id', $pivotappraisal->category_id)
       ->where('version', $pivotappraisal->version)
@@ -118,8 +118,8 @@
     </table>
 
     <br>
-
-    {{ Form::open(['route' => ['appraisalmark.store'], 'id' => 'form', 'class' => 'form-horizontal', 'autocomplete' => 'off', 'files' => true]) }}
+    <form method="POST" action="{{ route('appraisalmark.store') }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form-horizontal" enctype="multipart/form-data">
+      @csrf
 
     <input type="hidden" name="pivot_apoint_id" value="{{ $id }}">
     <input type="hidden" name="appraisal_category_id" value="{{ $pivotappraisal->category_id }}">
@@ -192,7 +192,7 @@
                     ->orderBy('mark', 'ASC')
                     ->orderBy('sort', 'ASC')
                     ->get();
-                
+
                 $mark1 = 0;
                 ?>
 
@@ -210,7 +210,7 @@
                   $loop1 = HRAppraisalMark::where('pivot_apoint_id', $id)
                       ->where('question_id', $question->id)
                       ->first();
-                  
+
                   if ($mark1 < $question->mark) {
                       $mark1 = $question->mark;
                   }
@@ -222,6 +222,7 @@
                     <td class="td-border-left-right"></td>
                     <td align="center" width="40px" style="vertical-align:text-top;">
                       {!! Form::radio('1' . $no . $no_sub, $question->id, ($loop1->question_id ?? null) == $question->id, ['required' => 'required']) !!}
+                      <input type="radio" name="{{ '1' . $no . $no_sub }}">
                     </td>
                     <td width="50px" style="vertical-align:text-top;">
                       {!! $question->mark !!}m -
@@ -306,7 +307,7 @@
               $loop2 = HRAppraisalMark::where('pivot_apoint_id', $id)
                   ->where('section_sub_id', $section_sub->id)
                   ->first();
-              
+
               $total_mark2 = $total_mark2 + 5;
               ?>
 
@@ -456,7 +457,7 @@
         <input type="submit" name="final" class="btn btn-sm btn-outline-secondary" value="FINALISE">
       </div>
     </div>
-    {{ Form::close() }}
+    </form>
 
     <div class="row mt-3">
       <div class="col-md-12 text-center">

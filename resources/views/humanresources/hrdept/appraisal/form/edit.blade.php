@@ -57,15 +57,15 @@
 
 <?php
 $pivotappraisal = DB::table('pivot_category_appraisals')
-  ->where('id', $id)
-  ->first();
+->where('id', $id)
+->first();
 $category = App\Models\HumanResources\OptAppraisalCategories::where('id', $pivotappraisal->category_id)->first();
 $appraisals = DB::table('pivot_category_appraisals')
-  ->where('category_id', $pivotappraisal->category_id)
-  ->where('version', $pivotappraisal->version)
-  ->orderBy('sort', 'ASC')
-  ->orderBy('id', 'ASC')
-  ->get();
+->where('category_id', $pivotappraisal->category_id)
+->where('version', $pivotappraisal->version)
+->orderBy('sort', 'ASC')
+->orderBy('id', 'ASC')
+->get();
 ?>
 
 <div class="container">
@@ -102,19 +102,19 @@ $appraisals = DB::table('pivot_category_appraisals')
   @foreach ($appraisals as $appraisal)
   <?php
   $sections = App\Models\HumanResources\HRAppraisalSection::where('id', $appraisal->section_id)
-    ->orderBy('sort', 'ASC')
-    ->orderBy('id', 'ASC')
-    ->get();
+  ->orderBy('sort', 'ASC')
+  ->orderBy('id', 'ASC')
+  ->get();
   ?>
 
   @foreach ($sections as $section)
   <?php
   $no = 1;
   $section_subs = App\Models\HumanResources\HRAppraisalSectionSub::where('section_id', $section->id)
-    ->orderBy('section_id', 'ASC')
-    ->orderBy('sort', 'ASC')
-    ->orderBy('id', 'ASC')
-    ->get();
+  ->orderBy('section_id', 'ASC')
+  ->orderBy('sort', 'ASC')
+  ->orderBy('id', 'ASC')
+  ->get();
   ?>
 
 
@@ -137,28 +137,28 @@ $appraisals = DB::table('pivot_category_appraisals')
               @csrf
               @method('PATCH')
               <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="sectionlabel{{ $section->id }}">Appraisal Form :
-                  {{ $category->category }} Version {{ $pivotappraisal->version }}
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body align-items-start justify-content-center">
-                <div class="row mb-1">
-                  <div class="col-sm-2 {{ $errors->has('section_sort') ? 'has-error' : '' }}">
-                    <input type="number" name="section_sort{{ $section->id }}" id="section_sort{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="sectionlabel{{ $section->id }}">Appraisal Form :
+                    {{ $category->category }} Version {{ $pivotappraisal->version }}
+                  </h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body align-items-start justify-content-center">
+                  <div class="row mb-1">
+                    <div class="col-sm-2 {{ $errors->has('section_sort') ? 'has-error' : '' }}">
+                      <input type="number" name="section_sort{{ $section->id }}" id="section_sort{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    </div>
+                  </div>
+                  <div class="row mb-1">
+                    <div class="mb-1 {{ $errors->has('section_text') ? 'has-error' : '' }}">
+                      <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{!! $section->section !!}</textarea>
+                    </div>
                   </div>
                 </div>
-                <div class="row mb-1">
-                  <div class="mb-1 {{ $errors->has('section_text') ? 'has-error' : '' }}">
-                    <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{!! $section->section !!}</textarea>
-                  </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                 </div>
               </div>
-              <div class="modal-footer">
-                <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
-              </div>
-            </div>
             </form>
           </div>
         </div>
@@ -182,10 +182,10 @@ $appraisals = DB::table('pivot_category_appraisals')
     <?php
     $no_sub = 'a';
     $main_questions = App\Models\HumanResources\HRAppraisalMainQuestion::where('section_sub_id', $section_sub->id)
-      ->orderBy('section_sub_id', 'ASC')
-      ->orderBy('mark', 'ASC')
-      ->orderBy('sort', 'ASC')
-      ->get();
+    ->orderBy('section_sub_id', 'ASC')
+    ->orderBy('mark', 'ASC')
+    ->orderBy('sort', 'ASC')
+    ->get();
     ?>
 
     <tr>
@@ -201,33 +201,33 @@ $appraisals = DB::table('pivot_category_appraisals')
         <!-- POP UP SECTION SUB -->
         <div class="modal fade" id="section_sub{{ $section_sub->id }}" aria-labelledby="sectionsublabel{{ $section_sub->id }}" aria-hidden="true">
           <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-          <form method="POST" action="{{ route('appraisalform.update', $section_sub->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form-horizontal" data-id="{{ $section_sub->id }}" enctype="multipart/form-data">
-            @csrf
-            @method("PATCH")
+            <form method="POST" action="{{ route('appraisalform.update', $section_sub->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form-horizontal" data-id="{{ $section_sub->id }}" enctype="multipart/form-data">
+              @csrf
+              @method("PATCH")
 
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="sectionsublabel{{ $section_sub->id }}">Appraisal Form :
-                  {{ $category->category }} Version {{ $pivotappraisal->version }}
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body align-items-start justify-content-center">
-                <div class="row mb-1">
-                  <div class="col-sm-2 {{ $errors->has('section_sub_sort') ? 'has-error' : '' }}">
-                    <input type="number" name="section_sub_sort{{ $section_sub->id }}" id="section_sub_sort{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section_sub->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="sectionsublabel{{ $section_sub->id }}">Appraisal Form :
+                    {{ $category->category }} Version {{ $pivotappraisal->version }}
+                  </h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body align-items-start justify-content-center">
+                  <div class="row mb-1">
+                    <div class="col-sm-2 {{ $errors->has('section_sub_sort') ? 'has-error' : '' }}">
+                      <input type="number" name="section_sub_sort{{ $section_sub->id }}" id="section_sub_sort{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section_sub->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    </div>
+                  </div>
+                  <div class="row mb-1">
+                    <div class="mb-1 {{ $errors->has('section_sub_text') ? 'has-error' : '' }}">
+                      <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{!! $section_sub->section_sub !!}</textarea>
+                    </div>
                   </div>
                 </div>
-                <div class="row mb-1">
-                  <div class="mb-1 {{ $errors->has('section_sub_text') ? 'has-error' : '' }}">
-                    <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{!! $section_sub->section_sub !!}</textarea>
-                  </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                 </div>
               </div>
-              <div class="modal-footer">
-                <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
-              </div>
-            </div>
             </form>
           </div>
         </div>
@@ -239,10 +239,10 @@ $appraisals = DB::table('pivot_category_appraisals')
     @foreach ($main_questions as $main_question)
     <?php
     $questions = App\Models\HumanResources\HRAppraisalQuestion::where('main_question_id', $main_question->id)
-      ->orderBy('main_question_id', 'ASC')
-      ->orderBy('mark', 'ASC')
-      ->orderBy('sort', 'ASC')
-      ->get();
+    ->orderBy('main_question_id', 'ASC')
+    ->orderBy('mark', 'ASC')
+    ->orderBy('sort', 'ASC')
+    ->get();
     ?>
 
     <tr>
@@ -261,33 +261,33 @@ $appraisals = DB::table('pivot_category_appraisals')
             <form method="POST" action="{{ route('appraisalform.update', $main_question->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form-horizontal" data-id="{{ $main_question->id }}" data-toggle="validator" enctype="multipart/form-data">
               @csrf
               @method('PATCH')
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="mainquestionlabel{{ $main_question->id }}">Appraisal Form
-                  :
-                  {{ $category->category }} Version {{ $pivotappraisal->version }}
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body align-items-start justify-content-center">
-                <div class="row mb-1">
-                  <div class="col-sm-2 {{ $errors->has('main_question_sort') ? 'has-error' : '' }}">
-                    <input type="number" name="main_question_sort{{ $main_question->id }}" id="main_question_sort{{ $main_question->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $main_question->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="mainquestionlabel{{ $main_question->id }}">Appraisal Form
+                    :
+                    {{ $category->category }} Version {{ $pivotappraisal->version }}
+                  </h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body align-items-start justify-content-center">
+                  <div class="row mb-1">
+                    <div class="col-sm-2 {{ $errors->has('main_question_sort') ? 'has-error' : '' }}">
+                      <input type="number" name="main_question_sort{{ $main_question->id }}" id="main_question_sort{{ $main_question->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $main_question->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    </div>
+                    <div class="col-sm-2 {{ $errors->has('main_question_mark') ? 'has-error' : '' }}">
+                      <input type="number" name="main_question_mark{{ $main_question->id }}" id="main_question_mark{{ $main_question->id }}" class="form-control form-control-sm" placeholder="Mark" value="{{ $main_question->mark }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    </div>
                   </div>
-                  <div class="col-sm-2 {{ $errors->has('main_question_mark') ? 'has-error' : '' }}">
-                    <input type="number" name="main_question_mark{{ $main_question->id }}" id="main_question_mark{{ $main_question->id }}" class="form-control form-control-sm" placeholder="Mark" value="{{ $main_question->mark }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                  <div class="row mb-1">
+                    <div class="mb-1 {{ $errors->has('main_question_text') ? 'has-error' : '' }}">
+                      <textarea name="main_question_text{{ $main_question->id }}" id="main_question_text{{ $main_question->id }}" class="form-control form-control-sm">{!! $main_question->main_question !!}</textarea>
+                    </div>
                   </div>
                 </div>
-                <div class="row mb-1">
-                  <div class="mb-1 {{ $errors->has('main_question_text') ? 'has-error' : '' }}">
-                    <textarea name="main_question_text{{ $main_question->id }}" id="main_question_text{{ $main_question->id }}" class="form-control form-control-sm">{!! $main_question->main_question !!}</textarea>
-                  </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                 </div>
               </div>
-              <div class="modal-footer">
-                <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
-              </div>
-            </div>
             </form>
           </div>
         </div>
@@ -318,33 +318,33 @@ $appraisals = DB::table('pivot_category_appraisals')
               @csrf
               @method('PATCH')
 
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="questionlabel{{ $question->id }}">Appraisal Form :
-                  {{ $category->category }} Version {{ $pivotappraisal->version }}
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body align-items-start justify-content-center">
-                <div class="row mb-1">
-                  <div class="col-sm-2 {{ $errors->has('question_sort') ? 'has-error' : '' }}">
-                    <input type="number" name="question_sort{{ $question->id }}" id="question_sort{{ $question->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $question->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="questionlabel{{ $question->id }}">Appraisal Form :
+                    {{ $category->category }} Version {{ $pivotappraisal->version }}
+                  </h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body align-items-start justify-content-center">
+                  <div class="row mb-1">
+                    <div class="col-sm-2 {{ $errors->has('question_sort') ? 'has-error' : '' }}">
+                      <input type="number" name="question_sort{{ $question->id }}" id="question_sort{{ $question->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $question->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    </div>
+                    <div class="col-sm-2 {{ $errors->has('question_mark') ? 'has-error' : '' }}">
+                      <input type="number" name="question_mark{{ $question->id }}" id="question_mark{{ $question->id }}" class="form-control form-control-sm" placeholder="Mark" value="{{ $question->mark }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    </div>
                   </div>
-                  <div class="col-sm-2 {{ $errors->has('question_mark') ? 'has-error' : '' }}">
-                    <input type="number" name="question_mark{{ $question->id }}" id="question_mark{{ $question->id }}" class="form-control form-control-sm" placeholder="Mark" value="{{ $question->mark }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                  <div class="row mb-1">
+                    <div class="mb-1 {{ $errors->has('question_text') ? 'has-error' : '' }}">
+                      <textarea name="question_text{{ $question->id }}" id="question_text{{ $question->id }}" class="form-control form-control-sm">{!! $question->question !!}</textarea>
+                    </div>
                   </div>
                 </div>
-                <div class="row mb-1">
-                  <div class="mb-1 {{ $errors->has('question_text') ? 'has-error' : '' }}">
-                    <textarea name="question_text{{ $question->id }}" id="question_text{{ $question->id }}" class="form-control form-control-sm">{!! $question->question !!}</textarea>
-                  </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                 </div>
               </div>
-              <div class="modal-footer">
-                <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
-              </div>
-            </div>
-          </form>
+            </form>
           </div>
         </div>
         <!-- POP UP QUESTION -->
@@ -376,31 +376,31 @@ $appraisals = DB::table('pivot_category_appraisals')
                 @csrf
                 @method('PATCH')
 
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h1 class="modal-title fs-5" id="questionlabeladd{{ $main_question->id }}">Appraisal Form : {{ $category->category }} Version {{ $pivotappraisal->version }}
-                  </h1>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body align-items-start justify-content-center">
-                  <div class="row mb-1">
-                    <div class="col-sm-2 {{ $errors->has('question_sort_add') ? 'has-error' : '' }}">
-                      <input type="number" name="question_sort_add{{ $main_question->id }}" id="question_sort_add{{ $main_question->id }}" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="questionlabeladd{{ $main_question->id }}">Appraisal Form : {{ $category->category }} Version {{ $pivotappraisal->version }}
+                    </h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body align-items-start justify-content-center">
+                    <div class="row mb-1">
+                      <div class="col-sm-2 {{ $errors->has('question_sort_add') ? 'has-error' : '' }}">
+                        <input type="number" name="question_sort_add{{ $main_question->id }}" id="question_sort_add{{ $main_question->id }}" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                      </div>
+                      <div class="col-sm-2 {{ $errors->has('question_mark_add') ? 'has-error' : '' }}">
+                        <input type="number" name="question_mark_add{{ $main_question->id }}" id="question_mark_add{{ $main_question->id }}" class="form-control form-control-sm" placeholder="Mark" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                      </div>
                     </div>
-                    <div class="col-sm-2 {{ $errors->has('question_mark_add') ? 'has-error' : '' }}">
-                      <input type="number" name="question_mark_add{{ $main_question->id }}" id="question_mark_add{{ $main_question->id }}" class="form-control form-control-sm" placeholder="Mark" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    <div class="row mb-1">
+                      <div class="mb-1 {{ $errors->has('question_text_add') ? 'has-error' : '' }}">
+                        <textarea name="question_text_add{{ $main_question->id }}" id="question_text_add{{ $main_question->id }}" class="form-control form-control-sm"></textarea>
+                      </div>
                     </div>
                   </div>
-                  <div class="row mb-1">
-                    <div class="mb-1 {{ $errors->has('question_text_add') ? 'has-error' : '' }}">
-                      <textarea name="question_text_add{{ $main_question->id }}" id="question_text_add{{ $main_question->id }}" class="form-control form-control-sm"></textarea>
-                    </div>
+                  <div class="modal-footer">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                   </div>
                 </div>
-                <div class="modal-footer">
-                  <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
-                </div>
-              </div>
               </form>
             </div>
           </div>
@@ -431,31 +431,31 @@ $appraisals = DB::table('pivot_category_appraisals')
               <form method="POST" action="{{ route('appraisalform.update', $section_sub->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form-horizontal" data-id="{{ $section_sub->id }}" enctype="multipart/form-data">
                 @csrf
                 @method("PATCH")
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h1 class="modal-title fs-5" id="mainquestionlabeladd{{ $section_sub->id }}">Appraisal Form : {{ $category->category }} Version {{ $pivotappraisal->version }}</h1>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body align-items-start justify-content-center">
-                  <div class="row mb-1">
-                    <div class="col-sm-2 {{ $errors->has('main_question_sort_add') ? 'has-error' : '' }}">
-                      <input type="number" name="main_question_sort_add{{ $section_sub->id }}" id="main_question_sort_add{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="mainquestionlabeladd{{ $section_sub->id }}">Appraisal Form : {{ $category->category }} Version {{ $pivotappraisal->version }}</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body align-items-start justify-content-center">
+                    <div class="row mb-1">
+                      <div class="col-sm-2 {{ $errors->has('main_question_sort_add') ? 'has-error' : '' }}">
+                        <input type="number" name="main_question_sort_add{{ $section_sub->id }}" id="main_question_sort_add{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                      </div>
+                      <div class="col-sm-2 {{ $errors->has('main_question_mark_add') ? 'has-error' : '' }}">
+                        <input type="number" name="main_question_mark_add{{ $section_sub->id }}" id="main_question_mark_add{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Mark" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                      </div>
                     </div>
-                    <div class="col-sm-2 {{ $errors->has('main_question_mark_add') ? 'has-error' : '' }}">
-                      <input type="number" name="main_question_mark_add{{ $section_sub->id }}" id="main_question_mark_add{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Mark" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    <div class="row mb-1">
+                      <div class="mb-1 {{ $errors->has('main_question_text_add') ? 'has-error' : '' }}">
+                        <textarea name="main_question_text_add{{ $section_sub->id }}" id="main_question_text_add{{ $section_sub->id }}" class="form-control form-control-sm"></textarea>
+                      </div>
                     </div>
                   </div>
-                  <div class="row mb-1">
-                    <div class="mb-1 {{ $errors->has('main_question_text_add') ? 'has-error' : '' }}">
-                      <textarea name="main_question_text_add{{ $section_sub->id }}" id="main_question_text_add{{ $section_sub->id }}" class="form-control form-control-sm"></textarea>
-                    </div>
+                  <div class="modal-footer">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                   </div>
                 </div>
-                <div class="modal-footer">
-                  <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
-                </div>
-              </div>
-            </form>
+              </form>
             </div>
           </div>
           <!-- POP UP MAIN QUESTION -->
@@ -485,29 +485,29 @@ $appraisals = DB::table('pivot_category_appraisals')
         <form method="POST" action="{{ route('appraisalform.update', $section->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form-horizontal" data-id="{{ $section->id }}" enctype="multipart/form-data">
           @csrf
           @method("PATCH")
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5" id="sectionsublabeladd{{ $section->id }}">Appraisal Form :
-              {{ $category->category }} Version {{ $pivotappraisal->version }}
-            </h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body align-items-start justify-content-center">
-            <div class="row mb-1">
-              <div class="col-sm-2 {{ $errors->has('section_sub_sort_add') ? 'has-error' : '' }}">
-                <input type="number" name="section_sub_sort_add{{ $section->id }}" id="section_sub_sort_add{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="sectionsublabeladd{{ $section->id }}">Appraisal Form :
+                {{ $category->category }} Version {{ $pivotappraisal->version }}
+              </h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body align-items-start justify-content-center">
+              <div class="row mb-1">
+                <div class="col-sm-2 {{ $errors->has('section_sub_sort_add') ? 'has-error' : '' }}">
+                  <input type="number" name="section_sub_sort_add{{ $section->id }}" id="section_sub_sort_add{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                </div>
+              </div>
+              <div class="row mb-1">
+                <div class="mb-1 {{ $errors->has('section_sub_text_add') ? 'has-error' : '' }}">
+                  <textarea name="section_sub_text_add{{ $section->id }}" id="section_sub_text_add{{ $section->id }}" class="form-control form-control-sm"></textarea>
+                </div>
               </div>
             </div>
-            <div class="row mb-1">
-              <div class="mb-1 {{ $errors->has('section_sub_text_add') ? 'has-error' : '' }}">
-                <textarea name="section_sub_text_add{{ $section->id }}" id="section_sub_text_add{{ $section->id }}" class="form-control form-control-sm"></textarea>
-              </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
-          </div>
-        </div>
         </form>
       </div>
     </div>
@@ -536,40 +536,33 @@ $appraisals = DB::table('pivot_category_appraisals')
         <!-- POP UP SECTION -->
         <div class="modal fade" id="section{{ $section->id }}" aria-labelledby="sectionlabel{{ $section->id }}" aria-hidden="true">
           <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-            {!! Form::model($section, [
-            'route' => ['appraisalform.update', $section->id],
-            'method' => 'PATCH',
-            'id' => 'form',
-            'autocomplete' => 'off',
-            'files' => true,
-            'class' => 'form_section',
-            'data-id' => $section->id,
-            'data-toggle' => 'validator',
-            ]) !!}
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="sectionlabel{{ $section->id }}">Appraisal Form :
-                  {{ $category->category }} Version {{ $pivotappraisal->version }}
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body align-items-start justify-content-center">
-                <div class="row mb-1">
-                  <div class="col-sm-2 {{ $errors->has('section_sort') ? 'has-error' : '' }}">
-                    <input type="number" name="section_sort{{ $section->id }}" id="section_sort{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+            <form method="POST" action="{{ route('appraisalform.update', $section->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form_section" enctype="multipart/form-data">
+              @csrf
+              @method('PATCH')
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="sectionlabel{{ $section->id }}">Appraisal Form :
+                    {{ $category->category }} Version {{ $pivotappraisal->version }}
+                  </h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body align-items-start justify-content-center">
+                  <div class="row mb-1">
+                    <div class="col-sm-2 {{ $errors->has('section_sort') ? 'has-error' : '' }}">
+                      <input type="number" name="section_sort{{ $section->id }}" id="section_sort{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    </div>
+                  </div>
+                  <div class="row mb-1">
+                    <div class="mb-1 {{ $errors->has('section_text') ? 'has-error' : '' }}">
+                      <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{!! $section->section !!}</textarea>
+                    </div>
                   </div>
                 </div>
-                <div class="row mb-1">
-                  <div class="mb-1 {{ $errors->has('section_text') ? 'has-error' : '' }}">
-                    <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{!! $section->section !!}</textarea>
-                  </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                 </div>
               </div>
-              <div class="modal-footer">
-                {{ Form::submit('Submit', ['class' => 'btn btn-sm btn-outline-secondary']) }}
-              </div>
-            </div>
-            {{ Form::close() }}
+            </form>
           </div>
         </div>
         <!-- POP UP SECTION -->
@@ -622,59 +615,52 @@ $appraisals = DB::table('pivot_category_appraisals')
         <!-- POP UP SECTION SUB -->
         <div class="modal fade" id="section_sub{{ $section_sub->id }}" aria-labelledby="sectionsublabel{{ $section_sub->id }}" aria-hidden="true">
           <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-            {!! Form::model($section_sub, [
-            'route' => ['appraisalform.update', $section_sub->id],
-            'method' => 'PATCH',
-            'id' => 'form',
-            'autocomplete' => 'off',
-            'files' => true,
-            'class' => 'form_section_sub',
-            'data-id' => $section_sub->id,
-            'data-toggle' => 'validator',
-            ]) !!}
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="sectionsublabel{{ $section_sub->id }}">Appraisal Form :
-                  {{ $category->category }} Version {{ $pivotappraisal->version }}
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body align-items-start justify-content-center">
-                <div class="row mb-1">
-                  <div class="col-sm-2 {{ $errors->has('section_sub_sort') ? 'has-error' : '' }}">
-                    <input type="number" name="section_sub_sort{{ $section_sub->id }}" id="section_sub_sort{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section_sub->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+            <form method="POST" action="{{ route('appraisalform.update', $section_sub->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form_section" enctype="multipart/form-data">
+              @csrf
+              @method('PATCH')
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="sectionsublabel{{ $section_sub->id }}">Appraisal Form :
+                    {{ $category->category }} Version {{ $pivotappraisal->version }}
+                  </h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body align-items-start justify-content-center">
+                  <div class="row mb-1">
+                    <div class="col-sm-2 {{ $errors->has('section_sub_sort') ? 'has-error' : '' }}">
+                      <input type="number" name="section_sub_sort{{ $section_sub->id }}" id="section_sub_sort{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section_sub->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    </div>
+                  </div>
+                  <div class="row mb-1">
+                    <div class="mb-1 {{ $errors->has('section_sub_text') ? 'has-error' : '' }}">
+                      <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{!! $section_sub->section_sub !!}</textarea>
+                    </div>
                   </div>
                 </div>
-                <div class="row mb-1">
-                  <div class="mb-1 {{ $errors->has('section_sub_text') ? 'has-error' : '' }}">
-                    <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{!! $section_sub->section_sub !!}</textarea>
-                  </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                 </div>
               </div>
-              <div class="modal-footer">
-                {{ Form::submit('Submit', ['class' => 'btn btn-sm btn-outline-secondary']) }}
-              </div>
-            </div>
-            {{ Form::close() }}
+            </form>
           </div>
         </div>
         <!-- POP UP SECTION SUB -->
 
       </td>
       <td align="center">
-        {!! Form::radio('2' . $no, '1', @$checked, []) !!}
+        <input type="radio" name="{{ '2' . $no }}" value="{{ 1 }}">
       </td>
       <td align="center">
-        {!! Form::radio('2' . $no, '2', @$checked, []) !!}
+        <input type="radio" name="{{ '2' . $no }}" value="{{ 2 }}">
       </td>
       <td align="center">
-        {!! Form::radio('2' . $no, '3', @$checked, []) !!}
+        <input type="radio" name="{{ '2' . $no }}" value="{{ 3 }}">
       </td>
       <td align="center">
-        {!! Form::radio('2' . $no, '4', @$checked, []) !!}
+        <input type="radio" name="{{ '2' . $no }}" value="{{ 4 }}">
       </td>
       <td align="center">
-        {!! Form::radio('2' . $no, '5', @$checked, []) !!}
+        <input type="radio" name="{{ '2' . $no }}" value="{{ 5 }}">
       </td>
     </tr>
     <?php $no++; ?>
@@ -693,31 +679,33 @@ $appraisals = DB::table('pivot_category_appraisals')
     <!-- POP UP SECTION SUB -->
     <div class="modal fade" id="section_sub_add{{ $section->id }}" aria-labelledby="sectionsublabeladd{{ $section->id }}" aria-hidden="true">
       <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        {{ Form::open(['route' => ['appraisalform.update', $section->id], 'method' => 'PATCH', 'id' => 'form', 'class' => 'form_section_sub_add', 'autocomplete' => 'off', 'files' => true, 'data-id' => $section->id, 'data-toggle' => 'validator']) }}
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5" id="sectionsublabeladd{{ $section->id }}">Appraisal Form :
-              {{ $category->category }} Version {{ $pivotappraisal->version }}
-            </h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body align-items-start justify-content-center">
-            <div class="row mb-1">
-              <div class="col-sm-2 {{ $errors->has('section_sub_sort_add') ? 'has-error' : '' }}">
-                <input type="number" name="section_sub_sort_add{{ $section->id }}" id="section_sub_sort_add{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+        <form method="POST" action="{{ route('appraisalform.update', $section->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form_section" enctype="multipart/form-data">
+          @csrf
+          @method('PATCH')
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="sectionsublabeladd{{ $section->id }}">Appraisal Form :
+                {{ $category->category }} Version {{ $pivotappraisal->version }}
+              </h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body align-items-start justify-content-center">
+              <div class="row mb-1">
+                <div class="col-sm-2 {{ $errors->has('section_sub_sort_add') ? 'has-error' : '' }}">
+                  <input type="number" name="section_sub_sort_add{{ $section->id }}" id="section_sub_sort_add{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                </div>
+              </div>
+              <div class="row mb-1">
+                <div class="mb-1 {{ $errors->has('section_sub_text_add') ? 'has-error' : '' }}">
+                  <textarea name="section_sub_text_add{{ $section->id }}" id="section_sub_text_add{{ $section->id }}" class="form-control form-control-sm"></textarea>
+                </div>
               </div>
             </div>
-            <div class="row mb-1">
-              <div class="mb-1 {{ $errors->has('section_sub_text_add') ? 'has-error' : '' }}">
-                <textarea name="section_sub_text_add{{ $section->id }}" id="section_sub_text_add{{ $section->id }}" class="form-control form-control-sm"></textarea>
-              </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
             </div>
           </div>
-          <div class="modal-footer">
-            {{ Form::submit('Submit', ['class' => 'btn btn-sm btn-outline-secondary']) }}
-          </div>
-        </div>
-        {{ Form::close() }}
+        </form>
       </div>
     </div>
     <!-- POP UP SECTION SUB -->
@@ -746,40 +734,33 @@ $appraisals = DB::table('pivot_category_appraisals')
         <!-- POP UP SECTION -->
         <div class="modal fade" id="section{{ $section->id }}" aria-labelledby="sectionlabel{{ $section->id }}" aria-hidden="true">
           <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-            {!! Form::model($section, [
-            'route' => ['appraisalform.update', $section->id],
-            'method' => 'PATCH',
-            'id' => 'form',
-            'autocomplete' => 'off',
-            'files' => true,
-            'class' => 'form_section',
-            'data-id' => $section->id,
-            'data-toggle' => 'validator',
-            ]) !!}
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="sectionlabel{{ $section->id }}">Appraisal Form :
-                  {{ $category->category }} Version {{ $pivotappraisal->version }}
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body align-items-start justify-content-center">
-                <div class="row mb-1">
-                  <div class="col-sm-2 {{ $errors->has('section_sort') ? 'has-error' : '' }}">
-                    <input type="number" name="section_sort{{ $section->id }}" id="section_sort{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+            <form method="POST" action="{{ route('appraisalform.update', $section->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form_section" data-id="{{ $section->id }}" enctype="multipart/form-data">
+              @csrf
+              @method('PATCH')
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="sectionlabel{{ $section->id }}">Appraisal Form :
+                    {{ $category->category }} Version {{ $pivotappraisal->version }}
+                  </h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body align-items-start justify-content-center">
+                  <div class="row mb-1">
+                    <div class="col-sm-2 {{ $errors->has('section_sort') ? 'has-error' : '' }}">
+                      <input type="number" name="section_sort{{ $section->id }}" id="section_sort{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    </div>
+                  </div>
+                  <div class="row mb-1">
+                    <div class="mb-1 {{ $errors->has('section_text') ? 'has-error' : '' }}">
+                      <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{!! $section->section !!}</textarea>
+                    </div>
                   </div>
                 </div>
-                <div class="row mb-1">
-                  <div class="mb-1 {{ $errors->has('section_text') ? 'has-error' : '' }}">
-                    <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{!! $section->section !!}</textarea>
-                  </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                 </div>
               </div>
-              <div class="modal-footer">
-                {{ Form::submit('Submit', ['class' => 'btn btn-sm btn-outline-secondary']) }}
-              </div>
-            </div>
-            {{ Form::close() }}
+            </form>
           </div>
         </div>
         <!-- POP UP SECTION -->
@@ -803,40 +784,34 @@ $appraisals = DB::table('pivot_category_appraisals')
         <!-- POP UP SECTION SUB -->
         <div class="modal fade" id="section_sub{{ $section_sub->id }}" aria-labelledby="sectionsublabel{{ $section_sub->id }}" aria-hidden="true">
           <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-            {!! Form::model($section_sub, [
-            'route' => ['appraisalform.update', $section_sub->id],
-            'method' => 'PATCH',
-            'id' => 'form',
-            'autocomplete' => 'off',
-            'files' => true,
-            'class' => 'form_section_sub',
-            'data-id' => $section_sub->id,
-            'data-toggle' => 'validator',
-            ]) !!}
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="sectionsublabel{{ $section_sub->id }}">Appraisal Form :
-                  {{ $category->category }} Version {{ $pivotappraisal->version }}
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body align-items-start justify-content-center">
-                <div class="row mb-1">
-                  <div class="col-sm-2 {{ $errors->has('section_sub_sort') ? 'has-error' : '' }}">
-                    <input type="number" name="section_sub_sort{{ $section_sub->id }}" id="section_sub_sort{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section_sub->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+            <form method="POST" action="{{ route('appraisalform.update', $section_sub->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form_section" data-id="{{ $section_sub->id }}" enctype="multipart/form-data">
+              @csrf
+              @method('PATCH')
+
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="sectionsublabel{{ $section_sub->id }}">Appraisal Form :
+                    {{ $category->category }} Version {{ $pivotappraisal->version }}
+                  </h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body align-items-start justify-content-center">
+                  <div class="row mb-1">
+                    <div class="col-sm-2 {{ $errors->has('section_sub_sort') ? 'has-error' : '' }}">
+                      <input type="number" name="section_sub_sort{{ $section_sub->id }}" id="section_sub_sort{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section_sub->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    </div>
+                  </div>
+                  <div class="row mb-1">
+                    <div class="mb-1 {{ $errors->has('section_sub_text') ? 'has-error' : '' }}">
+                      <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{!! $section_sub->section_sub !!}</textarea>
+                    </div>
                   </div>
                 </div>
-                <div class="row mb-1">
-                  <div class="mb-1 {{ $errors->has('section_sub_text') ? 'has-error' : '' }}">
-                    <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{!! $section_sub->section_sub !!}</textarea>
-                  </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                 </div>
               </div>
-              <div class="modal-footer">
-                {{ Form::submit('Submit', ['class' => 'btn btn-sm btn-outline-secondary']) }}
-              </div>
-            </div>
-            {{ Form::close() }}
+            </form>
           </div>
         </div>
         <!-- POP UP SECTION SUB -->
@@ -845,7 +820,7 @@ $appraisals = DB::table('pivot_category_appraisals')
     </tr>
     <tr>
       <td colspan="2">
-        {!! Form::textarea('3' . $no, @$value, ['style' => 'width:100%;', 'rows' => 4]) !!}
+        <textarea name="{{ '3' . $no }}" class="form-control">{{ old('3' . $no) }}</textarea>
       </td>
     </tr>
     <tr height="20px"></tr>
@@ -863,31 +838,34 @@ $appraisals = DB::table('pivot_category_appraisals')
     <!-- POP UP SECTION SUB -->
     <div class="modal fade" id="section_sub_add{{ $section->id }}" aria-labelledby="sectionsublabeladd{{ $section->id }}" aria-hidden="true">
       <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        {{ Form::open(['route' => ['appraisalform.update', $section->id], 'method' => 'PATCH', 'id' => 'form', 'class' => 'form_section_sub_add', 'autocomplete' => 'off', 'files' => true, 'data-id' => $section->id, 'data-toggle' => 'validator']) }}
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5" id="sectionsublabeladd{{ $section->id }}">Appraisal Form :
-              {{ $category->category }} Version {{ $pivotappraisal->version }}
-            </h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body align-items-start justify-content-center">
-            <div class="row mb-1">
-              <div class="col-sm-2 {{ $errors->has('section_sub_sort_add') ? 'has-error' : '' }}">
-                <input type="number" name="section_sub_sort_add{{ $section->id }}" id="section_sub_sort_add{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+        <form method="POST" action="{{ route('appraisalform.update', $section->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form_section" data-id="{{ $section->id }}" enctype="multipart/form-data">
+          @csrf
+          @method('PATCH')
+
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="sectionsublabeladd{{ $section->id }}">Appraisal Form :
+                {{ $category->category }} Version {{ $pivotappraisal->version }}
+              </h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body align-items-start justify-content-center">
+              <div class="row mb-1">
+                <div class="col-sm-2 {{ $errors->has('section_sub_sort_add') ? 'has-error' : '' }}">
+                  <input type="number" name="section_sub_sort_add{{ $section->id }}" id="section_sub_sort_add{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                </div>
+              </div>
+              <div class="row mb-1">
+                <div class="mb-1 {{ $errors->has('section_sub_text_add') ? 'has-error' : '' }}">
+                  <textarea name="section_sub_text_add{{ $section->id }}" id="section_sub_text_add{{ $section->id }}" class="form-control form-control-sm"></textarea>
+                </div>
               </div>
             </div>
-            <div class="row mb-1">
-              <div class="mb-1 {{ $errors->has('section_sub_text_add') ? 'has-error' : '' }}">
-                <textarea name="section_sub_text_add{{ $section->id }}" id="section_sub_text_add{{ $section->id }}" class="form-control form-control-sm"></textarea>
-              </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
             </div>
           </div>
-          <div class="modal-footer">
-            {{ Form::submit('Submit', ['class' => 'btn btn-sm btn-outline-secondary']) }}
-          </div>
-        </div>
-        {{ Form::close() }}
+        </form>
       </div>
     </div>
     <!-- POP UP SECTION SUB -->
@@ -926,30 +904,34 @@ $appraisals = DB::table('pivot_category_appraisals')
             'data-id' => $section->id,
             'data-toggle' => 'validator',
             ]) !!}
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="sectionlabel{{ $section->id }}">Appraisal Form :
-                  {{ $category->category }} Version {{ $pivotappraisal->version }}
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body align-items-start justify-content-center">
-                <div class="row mb-1">
-                  <div class="col-sm-2 {{ $errors->has('section_sort') ? 'has-error' : '' }}">
-                    <input type="number" name="section_sort{{ $section->id }}" id="section_sort{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+            <form method="POST" action="{{ route('appraisalform.update', $section->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form_section" data-id="{{ $section->id }}" enctype="multipart/form-data">
+              @csrf
+              @method('PATCH')
+
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="sectionlabel{{ $section->id }}">Appraisal Form :
+                    {{ $category->category }} Version {{ $pivotappraisal->version }}
+                  </h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body align-items-start justify-content-center">
+                  <div class="row mb-1">
+                    <div class="col-sm-2 {{ $errors->has('section_sort') ? 'has-error' : '' }}">
+                      <input type="number" name="section_sort{{ $section->id }}" id="section_sort{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    </div>
+                  </div>
+                  <div class="row mb-1">
+                    <div class="mb-1 {{ $errors->has('section_text') ? 'has-error' : '' }}">
+                      <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{!! $section->section !!}</textarea>
+                    </div>
                   </div>
                 </div>
-                <div class="row mb-1">
-                  <div class="mb-1 {{ $errors->has('section_text') ? 'has-error' : '' }}">
-                    <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{!! $section->section !!}</textarea>
-                  </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                 </div>
               </div>
-              <div class="modal-footer">
-                {{ Form::submit('Submit', ['class' => 'btn btn-sm btn-outline-secondary']) }}
-              </div>
-            </div>
-            {{ Form::close() }}
+            </form>
           </div>
         </div>
         <!-- POP UP SECTION -->
@@ -962,10 +944,10 @@ $appraisals = DB::table('pivot_category_appraisals')
     @foreach ($section_subs as $section_sub)
     <?php
     $main_questions = App\Models\HumanResources\HRAppraisalMainQuestion::where('section_sub_id', $section_sub->id)
-      ->orderBy('section_sub_id', 'ASC')
-      ->orderBy('mark', 'ASC')
-      ->orderBy('sort', 'ASC')
-      ->get();
+    ->orderBy('section_sub_id', 'ASC')
+    ->orderBy('mark', 'ASC')
+    ->orderBy('sort', 'ASC')
+    ->get();
     ?>
 
     <tr>
@@ -991,30 +973,34 @@ $appraisals = DB::table('pivot_category_appraisals')
             'data-id' => $section_sub->id,
             'data-toggle' => 'validator',
             ]) !!}
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="sectionsublabel{{ $section_sub->id }}">Appraisal Form :
-                  {{ $category->category }} Version {{ $pivotappraisal->version }}
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body align-items-start justify-content-center">
-                <div class="row mb-1">
-                  <div class="col-sm-2 {{ $errors->has('section_sub_sort') ? 'has-error' : '' }}">
-                    <input type="number" name="section_sub_sort{{ $section_sub->id }}" id="section_sub_sort{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section_sub->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+            <form method="POST" action="{{ route('appraisalform.update', $section_sub->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form_section" data-id="{{ $section_sub->id }}" enctype="multipart/form-data">
+              @csrf
+              @method('PATCH')
+
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="sectionsublabel{{ $section_sub->id }}">Appraisal Form :
+                    {{ $category->category }} Version {{ $pivotappraisal->version }}
+                  </h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body align-items-start justify-content-center">
+                  <div class="row mb-1">
+                    <div class="col-sm-2 {{ $errors->has('section_sub_sort') ? 'has-error' : '' }}">
+                      <input type="number" name="section_sub_sort{{ $section_sub->id }}" id="section_sub_sort{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $section_sub->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    </div>
+                  </div>
+                  <div class="row mb-1">
+                    <div class="mb-1 {{ $errors->has('section_sub_text') ? 'has-error' : '' }}">
+                      <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{!! $section_sub->section_sub !!}</textarea>
+                    </div>
                   </div>
                 </div>
-                <div class="row mb-1">
-                  <div class="mb-1 {{ $errors->has('section_sub_text') ? 'has-error' : '' }}">
-                    <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{!! $section_sub->section_sub !!}</textarea>
-                  </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                 </div>
               </div>
-              <div class="modal-footer">
-                {{ Form::submit('Submit', ['class' => 'btn btn-sm btn-outline-secondary']) }}
-              </div>
-            </div>
-            {{ Form::close() }}
+            </form>
           </div>
         </div>
         <!-- POP UP SECTION SUB -->
@@ -1026,7 +1012,7 @@ $appraisals = DB::table('pivot_category_appraisals')
     <tr>
       <td></td>
       <td width="40px">
-        {!! Form::radio('4' . $no, @$value, @$checked, []) !!}
+        <input type="radio" name="{{ '4' . $no }}" value="{{ '4' . $no }}">
       </td>
       <td>
 
@@ -1047,34 +1033,38 @@ $appraisals = DB::table('pivot_category_appraisals')
             'data-id' => $main_question->id,
             'data-toggle' => 'validator',
             ]) !!}
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="mainquestionlabel{{ $main_question->id }}">Appraisal Form
-                  :
-                  {{ $category->category }} Version {{ $pivotappraisal->version }}
-                </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body align-items-start justify-content-center">
-                <div class="row mb-1">
-                  <div class="col-sm-2 {{ $errors->has('main_question_sort') ? 'has-error' : '' }}">
-                    <input type="number" name="main_question_sort{{ $main_question->id }}" id="main_question_sort{{ $main_question->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $main_question->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+            <form method="POST" action="{{ route('appraisalform.update', $main_question->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form_section" data-id="{{ $main_question->id }}" enctype="multipart/form-data">
+              @csrf
+              @method('PATCH')
+
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="mainquestionlabel{{ $main_question->id }}">Appraisal Form
+                    :
+                    {{ $category->category }} Version {{ $pivotappraisal->version }}
+                  </h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body align-items-start justify-content-center">
+                  <div class="row mb-1">
+                    <div class="col-sm-2 {{ $errors->has('main_question_sort') ? 'has-error' : '' }}">
+                      <input type="number" name="main_question_sort{{ $main_question->id }}" id="main_question_sort{{ $main_question->id }}" class="form-control form-control-sm" placeholder="Sort" value="{{ $main_question->sort }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    </div>
+                    <div class="col-sm-2 {{ $errors->has('main_question_mark') ? 'has-error' : '' }}">
+                      <input type="number" name="main_question_mark{{ $main_question->id }}" id="main_question_mark{{ $main_question->id }}" class="form-control form-control-sm" placeholder="Mark" value="{{ $main_question->mark }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    </div>
                   </div>
-                  <div class="col-sm-2 {{ $errors->has('main_question_mark') ? 'has-error' : '' }}">
-                    <input type="number" name="main_question_mark{{ $main_question->id }}" id="main_question_mark{{ $main_question->id }}" class="form-control form-control-sm" placeholder="Mark" value="{{ $main_question->mark }}" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                  <div class="row mb-1">
+                    <div class="mb-1 {{ $errors->has('main_question_text') ? 'has-error' : '' }}">
+                      <textarea name="main_question_text{{ $main_question->id }}" id="main_question_text{{ $main_question->id }}" class="form-control form-control-sm">{!! $main_question->main_question !!}</textarea>
+                    </div>
                   </div>
                 </div>
-                <div class="row mb-1">
-                  <div class="mb-1 {{ $errors->has('main_question_text') ? 'has-error' : '' }}">
-                    <textarea name="main_question_text{{ $main_question->id }}" id="main_question_text{{ $main_question->id }}" class="form-control form-control-sm">{!! $main_question->main_question !!}</textarea>
-                  </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                 </div>
               </div>
-              <div class="modal-footer">
-                {{ Form::submit('Submit', ['class' => 'btn btn-sm btn-outline-secondary']) }}
-              </div>
-            </div>
-            {{ Form::close() }}
+            </form>
           </div>
         </div>
         <!-- POP UP MAIN QUESTION -->
@@ -1097,35 +1087,38 @@ $appraisals = DB::table('pivot_category_appraisals')
           <!-- POP UP MAIN QUESTION -->
           <div class="modal fade" id="main_question_add{{ $section_sub->id }}" aria-labelledby="mainquestionlabeladd{{ $section_sub->id }}" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-              {{ Form::open(['route' => ['appraisalform.update', $section_sub->id], 'method' => 'PATCH', 'id' => 'form', 'class' => 'form_main_question_add', 'autocomplete' => 'off', 'files' => true, 'data-id' => $section_sub->id, 'data-toggle' => 'validator']) }}
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h1 class="modal-title fs-5" id="mainquestionlabeladd{{ $section_sub->id }}">Appraisal
-                    Form :
-                    {{ $category->category }} Version {{ $pivotappraisal->version }}
-                  </h1>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body align-items-start justify-content-center">
-                  <div class="row mb-1">
-                    <div class="col-sm-2 {{ $errors->has('main_question_sort_add') ? 'has-error' : '' }}">
-                      <input type="number" name="main_question_sort_add{{ $section_sub->id }}" id="main_question_sort_add{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+              <form method="POST" action="{{ route('appraisalform.update', $section_sub->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form_section" data-id="{{ $section_sub->id }}" enctype="multipart/form-data">
+                @csrf
+                @method('PATCH')
+
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="mainquestionlabeladd{{ $section_sub->id }}">Appraisal
+                      Form :
+                      {{ $category->category }} Version {{ $pivotappraisal->version }}
+                    </h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body align-items-start justify-content-center">
+                    <div class="row mb-1">
+                      <div class="col-sm-2 {{ $errors->has('main_question_sort_add') ? 'has-error' : '' }}">
+                        <input type="number" name="main_question_sort_add{{ $section_sub->id }}" id="main_question_sort_add{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                      </div>
+                      <div class="col-sm-2 {{ $errors->has('main_question_mark_add') ? 'has-error' : '' }}">
+                        <input type="number" name="main_question_mark_add{{ $section_sub->id }}" id="main_question_mark_add{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Mark" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                      </div>
                     </div>
-                    <div class="col-sm-2 {{ $errors->has('main_question_mark_add') ? 'has-error' : '' }}">
-                      <input type="number" name="main_question_mark_add{{ $section_sub->id }}" id="main_question_mark_add{{ $section_sub->id }}" class="form-control form-control-sm" placeholder="Mark" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                    <div class="row mb-1">
+                      <div class="mb-1 {{ $errors->has('main_question_text_add') ? 'has-error' : '' }}">
+                        <textarea name="main_question_text_add{{ $section_sub->id }}" id="main_question_text_add{{ $section_sub->id }}" class="form-control form-control-sm"></textarea>
+                      </div>
                     </div>
                   </div>
-                  <div class="row mb-1">
-                    <div class="mb-1 {{ $errors->has('main_question_text_add') ? 'has-error' : '' }}">
-                      <textarea name="main_question_text_add{{ $section_sub->id }}" id="main_question_text_add{{ $section_sub->id }}" class="form-control form-control-sm"></textarea>
-                    </div>
+                  <div class="modal-footer">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
                   </div>
                 </div>
-                <div class="modal-footer">
-                  {{ Form::submit('Submit', ['class' => 'btn btn-sm btn-outline-secondary']) }}
-                </div>
-              </div>
-              {{ Form::close() }}
+              </form>
             </div>
           </div>
           <!-- POP UP MAIN QUESTION -->
@@ -1147,31 +1140,34 @@ $appraisals = DB::table('pivot_category_appraisals')
     <!-- POP UP SECTION SUB -->
     <div class="modal fade" id="section_sub_add{{ $section->id }}" aria-labelledby="sectionsublabeladd{{ $section->id }}" aria-hidden="true">
       <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        {{ Form::open(['route' => ['appraisalform.update', $section->id], 'method' => 'PATCH', 'id' => 'form', 'class' => 'form_section_sub_add', 'autocomplete' => 'off', 'files' => true, 'data-id' => $section->id, 'data-toggle' => 'validator']) }}
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5" id="sectionsublabeladd{{ $section->id }}">Appraisal Form :
-              {{ $category->category }} Version {{ $pivotappraisal->version }}
-            </h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body align-items-start justify-content-center">
-            <div class="row mb-1">
-              <div class="col-sm-2 {{ $errors->has('section_sub_sort_add') ? 'has-error' : '' }}">
-                <input type="number" name="section_sub_sort_add{{ $section->id }}" id="section_sub_sort_add{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+        <form method="POST" action="{{ route('appraisalform.update', $section->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form_section" data-id="{{ $section->id }}" enctype="multipart/form-data">
+          @csrf
+          @method('PATCH')
+
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="sectionsublabeladd{{ $section->id }}">Appraisal Form :
+                {{ $category->category }} Version {{ $pivotappraisal->version }}
+              </h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body align-items-start justify-content-center">
+              <div class="row mb-1">
+                <div class="col-sm-2 {{ $errors->has('section_sub_sort_add') ? 'has-error' : '' }}">
+                  <input type="number" name="section_sub_sort_add{{ $section->id }}" id="section_sub_sort_add{{ $section->id }}" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                </div>
+              </div>
+              <div class="row mb-1">
+                <div class="mb-1 {{ $errors->has('section_sub_text_add') ? 'has-error' : '' }}">
+                  <textarea name="section_sub_text_add{{ $section->id }}" id="section_sub_text_add{{ $section->id }}" class="form-control form-control-sm"></textarea>
+                </div>
               </div>
             </div>
-            <div class="row mb-1">
-              <div class="mb-1 {{ $errors->has('section_sub_text_add') ? 'has-error' : '' }}">
-                <textarea name="section_sub_text_add{{ $section->id }}" id="section_sub_text_add{{ $section->id }}" class="form-control form-control-sm"></textarea>
-              </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
             </div>
           </div>
-          <div class="modal-footer">
-            {{ Form::submit('Submit', ['class' => 'btn btn-sm btn-outline-secondary']) }}
-          </div>
-        </div>
-        {{ Form::close() }}
+        </form>
       </div>
     </div>
     <!-- POP UP SECTION SUB -->
@@ -1191,31 +1187,34 @@ $appraisals = DB::table('pivot_category_appraisals')
     <!-- POP UP SECTION -->
     <div class="modal fade" id="section_add" aria-labelledby="sectionlabeladd" aria-hidden="true">
       <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        {{ Form::open(['route' => ['appraisalform.update', $section->id], 'method' => 'PATCH', 'id' => 'form', 'class' => 'form_section_add', 'autocomplete' => 'off', 'files' => true, 'data-id' => $section->id, 'data-toggle' => 'validator']) }}
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5" id="sectionlabeladd">Appraisal Form :
-              {{ $category->category }} Version {{ $pivotappraisal->version }}
-            </h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body align-items-start justify-content-center">
-            <div class="row mb-1">
-              <div class="col-sm-2 {{ $errors->has('section_sort_add') ? 'has-error' : '' }}">
-                <input type="number" name="section_sort_add" id="section_sort_add" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+        <form method="POST" action="{{ route('appraisalform.update', $section->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form_section" data-id="{{ $section->id }}" enctype="multipart/form-data">
+          @csrf
+          @method('PATCH')
+
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="sectionlabeladd">Appraisal Form :
+                {{ $category->category }} Version {{ $pivotappraisal->version }}
+              </h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body align-items-start justify-content-center">
+              <div class="row mb-1">
+                <div class="col-sm-2 {{ $errors->has('section_sort_add') ? 'has-error' : '' }}">
+                  <input type="number" name="section_sort_add" id="section_sort_add" class="form-control form-control-sm" placeholder="Sort" oninput="this.value = (this.value < 1) ? 1 : this.value;">
+                </div>
+              </div>
+              <div class="row mb-1">
+                <div class="mb-1 {{ $errors->has('section_text_add') ? 'has-error' : '' }}">
+                  <textarea name="section_text_add" id="section_text_add" class="form-control form-control-sm"></textarea>
+                </div>
               </div>
             </div>
-            <div class="row mb-1">
-              <div class="mb-1 {{ $errors->has('section_text_add') ? 'has-error' : '' }}">
-                <textarea name="section_text_add" id="section_text_add" class="form-control form-control-sm"></textarea>
-              </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
             </div>
           </div>
-          <div class="modal-footer">
-            {{ Form::submit('Submit', ['class' => 'btn btn-sm btn-outline-secondary']) }}
-          </div>
-        </div>
-        {{ Form::close() }}
+        </form>
       </div>
     </div>
     <!-- POP UP SECTION -->
@@ -1246,24 +1245,24 @@ $(document).ready(function() {
 
     CKEDITOR.replace(editor, {
       toolbar: [{
-          name: 'clipboard',
-          items: ['Cut', 'Copy', 'Paste', '-', 'Undo', 'Redo']
-        },
-        {
-          name: 'basicstyles',
-          items: ['Bold', 'Italic', 'Underline', '-']
-        },
-        {
-          name: 'paragraph',
-          items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft',
-            'JustifyCenter',
-            'JustifyRight', 'JustifyBlock'
-          ]
-        },
-        {
-          name: 'styles',
-          items: ['Styles', 'Format', 'Font', 'FontSize']
-        },
+        name: 'clipboard',
+        items: ['Cut', 'Copy', 'Paste', '-', 'Undo', 'Redo']
+      },
+      {
+        name: 'basicstyles',
+        items: ['Bold', 'Italic', 'Underline', '-']
+      },
+      {
+        name: 'paragraph',
+        items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft',
+        'JustifyCenter',
+        'JustifyRight', 'JustifyBlock'
+        ]
+      },
+      {
+        name: 'styles',
+        items: ['Styles', 'Format', 'Font', 'FontSize']
+      },
       ]
     });
   });
@@ -1272,24 +1271,24 @@ $(document).ready(function() {
 
 CKEDITOR.replace('section_text_add', {
   toolbar: [{
-      name: 'clipboard',
-      items: ['Cut', 'Copy', 'Paste', '-', 'Undo', 'Redo']
-    },
-    {
-      name: 'basicstyles',
-      items: ['Bold', 'Italic', 'Underline', '-']
-    },
-    {
-      name: 'paragraph',
-      items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft',
-        'JustifyCenter',
-        'JustifyRight', 'JustifyBlock'
-      ]
-    },
-    {
-      name: 'styles',
-      items: ['Styles', 'Format', 'Font', 'FontSize']
-    },
+    name: 'clipboard',
+    items: ['Cut', 'Copy', 'Paste', '-', 'Undo', 'Redo']
+  },
+  {
+    name: 'basicstyles',
+    items: ['Bold', 'Italic', 'Underline', '-']
+  },
+  {
+    name: 'paragraph',
+    items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft',
+    'JustifyCenter',
+    'JustifyRight', 'JustifyBlock'
+    ]
+  },
+  {
+    name: 'styles',
+    items: ['Styles', 'Format', 'Font', 'FontSize']
+  },
   ]
 });
 
@@ -1298,42 +1297,42 @@ CKEDITOR.replace('section_text_add', {
 // ADD AJAX SECTION
 $(".form_section_add").on('submit', function (e) {
 
-var editor = CKEDITOR.instances['section_text_add'];
-var section_text = editor.getData();
+  var editor = CKEDITOR.instances['section_text_add'];
+  var section_text = editor.getData();
 
-e.preventDefault();
-$.ajax({
-url: '{{ url('appraisalform/update') }}',
-type: 'PATCH',
-data: {
-_token: '{!! csrf_token() !!}',
-add: 'P1',
-sort: $('#section_sort_add').val(),
-section: section_text
-},
-dataType: 'json',
-global: false,
-async: false,
-success: function (response) {
-$('#section_add').modal('hide');
-// var row = $('#section_add').parent().parent();
-// row.remove();
-swal.fire({
-title: 'Success!',
-text: response.message,
-icon: response.status
-}).then((result) => {
-if (result.isConfirmed) {
-location.reload();
-}
-});
-},
-error: function (resp) {
-const res = resp.responseJSON;
-$('#section_add').modal('hide');
-swal.fire('Error!', res.message, 'error');
-}
-});
+  e.preventDefault();
+  $.ajax({
+    url: '{{ url('appraisalform/update') }}',
+    type: 'PATCH',
+    data: {
+      _token: '{!! csrf_token() !!}',
+      add: 'P1',
+      sort: $('#section_sort_add').val(),
+      section: section_text
+    },
+    dataType: 'json',
+    global: false,
+    async: false,
+    success: function (response) {
+      $('#section_add').modal('hide');
+      // var row = $('#section_add').parent().parent();
+      // row.remove();
+      swal.fire({
+        title: 'Success!',
+        text: response.message,
+        icon: response.status
+      }).then((result) => {
+        if (result.isConfirmed) {
+          location.reload();
+        }
+      });
+    },
+    error: function (resp) {
+      const res = resp.responseJSON;
+      $('#section_add').modal('hide');
+      swal.fire('Error!', res.message, 'error');
+    }
+  });
 });
 
 
@@ -1341,44 +1340,44 @@ swal.fire('Error!', res.message, 'error');
 // ADD AJAX SECTION SUB
 $(".form_section_sub_add").on('submit', function (e) {
 
-var ids = $(this).data('id');
-var editor = CKEDITOR.instances['section_sub_text_add' + ids];
-var section_sub_text = editor.getData();
+  var ids = $(this).data('id');
+  var editor = CKEDITOR.instances['section_sub_text_add' + ids];
+  var section_sub_text = editor.getData();
 
-e.preventDefault();
-$.ajax({
-url: '{{ url('appraisalform/update') }}',
-type: 'PATCH',
-data: {
-_token: '{!! csrf_token() !!}',
-add: 'P2',
-id: ids,
-sort: $('#section_sub_sort_add' + ids).val(),
-section_sub: section_sub_text
-},
-dataType: 'json',
-global: false,
-async: false,
-success: function (response) {
-$('#section_sub_add' + ids).modal('hide');
-// var row = $('#section_sub_add' + ids).parent().parent();
-// row.remove();
-swal.fire({
-title: 'Success!',
-text: response.message,
-icon: response.status
-}).then((result) => {
-if (result.isConfirmed) {
-location.reload();
-}
-});
-},
-error: function (resp) {
-const res = resp.responseJSON;
-$('#section_sub_add' + ids).modal('hide');
-swal.fire('Error!', res.message, 'error');
-}
-});
+  e.preventDefault();
+  $.ajax({
+    url: '{{ url('appraisalform/update') }}',
+    type: 'PATCH',
+    data: {
+      _token: '{!! csrf_token() !!}',
+      add: 'P2',
+      id: ids,
+      sort: $('#section_sub_sort_add' + ids).val(),
+      section_sub: section_sub_text
+    },
+    dataType: 'json',
+    global: false,
+    async: false,
+    success: function (response) {
+      $('#section_sub_add' + ids).modal('hide');
+      // var row = $('#section_sub_add' + ids).parent().parent();
+      // row.remove();
+      swal.fire({
+        title: 'Success!',
+        text: response.message,
+        icon: response.status
+      }).then((result) => {
+        if (result.isConfirmed) {
+          location.reload();
+        }
+      });
+    },
+    error: function (resp) {
+      const res = resp.responseJSON;
+      $('#section_sub_add' + ids).modal('hide');
+      swal.fire('Error!', res.message, 'error');
+    }
+  });
 });
 
 
@@ -1386,45 +1385,45 @@ swal.fire('Error!', res.message, 'error');
 // ADD AJAX MAIN QUESTION
 $(".form_main_question_add").on('submit', function (e) {
 
-var ids = $(this).data('id');
-var editor = CKEDITOR.instances['main_question_text_add' + ids];
-var main_question_text = editor.getData();
+  var ids = $(this).data('id');
+  var editor = CKEDITOR.instances['main_question_text_add' + ids];
+  var main_question_text = editor.getData();
 
-e.preventDefault();
-$.ajax({
-url: '{{ url('appraisalform/update') }}',
-type: 'PATCH',
-data: {
-_token: '{!! csrf_token() !!}',
-add: 'P3',
-id: ids,
-mark: $('#main_question_mark_add' + ids).val(),
-sort: $('#main_question_sort_add' + ids).val(),
-main_question: main_question_text
-},
-dataType: 'json',
-global: false,
-async: false,
-success: function (response) {
-$('#main_question_add' + ids).modal('hide');
-// var row = $('#main_question_add' + ids).parent().parent();
-// row.remove();
-swal.fire({
-title: 'Success!',
-text: response.message,
-icon: response.status
-}).then((result) => {
-if (result.isConfirmed) {
-location.reload();
-}
-});
-},
-error: function (resp) {
-const res = resp.responseJSON;
-$('#main_question_add' + ids).modal('hide');
-swal.fire('Error!', res.message, 'error');
-}
-});
+  e.preventDefault();
+  $.ajax({
+    url: '{{ url('appraisalform/update') }}',
+    type: 'PATCH',
+    data: {
+      _token: '{!! csrf_token() !!}',
+      add: 'P3',
+      id: ids,
+      mark: $('#main_question_mark_add' + ids).val(),
+      sort: $('#main_question_sort_add' + ids).val(),
+      main_question: main_question_text
+    },
+    dataType: 'json',
+    global: false,
+    async: false,
+    success: function (response) {
+      $('#main_question_add' + ids).modal('hide');
+      // var row = $('#main_question_add' + ids).parent().parent();
+      // row.remove();
+      swal.fire({
+        title: 'Success!',
+        text: response.message,
+        icon: response.status
+      }).then((result) => {
+        if (result.isConfirmed) {
+          location.reload();
+        }
+      });
+    },
+    error: function (resp) {
+      const res = resp.responseJSON;
+      $('#main_question_add' + ids).modal('hide');
+      swal.fire('Error!', res.message, 'error');
+    }
+  });
 });
 
 
@@ -1432,45 +1431,45 @@ swal.fire('Error!', res.message, 'error');
 // ADD AJAX QUESTION
 $(".form_question_add").on('submit', function (e) {
 
-var ids = $(this).data('id');
-var editor = CKEDITOR.instances['question_text_add' + ids];
-var question_text = editor.getData();
+  var ids = $(this).data('id');
+  var editor = CKEDITOR.instances['question_text_add' + ids];
+  var question_text = editor.getData();
 
-e.preventDefault();
-$.ajax({
-url: '{{ url('appraisalform/update') }}',
-type: 'PATCH',
-data: {
-_token: '{!! csrf_token() !!}',
-add: 'P4',
-id: ids,
-mark: $('#question_mark_add' + ids).val(),
-sort: $('#question_sort_add' + ids).val(),
-question: question_text
-},
-dataType: 'json',
-global: false,
-async: false,
-success: function (response) {
-$('#question_add' + ids).modal('hide');
-// var row = $('#question_add' + ids).parent().parent();
-// row.remove();
-swal.fire({
-title: 'Success!',
-text: response.message,
-icon: response.status
-}).then((result) => {
-if (result.isConfirmed) {
-location.reload();
-}
-});
-},
-error: function (resp) {
-const res = resp.responseJSON;
-$('#question_add' + ids).modal('hide');
-swal.fire('Error!', res.message, 'error');
-}
-});
+  e.preventDefault();
+  $.ajax({
+    url: '{{ url('appraisalform/update') }}',
+    type: 'PATCH',
+    data: {
+      _token: '{!! csrf_token() !!}',
+      add: 'P4',
+      id: ids,
+      mark: $('#question_mark_add' + ids).val(),
+      sort: $('#question_sort_add' + ids).val(),
+      question: question_text
+    },
+    dataType: 'json',
+    global: false,
+    async: false,
+    success: function (response) {
+      $('#question_add' + ids).modal('hide');
+      // var row = $('#question_add' + ids).parent().parent();
+      // row.remove();
+      swal.fire({
+        title: 'Success!',
+        text: response.message,
+        icon: response.status
+      }).then((result) => {
+        if (result.isConfirmed) {
+          location.reload();
+        }
+      });
+    },
+    error: function (resp) {
+      const res = resp.responseJSON;
+      $('#question_add' + ids).modal('hide');
+      swal.fire('Error!', res.message, 'error');
+    }
+  });
 });
 
 
@@ -1478,44 +1477,44 @@ swal.fire('Error!', res.message, 'error');
 // EDIT AJAX SECTION
 $(".form_section").on('submit', function (e) {
 
-var ids = $(this).data('id');
-var editor = CKEDITOR.instances['section_text' + ids];
-var section_text = editor.getData();
+  var ids = $(this).data('id');
+  var editor = CKEDITOR.instances['section_text' + ids];
+  var section_text = editor.getData();
 
-e.preventDefault();
-$.ajax({
-url: '{{ url('appraisalform/update') }}',
-type: 'PATCH',
-data: {
-_token: '{!! csrf_token() !!}',
-update: 'section',
-id: ids,
-sort: $('#section_sort' + ids).val(),
-section: section_text
-},
-dataType: 'json',
-global: false,
-async: false,
-success: function (response) {
-$('#section' + ids).modal('hide');
-// var row = $('#section' + ids).parent().parent();
-// row.remove();
-swal.fire({
-title: 'Success!',
-text: response.message,
-icon: response.status
-}).then((result) => {
-if (result.isConfirmed) {
-location.reload();
-}
-});
-},
-error: function (resp) {
-const res = resp.responseJSON;
-$('#section' + ids).modal('hide');
-swal.fire('Error!', res.message, 'error');
-}
-});
+  e.preventDefault();
+  $.ajax({
+    url: '{{ url('appraisalform/update') }}',
+    type: 'PATCH',
+    data: {
+      _token: '{!! csrf_token() !!}',
+      update: 'section',
+      id: ids,
+      sort: $('#section_sort' + ids).val(),
+      section: section_text
+    },
+    dataType: 'json',
+    global: false,
+    async: false,
+    success: function (response) {
+      $('#section' + ids).modal('hide');
+      // var row = $('#section' + ids).parent().parent();
+      // row.remove();
+      swal.fire({
+        title: 'Success!',
+        text: response.message,
+        icon: response.status
+      }).then((result) => {
+        if (result.isConfirmed) {
+          location.reload();
+        }
+      });
+    },
+    error: function (resp) {
+      const res = resp.responseJSON;
+      $('#section' + ids).modal('hide');
+      swal.fire('Error!', res.message, 'error');
+    }
+  });
 });
 
 
@@ -1523,44 +1522,44 @@ swal.fire('Error!', res.message, 'error');
 // EDIT AJAX SECTION SUB
 $(".form_section_sub").on('submit', function (e) {
 
-var ids = $(this).data('id');
-var editor = CKEDITOR.instances['section_sub_text' + ids];
-var section_sub_text = editor.getData();
+  var ids = $(this).data('id');
+  var editor = CKEDITOR.instances['section_sub_text' + ids];
+  var section_sub_text = editor.getData();
 
-e.preventDefault();
-$.ajax({
-url: '{{ url('appraisalform/update') }}',
-type: 'PATCH',
-data: {
-_token: '{!! csrf_token() !!}',
-update: 'section_sub',
-id: ids,
-sort: $('#section_sub_sort' + ids).val(),
-section_sub: section_sub_text
-},
-dataType: 'json',
-global: false,
-async: false,
-success: function (response) {
-$('#section_sub' + ids).modal('hide');
-// var row = $('#section_sub' + ids).parent().parent();
-// row.remove();
-swal.fire({
-title: 'Success!',
-text: response.message,
-icon: response.status
-}).then((result) => {
-if (result.isConfirmed) {
-location.reload();
-}
-});
-},
-error: function (resp) {
-const res = resp.responseJSON;
-$('#section_sub' + ids).modal('hide');
-swal.fire('Error!', res.message, 'error');
-}
-});
+  e.preventDefault();
+  $.ajax({
+    url: '{{ url('appraisalform/update') }}',
+    type: 'PATCH',
+    data: {
+      _token: '{!! csrf_token() !!}',
+      update: 'section_sub',
+      id: ids,
+      sort: $('#section_sub_sort' + ids).val(),
+      section_sub: section_sub_text
+    },
+    dataType: 'json',
+    global: false,
+    async: false,
+    success: function (response) {
+      $('#section_sub' + ids).modal('hide');
+      // var row = $('#section_sub' + ids).parent().parent();
+      // row.remove();
+      swal.fire({
+        title: 'Success!',
+        text: response.message,
+        icon: response.status
+      }).then((result) => {
+        if (result.isConfirmed) {
+          location.reload();
+        }
+      });
+    },
+    error: function (resp) {
+      const res = resp.responseJSON;
+      $('#section_sub' + ids).modal('hide');
+      swal.fire('Error!', res.message, 'error');
+    }
+  });
 });
 
 
@@ -1568,45 +1567,45 @@ swal.fire('Error!', res.message, 'error');
 // EDIT AJAX MAIN QUESTION
 $(".form_main_question").on('submit', function (e) {
 
-var ids = $(this).data('id');
-var editor = CKEDITOR.instances['main_question_text' + ids];
-var main_question_text = editor.getData();
+  var ids = $(this).data('id');
+  var editor = CKEDITOR.instances['main_question_text' + ids];
+  var main_question_text = editor.getData();
 
-e.preventDefault();
-$.ajax({
-url: '{{ url('appraisalform/update') }}',
-type: 'PATCH',
-data: {
-_token: '{!! csrf_token() !!}',
-update: 'main_question',
-id: ids,
-sort: $('#main_question_sort' + ids).val(),
-mark: $('#main_question_mark' + ids).val(),
-main_question: main_question_text
-},
-dataType: 'json',
-global: false,
-async: false,
-success: function (response) {
-$('#main_question' + ids).modal('hide');
-// var row = $('#main_question' + ids).parent().parent();
-// row.remove();
-swal.fire({
-title: 'Success!',
-text: response.message,
-icon: response.status
-}).then((result) => {
-if (result.isConfirmed) {
-location.reload();
-}
-});
-},
-error: function (resp) {
-const res = resp.responseJSON;
-$('#main_question' + ids).modal('hide');
-swal.fire('Error!', res.message, 'error');
-}
-});
+  e.preventDefault();
+  $.ajax({
+    url: '{{ url('appraisalform/update') }}',
+    type: 'PATCH',
+    data: {
+      _token: '{!! csrf_token() !!}',
+      update: 'main_question',
+      id: ids,
+      sort: $('#main_question_sort' + ids).val(),
+      mark: $('#main_question_mark' + ids).val(),
+      main_question: main_question_text
+    },
+    dataType: 'json',
+    global: false,
+    async: false,
+    success: function (response) {
+      $('#main_question' + ids).modal('hide');
+      // var row = $('#main_question' + ids).parent().parent();
+      // row.remove();
+      swal.fire({
+        title: 'Success!',
+        text: response.message,
+        icon: response.status
+      }).then((result) => {
+        if (result.isConfirmed) {
+          location.reload();
+        }
+      });
+    },
+    error: function (resp) {
+      const res = resp.responseJSON;
+      $('#main_question' + ids).modal('hide');
+      swal.fire('Error!', res.message, 'error');
+    }
+  });
 });
 
 
@@ -1614,44 +1613,44 @@ swal.fire('Error!', res.message, 'error');
 // EDIT AJAX QUESTION
 $(".form_question").on('submit', function (e) {
 
-var ids = $(this).data('id');
-var editor = CKEDITOR.instances['question_text' + ids];
-var question_text = editor.getData();
+  var ids = $(this).data('id');
+  var editor = CKEDITOR.instances['question_text' + ids];
+  var question_text = editor.getData();
 
-e.preventDefault();
-$.ajax({
-url: '{{ url('appraisalform/update') }}',
-type: 'PATCH',
-data: {
-_token: '{!! csrf_token() !!}',
-update: 'question',
-id: ids,
-sort: $('#question_sort' + ids).val(),
-mark: $('#question_mark' + ids).val(),
-question: question_text
-},
-dataType: 'json',
-global: false,
-async: false,
-success: function (response) {
-$('#question' + ids).modal('hide');
-// var row = $('#question' + ids).parent().parent();
-// row.remove();
-swal.fire({
-title: 'Success!',
-text: response.message,
-icon: response.status
-}).then((result) => {
-if (result.isConfirmed) {
-location.reload();
-}
-});
-},
-error: function (resp) {
-const res = resp.responseJSON;
-$('#question' + ids).modal('hide');
-swal.fire('Error!', res.message, 'error');
-}
-});
+  e.preventDefault();
+  $.ajax({
+    url: '{{ url('appraisalform/update') }}',
+    type: 'PATCH',
+    data: {
+      _token: '{!! csrf_token() !!}',
+      update: 'question',
+      id: ids,
+      sort: $('#question_sort' + ids).val(),
+      mark: $('#question_mark' + ids).val(),
+      question: question_text
+    },
+    dataType: 'json',
+    global: false,
+    async: false,
+    success: function (response) {
+      $('#question' + ids).modal('hide');
+      // var row = $('#question' + ids).parent().parent();
+      // row.remove();
+      swal.fire({
+        title: 'Success!',
+        text: response.message,
+        icon: response.status
+      }).then((result) => {
+        if (result.isConfirmed) {
+          location.reload();
+        }
+      });
+    },
+    error: function (resp) {
+      const res = resp.responseJSON;
+      $('#question' + ids).modal('hide');
+      swal.fire('Error!', res.message, 'error');
+    }
+  });
 });
 @endsection
