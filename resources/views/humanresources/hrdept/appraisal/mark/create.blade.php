@@ -324,18 +324,23 @@
                 </td>
                 <td align="center">
                   {!! Form::radio('2' . $no, '1', ($loop2->mark ?? null) == '1', ['required' => 'required']) !!}
+                  <input type="radio" name="{{ '2' . $no, '1' }}" value="{{ ($loop2->mark ?? null) == '1' }}" required>
                 </td>
                 <td align="center">
                   {!! Form::radio('2' . $no, '2', ($loop2->mark ?? null) == '2', []) !!}
+                  <input type="radio" name="{{ '2' . $no, '2' }}" value="{{ ($loop2->mark ?? null) == '2' }}" required>
                 </td>
                 <td align="center">
                   {!! Form::radio('2' . $no, '3', ($loop2->mark ?? null) == '3', []) !!}
+                  <input type="radio" name="{{ '2' . $no, '3' }}" value="{{ ($loop2->mark ?? null) == '3' }}" required>
                 </td>
                 <td align="center">
                   {!! Form::radio('2' . $no, '4', ($loop2->mark ?? null) == '4', []) !!}
+                  <input type="radio" name="{{ '2' . $no, '4' }}" value="{{ ($loop2->mark ?? null) == '4 }}" required>
                 </td>
                 <td align="center">
                   {!! Form::radio('2' . $no, '5', ($loop2->mark ?? null) == '5', []) !!}
+                  <input type="radio" name="{{ '2' . $no, '5' }}" value="{{ ($loop2->mark ?? null) == '5' }}" required>
                 </td>
               </tr>
               <?php $no++; ?>

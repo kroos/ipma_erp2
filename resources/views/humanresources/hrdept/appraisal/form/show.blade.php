@@ -218,19 +218,15 @@
                   <input type="radio" name="{{ '2' . $no }}" value="1">
                 </td>
                 <td align="center">
-                  {!! Form::radio('2' . $no, '2', @$checked, []) !!}
                   <input type="radio" name="{{ '2' . $no }}" value="2">
                 </td>
                 <td align="center">
-                  {!! Form::radio('2' . $no, '3', @$checked, []) !!}
                   <input type="radio" name="{{ '2' . $no }}" value="3">
                 </td>
                 <td align="center">
-                  {!! Form::radio('2' . $no, '4', @$checked, []) !!}
                   <input type="radio" name="{{ '2' . $no }}" value="4">
                 </td>
                 <td align="center">
-                  {!! Form::radio('2' . $no, '5', @$checked, []) !!}
                   <input type="radio" name="{{ '2' . $no }}" value="5">
                 </td>
               </tr>
@@ -263,7 +259,6 @@
               </tr>
               <tr>
                 <td colspan="2">
-                  {!! Form::textarea('3' . $no, @$value, ['style' => 'width:100%;', 'rows' => 4]) !!}
                   <textarea name="{{'3' . $no}}" >{{ old('3' . $no) }}</textarea>
                 </td>
               </tr>
@@ -308,7 +303,6 @@
                 <tr>
                   <td></td>
                   <td width="40px">
-                    {!! Form::radio('4' . $no, @$value, @$checked, []) !!}
                     <input type="radio" name="{{ '4' . $no }}" value="{{ '4' . $no }}">
                   </td>
                   <td>

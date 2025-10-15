@@ -10,7 +10,6 @@ window._ = require('lodash');
 try {
     require ('./jQuery');
     require('bootstrap/dist/js/bootstrap.bundle');
-    // window.$ = window.jQuery = require('jquery/dist/jquery');
 	require('@claviska/jquery-minicolors');
     require('@fortawesome/fontawesome-free');
 	require('datatables.net');
