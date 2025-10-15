@@ -8,8 +8,9 @@ window._ = require('lodash');
  */
 
 try {
+    require ('./jQuery');
     require('bootstrap/dist/js/bootstrap.bundle');
-    window.$ = window.jQuery = require('jquery/dist/jquery');
+    // window.$ = window.jQuery = require('jquery/dist/jquery');
 	require('@claviska/jquery-minicolors');
     require('@fortawesome/fontawesome-free');
 	require('datatables.net');
@@ -30,7 +31,7 @@ try {
     require('pc-bootstrap4-datetimepicker');
     // require('../../node_modules/jquery-chained/jquery.chained');
     // require('../../node_modules/jquery-chained/jquery.chained.remote');
-    require('jquery-ui/dist/jquery-ui');
+    // require('jquery-ui/dist/jquery-ui');
     require('./dataTable-any-number');
     require('./datetime-moment');
 
@@ -43,6 +44,9 @@ try {
 
 	require ('./bootstrapValidator4/js/bootstrapValidator');
     require ('./bootstrap');
+    require ('./jQuery-ui');
+    require ('./fullcalendar');
+    require ('./chart');
 } catch (e) {}
 
 /**
@@ -85,5 +89,3 @@ if (token) {
 //     cluster: process.env.MIX_PUSHER_APP_CLUSTER,
 //     encrypted: true
 // });
-
-

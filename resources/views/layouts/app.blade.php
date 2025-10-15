@@ -47,8 +47,6 @@ $currentYear = Carbon::now()->year;
 		</div>
 	</body>
 
-	<script src="{{ mix('js/fullcalendar/index.global.js') }}"></script>
-	<script src="{{ mix('js/chart.js/dist/chart.umd.js') }}"></script>
 	<script src="{{ mix('js/app.js') }}"></script>
 	<script src="{{ asset('js/ckeditor/ckeditor.js') }}"></script>
 	<script src="{{ asset('js/ckeditor/adapters/jquery.js') }}"></script>

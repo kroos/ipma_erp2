@@ -904,10 +904,16 @@ $('#al, #mc, #ml').DataTable({
 /////////////////////////////////////////////////////////////////////////////////////////
 // fullcalendar cant use jquery
 var calendarEl = document.getElementById('calendar');
-var calendar = new FullCalendar.Calendar(calendarEl, {
+var calendar = new Calendar(calendarEl, {
 	aspectRatio: 1.0,
 	height: 2000,
-	// plugins: [multiMonthPlugin],
+	plugins: [
+		timeGridPlugin,
+		dayGridPlugin,
+		multiMonthPlugin,
+		momentPlugin,
+		bootstrap5Plugin
+	],
 	initialView: 'multiMonthYear',
 	// initialView: 'dayGridMonth',
 	// multiMonthMaxColumns: 1,					// force a single column
