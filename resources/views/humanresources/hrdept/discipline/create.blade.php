@@ -29,20 +29,28 @@ $infraction = OptInfractions::select(DB::raw('CONCAT(IFNULL(infraction, ""), " -
   @include('humanresources.hrdept.navhr')
   <h4>Add Discipline</h4>
 
-  {{ Form::open(['route' => ['discipline.store'], 'id' => 'form', 'class' => 'form-horizontal', 'autocomplete' => 'off', 'files' => true]) }}
+  <form method="POST" action="{{ route('discipline.store') }}" accept-charset="UTF-8" id="form" autocomplete="off" class="" enctype="multipart/form-data">
+  @csrf
 
   <div class="row mt-3">
     <div class="col-md-2">
-      {{Form::label('name', 'Name')}}
+      <label for="staff_id" class="form-label">Name : </label>
     </div>
     <div class="col-md-10 {{ $errors->has('staff_id') ? 'has-error' : '' }}">
       {{ Form::select('staff_id', $staff, @$value, ['class' => 'form-control form-select form-select-sm col-auto', 'id' => 'staff_id', 'placeholder' => '', 'autocomplete' => 'off']) }}
+      <select name="staff_id" id="staff_id" class="form-select form-select-sm col-auto">
+        <option value="">Please choose</option>
+        @foreach($staff as $stf)
+        <option value="{{ $stf?->id }}">{{ $stf?->name }}</option>
+        @endforeach
+      </select>
     </div>
   </div>
 
   <div class="row mt-3">
     <div class="col-md-2">
       {{Form::label('supervisor', 'Supervisor Incharge')}}
+      <label for="supervisor" class="form-label">Supervisor Incharge : </label>
     </div>
     <div class="col-md-10 {{ $errors->has('supervisor_id') ? 'has-error' : '' }}">
       {{ Form::select('supervisor_id', $staff, @$value, ['class' => 'form-control form-select form-select-sm col-auto', 'id' => 'supervisor_id', 'placeholder' => '', 'autocomplete' => 'off']) }}
@@ -127,14 +135,14 @@ $infraction = OptInfractions::select(DB::raw('CONCAT(IFNULL(infraction, ""), " -
     </div>
   </div>
 
-  {!! Form::close() !!}
+  </form>
 
   <div class="row mt-3">
     <div class="col-md-12 text-center">
-    <a href="{{ url()->previous() }}">
-        <button class="btn btn-sm btn-outline-secondary">BACK</button>
-      </a>
-    </div>
+      <a href="{{ url()->previous() }}">
+          <button class="btn btn-sm btn-outline-secondary">BACK</button>
+        </a>
+      </div>
   </div>
 
 </div>
