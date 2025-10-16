@@ -47,13 +47,13 @@
 
   $pivotappraisal = DB::table('pivot_category_appraisals')
       ->join('option_appraisal_categories', 'option_appraisal_categories.id', '=', 'pivot_category_appraisals.category_id')
-      ->where('pivot_category_appraisals.category_id', $staff->catid)
+      ->where('pivot_category_appraisals.category_id', $staff?->catid)
       ->orderBy('version', 'DESC')
       ->first();
 
   $appraisals = DB::table('pivot_category_appraisals')
-      ->where('category_id', $pivotappraisal->category_id)
-      ->where('version', $pivotappraisal->version)
+      ->where('category_id', $pivotappraisal?->category_id)
+      ->where('version', $pivotappraisal?->version)
       ->orderBy('sort', 'ASC')
       ->orderBy('id', 'ASC')
       ->get();
@@ -86,7 +86,7 @@
     </div>
     <!-- POPUP NOTIFICATION END -->
 
-    <h4>BORANG PENILAIAN PRESTASI PEKERJA<br />{{ $pivotappraisal->category }} Version {{ $pivotappraisal->version }}</h4>
+    <h4>BORANG PENILAIAN PRESTASI PEKERJA<br />{{ $pivotappraisal?->category }} Version {{ $pivotappraisal?->version }}</h4>
 
     <br>
 
@@ -94,18 +94,18 @@
       <tr>
         <td>No Pekerja</td>
         <td>:</td>
-        <td>{{ $staff->username }}</td>
+        <td>{{ $staff?->username }}</td>
         <td>Bahagian</td>
         <td>:</td>
-        <td>{{ Staff::find($staff->staffid)->belongstomanydepartment()->where('main', 1)->first()->department }}</td>
+        <td>{{ Staff::find($staff?->staffid)?->belongstomanydepartment()?->where('main', 1)->first()->department }}</td>
       </tr>
       <tr>
         <td width="150px">Nama Pekerja</td>
         <td width="20px">:</td>
-        <td width="600px">{{ $staff->name }}</td>
+        <td width="600px">{{ $staff?->name }}</td>
         <td width="150px">Tarikh Masuk</td>
         <td width="20px">:</td>
-        <td>{{ Carbon::parse($staff->join)->format('d-m-Y') }}</td>
+        <td>{{ Carbon::parse($staff?->join)->format('d-m-Y') }}</td>
       </tr>
       <tr>
         <td>Tarikh</td>
@@ -122,18 +122,18 @@
       @csrf
 
     <input type="hidden" name="pivot_apoint_id" value="{{ $id }}">
-    <input type="hidden" name="appraisal_category_id" value="{{ $pivotappraisal->category_id }}">
-    <input type="hidden" name="appraisal_category_version" value="{{ $pivotappraisal->version }}">
+    <input type="hidden" name="appraisal_category_id" value="{{ $pivotappraisal?->category_id }}">
+    <input type="hidden" name="appraisal_category_version" value="{{ $pivotappraisal?->version }}">
 
     @foreach ($appraisals as $appraisal)
       <?php
-      $sections = App\Models\HumanResources\HRAppraisalSection::where('id', $appraisal->section_id)->get();
+      $sections = App\Models\HumanResources\HRAppraisalSection::where('id', $appraisal?->section_id)->get();
       ?>
 
       @foreach ($sections as $section)
         <?php
         $no = 1;
-        $section_subs = App\Models\HumanResources\HRAppraisalSectionSub::where('section_id', $section->id)
+        $section_subs = App\Models\HumanResources\HRAppraisalSectionSub::where('section_id', $section?->id)
             ->orderBy('section_id', 'ASC')
             ->orderBy('sort', 'ASC')
             ->orderBy('id', 'ASC')
@@ -221,8 +221,7 @@
                   <tr>
                     <td class="td-border-left-right"></td>
                     <td align="center" width="40px" style="vertical-align:text-top;">
-                      {!! Form::radio('1' . $no . $no_sub, $question->id, ($loop1->question_id ?? null) == $question->id, ['required' => 'required']) !!}
-                      <input type="radio" name="{{ '1' . $no . $no_sub }}">
+                      <input type="radio" name="{{ '1' . $no . $no_sub }}" value="{{ $question->id }}" {{ ($loop1?->question_id == $question->id)? 'checked' : NULL }} required>
                     </td>
                     <td width="50px" style="vertical-align:text-top;">
                       {!! $question->mark !!}m -
@@ -323,24 +322,19 @@
                   {!! $section_sub->section_sub !!}
                 </td>
                 <td align="center">
-                  {!! Form::radio('2' . $no, '1', ($loop2->mark ?? null) == '1', ['required' => 'required']) !!}
-                  <input type="radio" name="{{ '2' . $no, '1' }}" value="{{ ($loop2->mark ?? null) == '1' }}" required>
+                  <input type="radio" name="{{ '2' . $no }}" value="1" {{ ($loop2->mark == 1)? 'checked' : NULL }} required>
                 </td>
                 <td align="center">
-                  {!! Form::radio('2' . $no, '2', ($loop2->mark ?? null) == '2', []) !!}
-                  <input type="radio" name="{{ '2' . $no, '2' }}" value="{{ ($loop2->mark ?? null) == '2' }}" required>
+                  <input type="radio" name="{{ '2' . $no }}" value="2" {{ ($loop2->mark == 2)? 'checked' : NULL }} required>
                 </td>
                 <td align="center">
-                  {!! Form::radio('2' . $no, '3', ($loop2->mark ?? null) == '3', []) !!}
-                  <input type="radio" name="{{ '2' . $no, '3' }}" value="{{ ($loop2->mark ?? null) == '3' }}" required>
+                  <input type="radio" name="{{ '2' . $no }}" value="3" {{ ($loop2->mark == 3)? 'checked' : NULL }} required>
                 </td>
                 <td align="center">
-                  {!! Form::radio('2' . $no, '4', ($loop2->mark ?? null) == '4', []) !!}
-                  <input type="radio" name="{{ '2' . $no, '4' }}" value="{{ ($loop2->mark ?? null) == '4 }}" required>
+                  <input type="radio" name="{{ '2' . $no }}" value="4" {{ ($loop2->mark == 4)? 'checked' : NULL }} required>
                 </td>
                 <td align="center">
-                  {!! Form::radio('2' . $no, '5', ($loop2->mark ?? null) == '5', []) !!}
-                  <input type="radio" name="{{ '2' . $no, '5' }}" value="{{ ($loop2->mark ?? null) == '5' }}" required>
+                  <input type="radio" name="{{ '2' . $no }}" value="5" {{ ($loop2->mark == 5)? 'checked' : NULL }} required>
                 </td>
               </tr>
               <?php $no++; ?>
@@ -386,7 +380,7 @@
               </tr>
               <tr>
                 <td colspan="2">
-                  {!! Form::textarea('3' . $no, $loop3->remark ?? null, ['style' => 'width:100%;', 'rows' => 4, 'required' => 'required']) !!}
+                  <textarea name="{{ '3' . $no }}" style="width:100%;" rows="4" required>{{ $loop3->remark }}</textarea>
                 </td>
               </tr>
               <tr height="20px"></tr>
@@ -440,7 +434,7 @@
                 <tr>
                   <td></td>
                   <td width="40px">
-                    {!! Form::radio('4' . $no, $main_question->id, ($loop4->main_question_id ?? null) == $main_question->id, ['required' => 'required']) !!}
+                    <input type="radio" name="{{ '4'.$no }}" value="{{ $main_question?->id }}" {{ ($loop4?->main_question_id == $main_question?->id)?'checked':NULL }} required>
                   </td>
                   <td>
                     {!! $main_question->main_question !!}
