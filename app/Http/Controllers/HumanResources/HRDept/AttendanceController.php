@@ -113,7 +113,7 @@ class AttendanceController extends Controller
 	{
 		//dd($request->all());
 
-		$exception = (!request()->has('exception') == '1' ? '0' : '1');
+		$exception = $request->has('exception') ? 1 : NULL;
 
 		if ($request->remarks != NULL || $request->remarks != "") {
 			$remarks = ucwords(Str::of($request->remarks)->lower());

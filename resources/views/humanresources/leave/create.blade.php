@@ -591,7 +591,7 @@ function handleELToChange() {
 // Main optimized if-blocks
 // -----------------------
 $('#leave_id').on('change', function () {
-	$selection = $(this).find(':selected');
+	let $selection = $(this).find(':selected');
 	const val = $selection.val();
 
 	// ---- TYPE 1 & 3 (Full day / MC w/ support) ----

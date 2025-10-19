@@ -7,7 +7,6 @@
 
 	<div class="hstack align-items-start justify-content-between">
 		<div class="col-sm-12">
-			{{ Form::open(['route' => ['cicategorystaffcheckreport.store'], 'method' => 'POST', 'id' => 'form', 'files' => true]) }}
  	   <form method="POST" action="{{ route('cicategorystaffcheckreport.store') }}" accept-charset="UTF-8" id="form" autocomplete="off" class="" enctype="multipart/form-data">
       @csrf
 
