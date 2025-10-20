@@ -452,39 +452,6 @@ function getTimeLeave(date) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-function getLeaveTimeStatus(selector, itime_start) {
-	const date = selector.val();
-	const obj = getTimeLeave(selector);
-
-	let checkedam = '';
-	let checkedpm = '';
-	let toggle_time_start_am = '';
-	let toggle_time_start_pm = '';
-
-	if (obj && obj.time_start_am == itime_start) {
-		toggle_time_start_am = 'disabled';
-		toggle_time_start_pm = '';
-		checkedam = '';
-		checkedpm = 'checked';
-	}
-
-	if (obj && obj.time_start_pm == itime_start) {
-		toggle_time_start_am = '';
-		toggle_time_start_pm = 'disabled';
-		checkedam = 'checked';
-		checkedpm = '';
-	}
-
-	return {
-		obj,
-		checkedam,
-		checkedpm,
-		toggle_time_start_am,
-		toggle_time_start_pm
-	};
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
 function initBackupPerson(selector = '#backupperson', df = '#from', dt = '#to') {
 	$(selector).select2({
 		placeholder: 'Please Choose',
