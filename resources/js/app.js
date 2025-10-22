@@ -46,6 +46,7 @@ try {
     require ('./jQuery-ui');
     require ('./fullcalendar');
     require ('./chart');
+    require ('./addRemoveRowjQueryPlugins');
 } catch (e) {}
 
 /**

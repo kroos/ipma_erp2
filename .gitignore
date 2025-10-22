@@ -22,6 +22,7 @@ yarn-error.log
 /*.log
 /app/Http/Requests/HumanResources/Profile/ProfileRequestUpdate - emergency_spouse_children.php
 /.env
+*.git
 * - Copy.php
 /public/js/chart.js
 /public/js/fullcalendar
@@ -34,5 +35,4 @@ yarn-error.log
 /public/mix-manifest.json
 /public/vendor
 /public/js/jquery-chained
-jquery-chained
 /public/js/jquery-chained/jquery.chained.js
