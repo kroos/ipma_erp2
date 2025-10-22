@@ -67,10 +67,12 @@
 					</li>
 				</ul>
 
-{{ Form::model( $quotItemAttrib, ['route' => ['quotItemAttrib.update', $quotItemAttrib->id], 'method' => 'PATCH', 'id' => 'form', 'autocomplete' => 'off', 'files' => true]) }}
+<form method="POST" action="{{ route('quotItemAttrib.update', $quotItemAttrib) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="" enctype="multipart/form-data">
+	@csrf
+	@method('PATCH')
 	@include('quotation.attrib._form')
-{{ Form::close() }}
-		
+</form>
+
 	</div>
 </div>
 @endsection

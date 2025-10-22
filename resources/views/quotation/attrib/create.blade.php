@@ -66,10 +66,11 @@
 					</li>
 				</ul>
 
-{!! Form::open(['route' => ['quotItemAttrib.store'], 'id' => 'form', 'files' => true]) !!}
+<form method="POST" action="{{ route('quotItemAttrib.store') }}" accept-charset="UTF-8" id="form" autocomplete="off" class="" enctype="multipart/form-data">
+	@csrf
 	@include('quotation.attrib._form')
-{{ Form::close() }}
-		
+</form>
+
 	</div>
 </div>
 @endsection
