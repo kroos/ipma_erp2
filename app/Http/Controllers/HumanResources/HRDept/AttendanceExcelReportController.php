@@ -193,7 +193,7 @@ class AttendanceExcelReportController extends Controller
 					// 	// The batch has finished executing...
 					// })
 					->dispatch();
-		session(['lastBatchIdPay' => $batch->id]);
+		session(['lastBatchId' => $batch->id]);
 		session(['from' => $request->from]);
 		session(['to' => $request->to]);
 		// return Excel::download(new PayslipExport($request->only(['from', 'to'])), $from.' - '.$to.' AttendancePayRoll.xlsx');
