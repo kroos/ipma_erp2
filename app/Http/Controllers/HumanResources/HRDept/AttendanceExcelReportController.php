@@ -84,8 +84,8 @@ class AttendanceExcelReportController extends Controller
 		$from = Carbon::parse(session()->get('from'))->format('j_M_Y');
 		$to = Carbon::parse(session()->get('to'))->format('j_M_Y');
 		if (!$request->id) {
-			if (session()->exists('lastBatchIdPay')) {
-				$bid = session()->get('lastBatchIdPay');
+			if (session()->exists('lastBatchId')) {
+				$bid = session()->get('lastBatchId');
 			} else {
 				$bid = 1;
 			}
