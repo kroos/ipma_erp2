@@ -53,3 +53,14 @@ def load_roles() -> dict:
     """Load config/roles.yaml."""
     data = _load_yaml("roles.yaml")
     return data.get("roles", {})
+
+
+def load_mcp() -> dict:
+    """Load the MCP tool-layer definitions from config/agents.yaml.
+
+    Returns {server_name: defn} in the opencode config schema
+    (source: ~/.config/opencode/opencode.json*). The adapter renders
+    per-CLI config files from these at spawn time.
+    """
+    data = _load_yaml("agents.yaml")
+    return data.get("mcp", {}) or {}

@@ -107,6 +107,9 @@ class AgentError(Exception):
     """Raised when a CLI cannot be started (spawn failure)."""
 
 
+ENV_VAR_RE = re.compile(r"\$\{(?:env\.)?([A-Za-z_][A-Za-z0-9_]*)(?::-([^}]*))?}")
+
+
 class AgentAdapter:
     def __init__(
         self,
@@ -115,6 +118,7 @@ class AgentAdapter:
         bus,
         project_root: Path = config_loader.PROJECT_ROOT,
         model: str | None = None,
+        mcp_defs: dict | None = None,
     ):
         self.agent_id = agent_id
         self.config = config
@@ -123,6 +127,97 @@ class AgentAdapter:
         self.model = model  # resolved model or None (CLI default)
         self.timeout_sec = config.get("timeout_sec", 600)
         self.verified = config.get("verified", False)
+        # MCP tool layer (docs/03): the adapter renders a per-agent config
+        # file from config/agents.yaml `mcp` defs and delivers it to the CLI
+        # via env (opencode: OPENCODE_CONFIG) or argv flag (openclaude:
+        # --mcp-config). `mcp_env` is merged into the subprocess env;
+        # `mcp_flag` is appended to the command line in argv AND stdin mode.
+        self.mcp_defs = mcp_defs or {}
+        self.mcp_env: dict[str, str] = {}
+        self.mcp_flag: list[str] = []
+        self._prepare_mcp()
+
+    # ---- MCP tool layer -------------------------------------------------
+
+    @staticmethod
+    def _resolve_env(text) -> str:
+        """Resolve ${VAR} / ${env.VAR} / ${VAR:-default} to env values."""
+
+        def _sub(match):
+            name, default = match.group(1), match.group(2)
+            return os.environ.get(name, default or "")
+
+        return ENV_VAR_RE.sub(_sub, str(text))
+
+    def _resolve_mcp_def(self, defn):
+        """Resolve env placeholders + {project_root} in an MCP definition."""
+        if isinstance(defn, dict):
+            return {k: self._resolve_mcp_def(v) for k, v in defn.items()}
+        if isinstance(defn, list):
+            return [self._resolve_mcp_def(v) for v in defn]
+        return self._resolve_env(defn).replace("{project_root}", str(self.project_root))
+
+    @staticmethod
+    def _to_openclaude_shape(defn: dict) -> dict:
+        """opencode-schema def -> openclaude mcpServers shape.
+
+        opencode uses {type: local, command: [..]} / {type: remote, url};
+        openclaude uses {command, args} for local (cmd /c on Windows, same
+        as its own settings.json) and {type: http, url, headers} for remote.
+        """
+        if defn.get("type") == "local":
+            command = list(defn.get("command", []))
+            # match ~/.openclaude/settings.json: .cmd shims need cmd /c
+            if sys.platform.startswith("win") and command:
+                shape = {"command": "cmd", "args": ["/c", *command]}
+            else:
+                shape = {"command": command[0] if command else "", "args": command[1:]}
+            if defn.get("env"):
+                shape["env"] = defn["env"]
+            return shape
+        shape = {"type": "http", "url": defn.get("url", "")}
+        if defn.get("headers"):
+            shape["headers"] = defn["headers"]
+        return shape
+
+    def _prepare_mcp(self) -> None:
+        """Render the per-agent MCP config file (once) and set delivery."""
+        names = self.config.get("mcp") or []
+        if not names or not self.mcp_defs:
+            return
+        defs = {n: self._resolve_mcp_def(self.mcp_defs[n])
+                for n in names if n in self.mcp_defs}
+        if not defs:
+            return
+        delivery = self.config.get("mcp_delivery")
+        path = LOG_DIR / f"{self.agent_id}-mcp.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if delivery == "env":  # opencode: OPENCODE_CONFIG=<file>, mcp key
+            # enabled: true is explicit so remote servers are not skipped
+            # (opencode defaults unknown servers to enabled, but be explicit)
+            for d in defs.values():
+                d.setdefault("enabled", True)
+            path.write_text(
+                json.dumps(
+                    {"$schema": "https://opencode.ai/config.json", "mcp": defs},
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+            self.mcp_env = {"OPENCODE_CONFIG": str(path)}
+        elif delivery == "flag":  # openclaude: --mcp-config <file>, mcpServers
+            path.write_text(
+                json.dumps(
+                    {"mcpServers": {
+                        n: self._to_openclaude_shape(d) for n, d in defs.items()
+                    }},
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+            self.mcp_flag = ["--mcp-config", str(path)]
+        else:
+            print(f"[{self.agent_id}] unknown mcp_delivery {delivery!r}; MCP skipped")
 
     # ---- cards / status -------------------------------------------------
 
@@ -148,6 +243,7 @@ class AgentAdapter:
                 f.replace("{model}", self.model) for f in self.config["model_flag"]
             ]
             argv += model_flag
+        argv += self.mcp_flag
         return argv
 
     def _build_command(self, argv: list[str]) -> list[str]:
@@ -171,10 +267,12 @@ class AgentAdapter:
     def _stdin_argv(self) -> list[str]:
         """argv for stdin mode: drop the {prompt} token and its flag (e.g. -p).
 
-        Overridable per agent via config `stdin_argv` (list template).
+        Overridable per agent via config `stdin_argv` (list template). MCP
+        flag is kept so MCP stays available in stdin fallback mode.
         """
         if self.config.get("stdin_argv"):
-            return [a.replace("{prompt}", "") for a in self.config["stdin_argv"]]
+            argv = [a.replace("{prompt}", "") for a in self.config["stdin_argv"]]
+            return argv + self.mcp_flag
         argv = list(self.config["argv"])
         if "{prompt}" in argv:
             i = argv.index("{prompt}")
@@ -182,7 +280,7 @@ class AgentAdapter:
                 del argv[i - 1:i + 1]
             else:
                 del argv[i]
-        return argv
+        return argv + self.mcp_flag
 
     def _prompt(self, message: dict) -> str:
         parts = message.get("parts", [])
@@ -312,6 +410,7 @@ class AgentAdapter:
         return Path(command[0]).name.lower() in ("cmd.exe", "cmd", comspec)
 
     def _spawn(self, command: list[str], stdin_text: str | None):
+        env = {**os.environ, **self.mcp_env} if self.mcp_env else None
         try:
             proc = subprocess.run(
                 command,
@@ -322,6 +421,7 @@ class AgentAdapter:
                 errors="replace",
                 input=stdin_text,
                 timeout=self.timeout_sec,
+                env=env,
             )
         except OSError as exc:
             raise AgentError(f"cannot start {command[0]!r}: {exc}") from exc

@@ -17,6 +17,39 @@ defaults:
   fallback_prompt_mode: stdin   # if argv fails, pipe the prompt via stdin
   headless: true            # false = interactive-only CLI; selection skips it
 
+# MCP tool layer (source of truth: ~/.config/opencode/opencode.json* —
+# opencode config schema). Each agent below enables a subset via `mcp` and
+# declares how the adapter hands the servers to the CLI:
+#   opencode    -> mcp_delivery: env   (OPENCODE_CONFIG env var; merged with
+#                the global config, so providers/models stay intact)
+#   openclaude  -> mcp_delivery: flag  (--mcp-config <file>, mcpServers shape)
+# The adapter renders a per-agent config file at spawn time, resolving
+# `${VAR}` / `${env.VAR}` / `${VAR:-default}` from the environment and
+# `{project_root}` to the Laravel root. Only servers listed under an
+# agent's `mcp` key are wired for that agent.
+mcp:
+  "21st":
+    type: remote
+    url: "https://21st.dev/api/mcp"
+    headers:
+      "x-api-key": "${API_KEY_21ST}"
+  playwright:
+    type: local
+    command: ["npx", "-y", "@playwright/mcp"]
+  filesystem:
+    type: local
+    command: ["npx", "-y", "@modelcontextprotocol/server-filesystem", "{project_root}"]
+  figma:
+    type: local
+    command: ["npx", "-y", "mcp-figma"]
+    env:
+      FIGMA_API_KEY: "${FIGMA_API_KEY}"
+  context7:
+    type: remote
+    url: "https://mcp.context7.com/mcp"
+    headers:
+      "Authorization": "${CONTEXT7_API_KEY:-}"
+
 agents:
   # opencode — `opencode run <message>` is the non-interactive mode
   # (verified via `opencode run --help`; model flag `-m, --model`).
@@ -28,6 +61,9 @@ agents:
     model_flag: ["--model", "{model}"]
     timeout_sec: 600
     verified: true
+    mcp: ["21st", "playwright", "filesystem", "figma", "context7"]
+    mcp_delivery: env
+    mcp_env: {"OPENCODE_CONFIG": "{mcp_path}"}
 
   # openclaude — OpenClaude CLI (Claude-Code fork), headless via -p/--print.
   # Restored 2026-08-15 after live credential check: NVIDIA NIM key valid,
@@ -40,12 +76,19 @@ agents:
   # falls back to the profile default, which is now the working model.
   - id: openclaude
     binary: openclaude
-    argv: ["openclaude", "-p", "{prompt}"]
-    stdin_argv: ["openclaude", "-p"]   # stdin mode: model comes from profile default
+    # --permission-mode bypassPermissions: required for headless MCP tool
+    # use — without it the CLI asks for tool approval interactively and the
+    # one-shot subprocess stalls (verified live: MCP tools were loaded but
+    # prompts blocked; bypassPermissions lets them actually run).
+    argv: ["openclaude", "-p", "--permission-mode", "bypassPermissions", "{prompt}"]
+    stdin_argv: ["openclaude", "-p", "--permission-mode", "bypassPermissions"]
     prompt_mode: argv
     model_flag: ["--model", "{model}"]
     timeout_sec: 600
     verified: true
+    mcp: ["21st", "playwright", "filesystem", "figma", "context7"]
+    mcp_delivery: flag
+    mcp_flag: ["--mcp-config", "{mcp_path}"]
 
   # freebuff — INTERACTIVE-ONLY (v0.0.146): no -p/--print, no prompt
   # positional, no stdin one-shot. It launches a TUI event loop, so the

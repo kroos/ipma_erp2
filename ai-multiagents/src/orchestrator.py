@@ -67,6 +67,7 @@ class Orchestrator:
         self.project_root = Path(project_root or config_loader.resolve_project_root())
         self.agents_cfg = config_loader.load_agents()
         self.roles = config_loader.load_roles()
+        self.mcp_defs = config_loader.load_mcp()
         self.state = state.StateStore()
         self.model_overrides = model_overrides or {}
         self.bus = LocalBusTransport(capability_map=build_capability_map(self.roles))
@@ -82,6 +83,7 @@ class Orchestrator:
             adapter = AgentAdapter(
                 agent_id, cfg, self.bus,
                 project_root=self.project_root, model=model,
+                mcp_defs=self.mcp_defs,
             )
             adapter.register(
                 display_name=cfg.get("display_name") or agent_id.replace("_", " ").title(),

@@ -89,8 +89,9 @@ if opencode_cfg:
 openclaude_cfg = agents.get("openclaude")
 check("openclaude present in agents.yaml", openclaude_cfg is not None)
 if openclaude_cfg:
-    check("openclaude argv uses -p print mode",
-          openclaude_cfg.get("argv") == ["openclaude", "-p", "{prompt}"])
+    check("openclaude argv uses -p print mode + bypassPermissions",
+          openclaude_cfg.get("argv") == ["openclaude", "-p", "--permission-mode",
+                                         "bypassPermissions", "{prompt}"])
     check("openclaude model flag separate from argv",
           openclaude_cfg.get("model_flag") == ["--model", "{model}"])
 freebuff_cfg = agents.get("freebuff")

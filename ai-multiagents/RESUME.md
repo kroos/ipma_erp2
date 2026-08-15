@@ -207,6 +207,28 @@ Docs `docs/06` Phase 6 fully marked DONE (M5 + M6).
   `ai-multiagents/scripts/` and `scripts/` command forms. Globally gitignored
   (`**/.openclaude/settings.local.json`), same as on E:.
 
+## 2026-08-15: MCP tool layer wired (21st, playwright, filesystem, figma, context7)
+
+- `config/agents.yaml` gained a top-level `mcp` block (opencode config
+  schema, source `~/.config/opencode/opencode.json*`) defining the five
+  servers, and each wired agent declares `mcp: [...]` + how the adapter
+  delivers them: **opencode** via `mcp_delivery: env` (OPENCODE_CONFIG env
+  var, merged with the global opencode config) and **openclaude** via
+  `mcp_delivery: flag` (`--mcp-config <file>`, mcpServers shape).
+- `AgentAdapter` renders a per-agent config file under `logs/<agent>-mcp.json`
+  (gitignored) at boot: resolves `${VAR}` / `${env.VAR}` / `${VAR:-default}`
+  from the environment and `{project_root}` to the Laravel root; local
+  servers on Windows are wrapped `cmd /c` to match ~/.openclaude/settings.json;
+  opencode entries get explicit `enabled: true`. `mcp_flag` is kept in both
+  argv and stdin modes; `mcp_env` is merged into the subprocess env.
+- **openclaude needs `--permission-mode bypassPermissions`** in argv or MCP
+  tools load but stall on interactive approval prompts in one-shot mode
+  (verified live: tool listed, prompt blocked; flag fixes it).
+- **Verified live**: openclaude called `mcp__21st__get_usage` -> real usage
+  data; opencode called `filesystem_list_directory` -> directory listing
+  (both through the real adapter, `state: completed`). All 9 smoke tests
+  green (smoke_argv_routing updated for the new argv).
+
 ## Next steps
 
 No pending milestone work — M7 is complete (Windows E2E verified; the Linux
