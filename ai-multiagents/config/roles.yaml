@@ -1,0 +1,137 @@
+# config/roles.yaml
+# Full role hierarchy for the ai-multiagents team.
+#
+# - `default_agents`: which AI agent(s) play this role by default (docs/03 §3).
+#   Roster 2026-08-15: opencode + openclaude (both headless, working
+#   credentials) and freebuff (interactive-only fallback). openclaude was
+#   restored after its NVIDIA NIM credential check passed.
+# - `fallback_agent`: used when the role default is "user-chosen" and no choice recorded.
+# - `capabilities`: the vocabulary Omniroute uses for capability addressing
+#   (toCapability) and Agent Cards. Keep values stable — they are routing keys.
+# - `reports_to`: who receives this role's results.
+# - `leads`: direct-report specialist roles (tier-2 leads only).
+
+roles:
+  coordinator:
+    tier: 1
+    default_agents: []            # chosen by user (flag / prompt / state.json)
+    fallback_agent: freebuff
+    capabilities: [decomposition, dispatch, monitoring, conflict-resolution, user-gateway]
+    reports_to: user
+
+  backend_specialist:
+    tier: 2
+    default_agents: [openclaude, opencode]
+    capabilities: [backend-architecture, api-design, auth-review, validation-review, security-review, performance-review, error-handling-review]
+    reports_to: coordinator
+    leads: [laravel_specialist, php_specialist]
+
+  laravel_specialist:
+    tier: 3
+    default_agents: [openclaude, opencode]
+    capabilities: [migrations, models, controllers, form-requests, policies-gates, middleware, services-actions, api-endpoints, auth, queues-jobs-events, notifications-mail, validation, eloquent, laravel-security, artisan]
+    reports_to: backend_specialist
+
+  php_specialist:
+    tier: 3
+    default_agents: [openclaude, opencode]
+    capabilities: [php-design, oop-review, interfaces-traits-enums, dependency-injection, exceptions, type-declarations, php-performance, composer, php-security, php-utilities]
+    reports_to: backend_specialist
+
+  frontend_specialist:
+    tier: 2
+    default_agents: [opencode]
+    capabilities: [frontend-architecture, technology-selection, integration-review, accessibility, responsive, browser-compatibility, frontend-performance]
+    reports_to: coordinator
+    leads: [jquery_specialist, vue_specialist, react_specialist, css_specialist, bootstrap_specialist, tailwind_specialist, uiux_designer]
+
+  jquery_specialist:
+    tier: 3
+    default_agents: [opencode]
+    capabilities: [jquery, ajax, event-handling, dom-manipulation, jquery-plugins, select2, datatables, client-validation, async-requests]
+    reports_to: frontend_specialist
+
+  vue_specialist:
+    tier: 3
+    default_agents: [opencode]
+    capabilities: [vue-components, vue-state, vue-forms, api-integration, vue-routing, reusable-components, vue-performance]
+    reports_to: frontend_specialist
+
+  react_specialist:
+    tier: 3
+    default_agents: [opencode]
+    capabilities: [react-components, hooks, react-state, react-forms, api-integration, reusable-components, react-performance]
+    reports_to: frontend_specialist
+
+  css_specialist:
+    tier: 3
+    default_agents: [opencode]
+    capabilities: [css-architecture, layouts, responsive, typography, spacing, animations-transitions, browser-compatibility]
+    reports_to: frontend_specialist
+
+  bootstrap_specialist:
+    tier: 3
+    default_agents: [opencode]
+    capabilities: [bootstrap-layouts, bootstrap-components, bootstrap-utilities, bootstrap-forms, modals, navigation, grids, bootstrap-js]
+    reports_to: frontend_specialist
+
+  tailwind_specialist:
+    tier: 3
+    default_agents: [opencode]
+    capabilities: [tailwind-config, tailwind-utilities, tailwind-components, dark-mode, tailwind-build]
+    reports_to: frontend_specialist
+
+  uiux_designer:
+    tier: 3
+    default_agents: [opencode]
+    capabilities: [user-flows, information-architecture, layouts, component-hierarchy, navigation, forms, tables, dashboards, responsive-design, empty-states, loading-states, error-states, success-states, accessibility, ui-specs]
+    reports_to: frontend_specialist
+
+  db_admin:
+    tier: 2
+    default_agents: [openclaude, freebuff]
+    capabilities: [db-architecture, schema-design, relationships, indexes, constraints, normalization, query-performance, transactions, migrations-review, db-security, data-integrity]
+    reports_to: coordinator
+    leads: [mysql_specialist, mariadb_specialist, mssql_specialist]
+
+  mysql_specialist:
+    tier: 3
+    default_agents: [openclaude, freebuff]
+    capabilities: [mysql-schemas, mysql-tables, mysql-indexes, mysql-constraints, query-execution, query-optimization, slow-queries, transactions, locking, mysql-config, mysql-errors]
+    reports_to: db_admin
+
+  mariadb_specialist:
+    tier: 3
+    default_agents: [openclaude, freebuff]
+    capabilities: [mariadb-sql, storage-engines, mariadb-indexing, query-optimization, mariadb-config, migration-compat, mysql-mariadb-differences]
+    reports_to: db_admin
+
+  mssql_specialist:
+    tier: 3
+    default_agents: [openclaude, freebuff]
+    capabilities: [tsql, mssql-schemas, mssql-indexes, execution-plans, query-optimization, locking-deadlocks, stored-procedures, views-functions, mssql-security, mssql-errors]
+    reports_to: db_admin
+
+  app_designer:
+    tier: 2
+    default_agents: [opencode]
+    capabilities: [application-architecture, module-design, system-boundaries, workflows, user-roles, permissions, application-states, module-dependencies, integration-points, api-boundaries, data-flow, architecture-risk]
+    reports_to: coordinator
+
+  tester:
+    tier: 2
+    default_agents: [opencode]
+    capabilities: [test-plans, test-cases, acceptance-criteria, backend-testing, frontend-testing, db-testing, api-testing, auth-testing, validation-testing, edge-cases, error-handling, regression, integration, responsive-testing, browser-testing, defect-documentation]
+    reports_to: coordinator
+
+  bug_fixer:
+    tier: 2
+    default_agents: [openclaude]
+    capabilities: [defect-reproduction, root-cause, fix-implementation, regression-prevention, fix-verification, log-analysis]
+    reports_to: coordinator
+
+  doc_writer:
+    tier: 2
+    default_agents: [opencode]
+    capabilities: [architecture-docs, feature-docs, api-docs, db-docs, config-docs, installation-docs, deployment-docs, workflows-docs, user-procedures, technical-decisions, troubleshooting, known-limitations]
+    reports_to: coordinator

@@ -1,0 +1,62 @@
+# config/agents.yaml
+# Per-agent AI CLI command templates.
+#
+# STATUS (2026-08-15): openclaude was restored after a live credential
+# check succeeded (NVIDIA NIM key valid; model nvidia/nemotron-3.5-
+# lightning-30b-a3b returns 200). The old openclaude template was broken
+# in two ways and is fixed here: it lacked `-p` (interactive mode would
+# hang the adapter) and it baked `--model {model}` into `argv` (leaving a
+# literal {model} when no model was set). openclaw/claudeCode/gemini
+# remain de-scoped (failed credential checks), hermes was never installed.
+# freebuff stays the interactive-only fallback (never wired for one-shot
+# runs). Templates are runtime config; the adapter never hard-codes commands.
+
+defaults:
+  timeout_sec: 600          # kill the agent process after this long
+  prompt_mode: argv         # argv = inject {prompt} into the command line
+  fallback_prompt_mode: stdin   # if argv fails, pipe the prompt via stdin
+  headless: true            # false = interactive-only CLI; selection skips it
+
+agents:
+  # opencode — `opencode run <message>` is the non-interactive mode
+  # (verified via `opencode run --help`; model flag `-m, --model`).
+  - id: opencode
+    binary: opencode
+    argv: ["opencode", "run", "{prompt}"]
+    stdin_argv: ["opencode", "run"]   # keep run mode when falling back to stdin
+    prompt_mode: argv
+    model_flag: ["--model", "{model}"]
+    timeout_sec: 600
+    verified: true
+
+  # openclaude — OpenClaude CLI (Claude-Code fork), headless via -p/--print.
+  # Restored 2026-08-15 after live credential check: NVIDIA NIM key valid,
+  # model nvidia/nemotron-3.5-lightning-30b-a3b returns HTTP 200
+  # (the NIM profile in ~/.openclaude.json was repointed from
+  # nvidia/llama-3.1-nemotron-70b-instruct, which 404s, to the working
+  # model). NOTE: {model} lives in model_flag only, so a literal placeholder
+  # never reaches the CLI when no model is set (the pre-2026-08-14 template
+  # had it in argv — a bug). When no --model flag is passed, openclaude
+  # falls back to the profile default, which is now the working model.
+  - id: openclaude
+    binary: openclaude
+    argv: ["openclaude", "-p", "{prompt}"]
+    stdin_argv: ["openclaude", "-p"]   # stdin mode: model comes from profile default
+    prompt_mode: argv
+    model_flag: ["--model", "{model}"]
+    timeout_sec: 600
+    verified: true
+
+  # freebuff — INTERACTIVE-ONLY (v0.0.146): no -p/--print, no prompt
+  # positional, no stdin one-shot. It launches a TUI event loop, so the
+  # adapter cannot drive it headless. Marked headless: false so selection
+  # skips it; short timeout so an explicit pin fails fast instead of
+  # hanging 600s in the TUI. Kept as the spec's interactive fallback.
+  - id: freebuff
+    binary: freebuff
+    argv: ["freebuff", "-p", "{prompt}"]   # will NOT work headless
+    prompt_mode: argv
+    model_flag: ["--model", "{model}"]
+    timeout_sec: 30
+    headless: false
+    verified: false
