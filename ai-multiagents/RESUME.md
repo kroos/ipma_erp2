@@ -1,6 +1,26 @@
 # Session — Resume Here
 
-Last saved: 2026-08-16 (late, G:\ipma_erp2).
+Last saved: 2026-08-17 (G:\ipma_erp2).
+
+**Resume pointer (2026-08-17, latest):** FULL SESSION CHECKPOINT committed in
+G:\ipma_erp2 as `089215f` (153 files, +3497/−3652) — "checkpoint: leave-approval
+API+DataTable, overtime & datetimepicker fixes, casts on 78 models". Everything
+below is in that commit: leave-approval API (`GET api/leaveapproval/{type}` +
+DataTables + shared `_approval_modal` partial), overtime-edit staff force-include,
+overtimereport date-range validation + datetimepicker crash fix (plugin method
+API), modal global fix (`window.bootstrap` + `$.fn.modal` shim in app.js),
+leaveapproval modal TypeError + scoped-CSS fix (data-bs-toggle removed from
+approve button; modals appended inside `.page-...-index` wrapper), `$casts` on 78
+models, hr_leaves table-name/relations restore, customer model repair, A2A HTTP
+transport (`src/http_transport.py`). One file intentionally left uncommitted:
+`app/Providers/Auth/EloquentUserProvider.php` (pre-existing plaintext-password
+login shim, predates this session — user to decide). Remaining scratch files at
+repo root (test_render*.php, casts_*_tmp.*, summary_changes.ts, etc.) are agent
+leftovers — safe to delete. Team mesh verified working (MESH_TRANSPORT=local/http;
+last run: leaveapproval-modal-fix, all 3 tasks green). To resume: pick the next
+bug/feature, author a plan in ai-multiagents/plans/, dispatch via
+`MESH_TRANSPORT=local ./.venv/Scripts/python.exe scripts/coordinator_manual.py
+--plan plans/<plan>.json`.
 
 **Resume pointer (2026-08-16 late):** MIRROR SYNCED — all session changes to
 ai-multiagents copied to the standalone mirror repo `E:\Website\AI-AGENT-TEAM`
