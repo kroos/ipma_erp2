@@ -11,47 +11,7 @@
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-// fullcalendar
-var calendarEl = document.getElementById('calendar');
-var calendar = new Calendar(calendarEl, {
-	aspectRatio: 1.0,
-	height: 2000,
-	plugins: [multiMonthPlugin],
-	initialView: 'multiMonthYear',
-	// initialView: 'dayGridMonth',
-	headerToolbar: {
-		left: 'prev,next today',
-		center: 'title',
-		right: 'multiMonthYear,dayGridMonth,timeGridWeek'
-	},
-	weekNumbers: true,
-	themeSystem: 'bootstrap',
-	events: {
-		url: '{{ route('attendanceabsentindicator') }}',
-		method: 'POST',
-		extraParams: {
-			_token: '{!! csrf_token() !!}',
-			// staff_id: '117',
-		},
-	},
-	// failure: function() {
-	// 	alert('There was an error while fetching leaves!');
-	// },
-	eventDidMount: function(info) {
-		$(info.el).tooltip({
-			title: info.event.extendedProps.description,
-			placement: 'top',
-			trigger: 'hover',
-			container: 'body'
-		});
-	},
-	eventTimeFormat: { // like '14:30:00'
-		hour: '2-digit',
-		minute: '2-digit',
-		// second: '2-digit',
-		hour12: true
-	}
-});
-calendar.render();
+window.data = {
+	eventsUrl: '{{ route('attendanceabsentindicator') }}',
+};
 @endsection

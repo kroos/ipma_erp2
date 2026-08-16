@@ -26,6 +26,9 @@ use App\Models\HumanResources\HRAppraisalSectionSub;
 use App\Models\HumanResources\HRAppraisalMainQuestion;
 use App\Models\HumanResources\HRAppraisalQuestion;
 
+// load services
+use App\Services\HumanResources\AppraisalService;
+
 // load paginator
 use Illuminate\Pagination\Paginator;
 
@@ -57,7 +60,10 @@ class AppraisalMarkController extends Controller
   public function index(): View
   {
     $departments = DepartmentPivot::all();
-    return view('humanresources.hrdept.appraisal.mark.index', ['departments' => $departments]);
+
+    $appraisalService = new AppraisalService();
+
+    return view('humanresources.hrdept.appraisal.mark.index', ['departments' => $departments] + $appraisalService->markIndexData());
   }
 
   /**
@@ -65,7 +71,9 @@ class AppraisalMarkController extends Controller
    */
   public function create($id): View
   {
-    return view('humanresources.hrdept.appraisal.mark.create', ['id' => $id]);
+    $appraisalService = new AppraisalService();
+
+    return view('humanresources.hrdept.appraisal.mark.create', ['id' => $id] + $appraisalService->markData($id));
   }
 
   /**
@@ -171,7 +179,9 @@ class AppraisalMarkController extends Controller
    */
   public function show($id): View
   {
-    return view('humanresources.hrdept.appraisal.mark.show', ['id' => $id]);
+    $appraisalService = new AppraisalService();
+
+    return view('humanresources.hrdept.appraisal.mark.show', ['id' => $id] + $appraisalService->markData($id, false));
   }
 
   /**

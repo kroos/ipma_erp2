@@ -15,6 +15,16 @@ use Illuminate\Support\Facades\Storage;
 // load models
 use App\Models\Staff;
 use App\Models\HumanResources\HRAttendance;
+use Illuminate\Support\Facades\DB;
+
+// load services
+use App\Services\HumanResources\StaffProfileService;
+use App\Models\HumanResources\OptReligion;
+use App\Models\HumanResources\OptGender;
+use App\Models\HumanResources\OptRace;
+use App\Models\HumanResources\OptMaritalStatus;
+use App\Models\HumanResources\OptCountry;
+use App\Models\HumanResources\HRLeaveApprovalFlow;
 
 // load validation
 use App\Http\Requests\HumanResources\Leave\HRLeaveRequestStore;
@@ -46,7 +56,10 @@ class StaffController extends Controller
 	 */
 	public function index(): View
 	{
-		return view('humanresources.hrdept.staff.index');
+		$activeStaff = Staff::where('active', 1)->get();
+		$inactiveStaff = Staff::where('active', '<>', 1)->get();
+
+		return view('humanresources.hrdept.staff.index', compact('activeStaff', 'inactiveStaff'));
 	}
 
 	/**
@@ -54,7 +67,14 @@ class StaffController extends Controller
 	 */
 	public function create(): View
 	{
-		return view('humanresources.hrdept.staff.create');
+		return view('humanresources.hrdept.staff.create', [
+			'genders' => OptGender::orderBy('id')->get(),
+			'maritalStatuses' => OptMaritalStatus::pluck('marital_status', 'id')->toArray(),
+			'religions' => OptReligion::pluck('religion', 'id')->toArray(),
+			'races' => OptRace::pluck('race', 'id')->toArray(),
+			'countries' => OptCountry::pluck('country', 'id')->toArray(),
+			'leaveApprovalFlows' => HRLeaveApprovalFlow::all(),
+		]);
 	}
 
 	/**
@@ -71,17 +91,11 @@ class StaffController extends Controller
 		$data += ['email' => Str::of($request->email)->lower()];
 
 		if($request->file('image')){
-			$fil = $request->file('image')->getClientOriginalName();
-			$file = Str::of($fil)->trim();
-			$ext = $request->file('image')->getClientOriginalExtension();
 			$currentDate = Carbon::now()->format('Y-m-d-H-i-s');
-			$fileName = $currentDate.'_'.$request->username.'_'.$file;
+			$fileName = $currentDate.'_'.Str::slug($request->username).'.'.$request->file('image')->guessExtension();
 			// Store File in Storage Folder
 			$filePath = $request->file('image')->storeAs('public/user_profile', $fileName);
 			// storage/app/public/user_profile/file.png
-			// Store File in Public Folder
-			// $request->image->move(public_path('uploads'), $fileName);
-			// public/uploads/file.png
 
 			if ($request->file('image')->isValid()) {
 				$data += ['image' => $fileName];
@@ -166,8 +180,29 @@ class StaffController extends Controller
 			->get();
 
 		$wh_group = $staff->belongstomanydepartment()->wherePivot('main', 1)->first();
+		$wh_group_id = $wh_group->wh_group_id;
+		$dept = $wh_group;
 
-		return view('humanresources.hrdept.staff.show', ['staff' => $staff, 'attendance' => $attendance, 'wh_group' => $wh_group->wh_group_id, 'year' => $year, 'month' => $month]);
+		$service = new StaffProfileService();
+
+		return view('humanresources.hrdept.staff.show', [
+			'staff' => $staff,
+			'attendance' => $attendance,
+			'wh_group' => $wh_group_id,
+			'dept' => $dept,
+			'year' => $year,
+			'month' => $month,
+		] + $service->leaveEntitlements($staff)
+			+ $service->familyAndAuth($staff)
+			+ $service->crossBackup($staff)
+			+ $service->attendanceYears($staff)
+			+ $service->attendanceDecor($attendance, $wh_group_id)
+			+ $service->leaveTables($staff)
+			+ $service->replacementTable($staff)
+			+ $service->leaveRecords($staff)
+			+ $service->unpaidLeaves($staff)
+			+ $service->leaveTypeMap()
+			+ $service->disciplinaryRecords($staff));
 	}
 
 	/**
@@ -175,7 +210,16 @@ class StaffController extends Controller
 	 */
 	public function edit(Staff $staff): View
 	{
-		return view('humanresources.hrdept.staff.edit', ['staff' => $staff]);
+		return view('humanresources.hrdept.staff.edit', [
+			'staff' => $staff,
+			'genders' => OptGender::orderBy('id')->get(),
+			'maritalStatuses' => OptMaritalStatus::pluck('marital_status', 'id')->toArray(),
+			'religions' => OptReligion::pluck('religion', 'id')->toArray(),
+			'races' => OptRace::pluck('race', 'id')->toArray(),
+			'countries' => OptCountry::pluck('country', 'id')->toArray(),
+			'leaveApprovalFlows' => HRLeaveApprovalFlow::all(),
+			'activeStaff' => Staff::where('active', 1)->get(),
+		]);
 	}
 
 	/**
@@ -199,18 +243,10 @@ class StaffController extends Controller
 
 		// $data += ['active' => 1];
 		if($request->file('image')){
-			// $file = $request->file('image')->getClientOriginalName();
-			$fil = $request->file('image')->getClientOriginalName();
-			$file = Str::of($fil)->trim();
-			$ext = $request->file('image')->getClientOriginalExtension();
 			$currentDate = Carbon::now()->format('Y-m-d-H-i-s');
-			$fileName = $currentDate.'_'.$request->username.'_'.$file;
+			$fileName = $currentDate.'_'.Str::slug($request->username).'.'.$request->file('image')->guessExtension();
 			// Store File in Storage Folder
 			$filePath = $request->file('image')->storeAs('public/user_profile', $fileName);
-			// storage/app/public/user_profile/file.png
-			// Store File in Public Folder
-			// $request->image->move(public_path('uploads'), $fileName);
-			// public/uploads/file.png
 
 			if ($request->file('image')->isValid()) {
 				$data += ['image' => $fileName];
@@ -229,9 +265,16 @@ class StaffController extends Controller
 		if(($request->status_id != $staff->status_id && $request->username != $upgrade->username) && ($request->status_id == 1 && $staff->status_id != 1)) {		// which means there is an upgrade
 			$staff->hasmanylogin()->update(['active' => 0]);																										// disable old login
 			if (!$request->password) {																																// create new login
-				$staff->hasmanylogin()->create([
+				// copy the OLD login's exact stored hash (already bcrypt) — insert raw so the
+				// hashed cast does not re-hash it (double-hash would lock the user out)
+				$oldHash = DB::table('logins')->where('staff_id', $staff->id)->where('active', 0)->value('password');
+				DB::table('logins')->insert([
+					'staff_id' => $staff->id,
 					'username' => Str::upper($request->username),
-					'password' => $staff->hasmanylogin()->where('active', 0)->first()->password,
+					'password' => $oldHash,
+					'active' => 1,
+					'created_at' => now(),
+					'updated_at' => now(),
 				]);
 				$staff->update(['status_id' => $request->status_id]);
 			} else {

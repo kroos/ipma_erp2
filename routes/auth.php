@@ -11,6 +11,19 @@ use App\Http\Controllers\Auth\{
 	PasswordController,
 };
 
+// all controller here
+use App\Http\Controllers\HumanResources\HRLeaveController;
+
+
+
+
+
+
+
+
+
+
+
 /* authenticate user */
 Route::middleware('auth')->group(function(){
 	Route::get('verify-email', EmailVerificationPromptController::class)->name('verification.notice');
@@ -40,6 +53,24 @@ Route::middleware('auth')->group(function(){
 		})->name('dashboard');
 
 	});
+	// insert your normal page route here
+	Route::resources([
+		'h-r-leave' => HRLeaveController::class,
+	]);
+
+// 	Route::controller(HRLeaveController::class)->group(function(){
+// 		Route::prefix('h-r-leave')->name('h-r-leave.')->group(function(){
+// 			Route::get('/', 'index')->name('index');
+// 			Route::get('/', 'create')->name('create');
+// 			Route::get('/', 'store')->name('store');
+// 			Route::get('/{h-r-leave}', 'show')->name('show');
+// 			Route::get('/{h-r-leave}/edit', 'edit')->name('edit');
+// 			Route::patch('/{h-r-leave}', 'update')->name('update');
+// 			Route::delete('/{h-r-leave}', 'destroy')->name('destroy');
+// 		});
+// 	});
+
+
 
 
 

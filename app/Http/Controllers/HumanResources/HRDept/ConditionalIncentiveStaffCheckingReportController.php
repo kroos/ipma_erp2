@@ -54,24 +54,25 @@ class ConditionalIncentiveStaffCheckingReportController extends Controller
 
 	public function create(Request $request)//: View
 	{
-		if (!$request->id) {
-			if (session()->exists('lastBatchIdPay')) {
-				$bid = session()->get('lastBatchIdPay');
-				$from1 = session()->get('date_from');
-				$to1 = session()->get('date_to');
-			} else {
-				$bid = 1;
-				session()->forget('date_from');
-				session()->forget('date_to');
-				$from1 = null;
-				$to1 = null;
-			}
+		if ($request->id) {
+			$batchId = $request->id;
+			$from1 = null;
+			$to1 = null;
+		} elseif (session()->exists('lastBatchIdPay')) {
+			$batchId = session('lastBatchIdPay');
+			$from1 = session()->get('date_from');
+			$to1 = session()->get('date_to');
 		} else {
-			$bid = $request->id;
+			$batchId = null;
+			session()->forget('date_from');
+			session()->forget('date_to');
 			$from1 = null;
 			$to1 = null;
 		}
-		$batch = Bus::findBatch($bid);
+		if ($batchId) {
+			session()->forget('lastBatchIdPay');
+		}
+		$batch = Bus::findBatch($batchId ?: 1);
 		$from = OptWeekDates::find($from1)?->week;
 		$to = OptWeekDates::find($to1)?->week;
 
@@ -105,7 +106,7 @@ class ConditionalIncentiveStaffCheckingReportController extends Controller
 			return Storage::download('public/excel/'.$filename);
 		}
 
-		return view('humanresources.hrdept.conditionalincentive.staffcheckreport.create', ['batch' => $batch]);
+		return view('humanresources.hrdept.conditionalincentive.staffcheckreport.create', ['batch' => $batch, 'batchId' => $batchId]);
 		// return view('humanresources.hrdept.conditionalincentive.staffcheckreport.create');
 	}
 

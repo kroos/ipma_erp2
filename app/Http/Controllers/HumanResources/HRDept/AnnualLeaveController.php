@@ -82,9 +82,9 @@ class AnnualLeaveController extends Controller
 	/**
 	 * Update the specified resource in storage.
 	 */
-	public function update(Request $request, HRLeaveAnnual $annualleave): RedirectResponse
+public function update(UpdateHRLeaveRequest $request, HRLeaveAnnual $annualleave): RedirectResponse
 	{
-		$annualleave->update($request->except(['_method', '_token']));
+		$annualleave->update($request->only(['annual_leave', 'annual_leave_adjustment', 'annual_leave_utilize', 'annual_leave_balance', 'remarks']));
 		Session::flash('message', 'Data successfully updated!');
 		return Redirect::route('annualleave.index');
 	}

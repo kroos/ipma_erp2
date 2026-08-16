@@ -7,7 +7,7 @@
 
 	<div class="hstack align-items-start justify-content-between">
 		<div class="col-sm-12">
- 	   <form method="POST" action="{{ route('cicategorystaffcheckreport.store') }}" accept-charset="UTF-8" id="form" autocomplete="off" class="" enctype="multipart/form-data">
+  	   <form method="POST" action="{{ route('cicategorystaffcheckreport.store') }}" accept-charset="UTF-8" id="form" autocomplete="off" class="" enctype="multipart/form-data">
       @csrf
 
 			<div class="form-group hstack @error('date_from') has-error is-invalid @enderror">
@@ -34,10 +34,7 @@
 		</div>
 	</div>
 
-<?php
-use Illuminate\Http\Request;
-?>
-@if( request()->id || session()->exists('lastBatchIdPay') )
+@if ($batchId)
 	<p>&nbsp</p>
 	<div id="processcsv" class="row col-sm-12">
 		<div class="progress col-sm-12" role="progressbar" aria-label="CSV Processing" aria-valuenow="{{ $batch->progress() }}" aria-valuemin="0" aria-valuemax="100">
@@ -52,70 +49,19 @@ use Illuminate\Http\Request;
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-$('#week1,#week2').select2({
-	placeholder: 'Please choose',
-	allowClear: true,
-	closeOnSelect: true,
-	width: '100%',
-	ajax: {
-		url: '{{ route('week_dates') }}',
-		type: 'POST',
-		dataType: 'json',
-		data: function (params) {
-			var query = {
-				_token: '{!! csrf_token() !!}',
-				search: params.term,
-			}
-			return query;
-		}
+window.data = {
+	route: {
+		progress: '{{ route('progress') }}',
+		create: '{{ route('cicategorystaffcheckreport.create') }}',
+		weekdates: '{{ route('week_dates') }}',
 	},
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-@if( request()->id || session()->exists('lastBatchIdPay') )
-	<?php
-	$batchId = $request->id ?? session()->get('lastBatchIdPay');
-	?>
-	setInterval(percent, 500);
-	function percent() {
-		$.ajax({
-			url: '{{ route('progress', ['id' => $batchId]) }}',
-			type: "GET",
-			data: { _token: '{{ csrf_token() }}'},
-			dataType: 'json',
-			success: function (response) {
-				window.percentbar = response.progress;
-				$('.progress').attr('aria-valuenow', percentbar).css('width', percentbar + '%');
-				$(".csvprogress").width(percentbar + '%');
-				$(".csvprogress").html(percentbar +'%');
-				$('#processedJobs').html(response.processedJobs);
-				console.log(percentbar);
-				if (percentbar == 100) {
-					clearInterval(percent);
-					window.location.replace('{{ route('cicategorystaffcheckreport.create') }}');
-					<?php
-					session()->forget('lastBatchIdPay');
-					?>
-				}
-			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				console.log(textStatus, errorThrown);
-			}
-		})
-	}
-@endif
-/////////////////////////////////////////////////////////////////////////////////////////
-// bootstrap validator
-$('#form').bootstrapValidator({
-	fields: {
-		'week_id': {
-			validators: {
-				notEmpty: {
-					message: 'Please choose '
-				},
-			}
-		},
-	}
-});
+	url: {
+	},
+	old: {
+	},
+	errors: @json($errors->toArray()),
+	@if ($batchId)
+	batch: '{{ $batchId }}',
+	@endif
+};
 @endsection

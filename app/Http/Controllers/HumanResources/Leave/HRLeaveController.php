@@ -17,6 +17,8 @@ use App\Http\Requests\HumanResources\Leave\HRLeaveRequestStore;
 // load models
 use App\Models\HumanResources\HRLeave;
 use App\Models\HumanResources\DepartmentPivot;
+use App\Models\Setting;
+use App\Models\HumanResources\OptLeaveStatus;
 
 // load array helper
 use Illuminate\Support\Arr;
@@ -44,7 +46,14 @@ class HRLeaveController extends Controller
 	 */
 	public function index(): View
 	{
-		return view('humanresources.leave.index');
+		$settingStart = (int) Setting::find(7)?->active;
+		$settingEnd = (int) Setting::find(6)?->active;
+
+		// leave-status filter options (blade used to query OptLeaveStatus inline)
+		$statusIds = auth()->user()->belongstostaff->div_id == 2 ? [4, 5, 6] : [4, 5];
+		$ls = OptLeaveStatus::whereIn('id', $statusIds)->get()->map(fn ($v) => ['id' => $v->id, 'text' => $v->status])->all();
+
+		return view('humanresources.leave.index', compact('settingStart', 'settingEnd', 'ls'));
 	}
 
 	/**

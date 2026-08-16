@@ -21,24 +21,6 @@ use App\Http\Controllers\Auth\{
 |
 */
 
-Route::get('/openai', function() {
-	$response = Http::withToken(config('services.openai.secret'))
-				->post("https://api.openai.com/v1/chat/completions", [
-							"model"=> "gpt-3.5-turbo",
-							"messages"=> [
-								[
-									"role"=> "system",
-									"content"=> "You are a poetic assistant, skilled in explaining complex programming concepts with creative flair."
-								],
-								[
-									"role"=> "user",
-									"content"=> "Compose a poem that explains the concept of recursion in programming."
-								],
-							]
-				])->json();
-				dd($response);
-});
-
 Route::middleware('guest')->group(function(){
 
 	Route::get('/', function () {
@@ -62,17 +44,18 @@ require __DIR__.'/auth.php';
 // require __DIR__.'/General/ajax.php';
 
 #############################################################################################
-// ipma erp human resources controller
-require __DIR__.'/HumanResources/hr.php';
-require __DIR__.'/HumanResources/ajax_hr.php';
+// ipma erp legacy module controllers — all require an authenticated session
+// (audit finding #2: these sat in the bare 'web' group with no auth)
+Route::middleware('auth')->group(function () {
+	require __DIR__.'/HumanResources/hr.php';
 
-#############################################################################################
-// ipma erp cps (sales department) controller
-require __DIR__.'/Sales/sales.php';
-require __DIR__.'/Sales/ajax_sales.php';
+	#############################################################################################
+	// ipma erp cps (sales department) controller
+	require __DIR__.'/Sales/sales.php';
 
-#############################################################################################
-// ipma erp cps (costing department) controller
-require __DIR__.'/Costing/costing.php';
-require __DIR__.'/Costing/ajax_costing.php';
+	#############################################################################################
+	// ipma erp cps (costing department) controller
+	require __DIR__.'/Costing/costing.php';
+	require __DIR__.'/Costing/ajax_costing.php';
+});
 

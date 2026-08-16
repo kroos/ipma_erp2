@@ -1,0 +1,23 @@
+{
+  "clarifying_questions": [],
+  "tasks": [
+    {
+      "title": "Laravel security fix in this repo (project root): LIKE wildcard escaping. File: app/Http/Controllers/System/ActivityLogController.php, method getActivityLogs(). Around line 110 there is $search = $request->search_value; and then a nested closure runs three parameterized LIKE queries: where('model_type','LIKE',\"%{$search}%\"), orWhere('ip_address','LIKE',\"%{$search}%\"), orWhere('staff_id','LIKE',\"%{$search}%\"). These are safely bound by the query builder (no SQL injection), but % and _ characters typed by the user act as LIKE wildcards, letting any user match every row or trigger expensive scans. Fix: escape the search term once before building the patterns, i.e. $search = addcslashes($search, '\\\\%_'); (MySQL's default LIKE escape character is backslash), then leave the three existing parameterized clauses exactly as they are. Change nothing else in the file and do not touch the commented-out orWhereHas block. Then run php -l on the file and php artisan test to confirm nothing broke.",
+      "capability": "laravel-security",
+      "dependsOn": [],
+      "owner": "laravel_specialist"
+    },
+    {
+      "title": "Laravel security fix in this repo (project root): LIKE wildcard escaping. File: app/Http/Controllers/AjaxDBController.php. This controller has many Select2/autocomplete endpoints that search with parameterized LIKE patterns built from user input, e.g. where('logins.username','LIKE','%'.$request->search.'%'), where('staffs.name', 'LIKE', '%'.$request->search.'%'), OptRestdayGroup::where('group','LIKE','%'.$request->search.'%'), and similar patterns for branch location, customer, country, education_level, gender, uom and other option tables. These are safely bound (no SQL injection), but unescaped % and _ wildcards let users match everything. Fix: for every LIVE (non-commented-out) occurrence of the 'LIKE','%'.$request->search.'%' pattern in this file, replace the search term with '%'.addcslashes($request->search, '\\\\%_').'%' (MySQL's default LIKE escape character is backslash). Leave commented-out code and all other endpoints untouched. Then run php -l on the file and php artisan test to confirm nothing broke.",
+      "capability": "laravel-security",
+      "dependsOn": [],
+      "owner": "laravel_specialist"
+    },
+    {
+      "title": "Write a unit test for the LIKE-wildcard escaping in this repo (project root) and run the test suite. Create tests/Unit/LikeWildcardEscapeTest.php: a plain PHPUnit test (no database) with a data provider asserting that addcslashes($term, '\\\\%_') escapes percent and underscore so user input containing % or _ cannot act as LIKE wildcards (e.g. addcslashes('100%_done', '\\\\%_') === '100\\%\\_done') and that ordinary text without wildcards is unchanged. Also add a source-level guard: read the two files app/Http/Controllers/System/ActivityLogController.php and app/Http/Controllers/AjaxDBController.php as strings and assert they no longer contain the raw interpolation patterns '%'.$request->search.'%' or \"%{$request->search}%\" (the request input must be escaped via addcslashes before use in any LIKE clause). Run php artisan test — the suite must stay green (currently 21 passing tests) — and report the run result with the test report contract.",
+      "capability": "validation-testing",
+      "dependsOn": [],
+      "owner": "laravel_specialist"
+    }
+  ]
+}

@@ -3,14 +3,6 @@
 @section('content')
 <?php
 use Illuminate\Support\Str;
-use App\Models\Setting;
-use \App\Models\HumanResources\HRLeave;
-use \App\Models\Staff;
-use \App\Models\HumanResources\HRLeaveApprovalSupervisor;
-use \App\Models\HumanResources\HRLeaveApprovalHOD;
-use \App\Models\HumanResources\HRLeaveApprovalDirector;
-use \App\Models\HumanResources\HRLeaveApprovalHR;
-use App\Models\HumanResources\OptLeaveStatus;
 // 1st sekali check profile. checking utk email & emergency person. lock kat sini smpi user isi baru buleh apply cuti.
 use Carbon\Carbon;
 
@@ -26,18 +18,6 @@ $leaveMa =  $us->hasmanyleavematernity()?->where('year', date('Y'))->first();
 // $leaveALMC =  $us->hasmanyleaveentitlements()->whereFirst('year', date('Y'));
 // dd($leaveALMC);
 
-// for supervisor and hod approval
-// $ls['results'] = [];
-if(\Auth::user()->belongstostaff->div_id != 2) {									// not director approval: supervisor, hod, hr
-	$c = OptLeaveStatus::whereIn('id', [4,5])->get();								// only rejected and approve
-} elseif(\Auth::user()->belongstostaff->div_id == 2) {								// only director
-	$c = OptLeaveStatus::whereIn('id', [4,5,6])->get();								// only rejected, approve and waived
-}
-foreach ($c as $v) {
-	$ls[] = ['id' => $v->id, 'text' => $v->status];
-}
-// print_r ($ls);
-// exit;
 ?>
 <div class="container row align-items-start justify-content-center">
 	<div class="col-sm-12 table-responsive">
@@ -56,7 +36,7 @@ foreach ($c as $v) {
 					</p>
 				</td>
 			</tr>
-			@for($i = (Setting::find(7)->active == 1)?now()->year:now()->subYear()->year; $i <= ((Setting::find(6)->active == 1)?now()->year:now()->addYear()->year); ++$i)
+			@for($i = ($settingStart == 1)?now()->year:now()->subYear()->year; $i <= (($settingEnd == 1)?now()->year:now()->addYear()->year); ++$i)
 <?php
 $leaveAL =  $us->hasmanyleaveannual()?->where('year', $i)->first();
 $leaveMC =  $us->hasmanyleavemc()?->where('year', $i)->first();
@@ -155,8 +135,8 @@ $leaveMa =  $us->hasmanyleavematernity()?->where('year', $i)->first();
 		<h4>Leave</h4>
 	<!-- list of leaves -->
 	<?php
-	$beginy = (Setting::find(7)->active == 1)?now()->year:now()->subYear()->year;
-	$endy = (Setting::find(6)->active == 1)?now()->year:now()->addYear()->year;
+	$beginy = ($settingStart == 1)?now()->year:now()->subYear()->year;
+	$endy = ($settingEnd == 1)?now()->year:now()->addYear()->year;
 	$lea =  $us->hasmanyleave()->whereYear('date_time_start', '>=', $beginy)
 							->whereYear('date_time_end', '<=', $endy)
 							->get();
@@ -379,160 +359,11 @@ $leaveMa =  $us->hasmanyleavematernity()?->where('year', $i)->first();
 @endsection
 
 @section('js')
-
-
-// tooltip on reason
-$(document).ready(function(){
-	$('[data-bs-toggle="tooltip"]').tooltip();
-});
-
-
-
-// datatables
-$.fn.dataTable.moment( 'D MMM YYYY' );
-$.fn.dataTable.moment( 'D MMM YYYY h:mm a' );
-$('#leaves').DataTable({
-	"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
-	"columnDefs": [ { type: 'date', 'targets': [5] } ],
-	"order": [[5, "desc" ]],	// sorting the 6th column descending
-	responsive: true
-})
-.on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
-	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip();
-	});}
-);
-
-$('#bapprover, #sapprover, #hodapprover, #dirapprover, #hrapprover').DataTable({
-	"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
-	"columnDefs": [ { type: 'date', 'targets': [5] } ],
-	"order": [[5, "desc" ]],	// sorting the 4th column descending
-	responsive: true
-})
-.on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
-	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip();
-	});}
-);
-
-
-
-// cancel leave
-$(document).on('click', '.cancel_btn', function(e){
-	var ackID = $(this).data('id');
-	SwalDelete(ackID);
-	e.preventDefault();
-});
-
-function SwalDelete(ackID){
-	swal.fire({
-		title: 'Cancel Leave',
-		text: 'Are you sure to cancel this leave?',
-		icon: 'info',
-		showCancelButton: true,
-		confirmButtonColor: '#3085d6',
-		cancelButtonColor: '#d33',
-		cancelButtonText: 'Cancel',
-		confirmButtonText: 'Yes',
-		showLoaderOnConfirm: true,
-
-		preConfirm: function() {
-			return new Promise(function(resolve) {
-				$.ajax({
-					url: `{{ url('leavecancel') }}/${ackID}`,
-					type: 'PATCH',
-					dataType: 'json',
-					data: {
-							id: ackID,
-							cancel: 3,
-							_token : $('meta[name=csrf-token]').attr('content')
-					},
-				})
-				.done(function(response){
-					swal.fire('Accept', response.message, response.status)
-					.then(function(){
-						window.location.reload(true);
-					});
-					// $('#cancel_btn_' + ackID).parent().parent().remove();
-				})
-				.fail(function(){
-					swal.fire('Oops...', 'Something went wrong with ajax !', 'error');
-				})
-			});
-		},
-		allowOutsideClick: false
-	})
-	.then((result) => {
-		if (result.dismiss === swal.DismissReason.cancel) {
-			swal.fire('Cancel Action', 'Leave is still active.', 'info')
-		}
-	});
-}
-//auto refresh right after clicking OK button
-$(document).on('click', '.swal2-confirm', function(e){
-	window.location.reload(true);
-});
-
-
-
-
-// replacement approve leave
-$(document).on('click', '.rapprover_btn', function(e){
-	var ackID = $(this).data('id');
-	SwalDeleteR(ackID);
-	e.preventDefault();
-});
-
-function SwalDeleteR(ackID){
-	swal.fire({
-		title: 'Approve Leave',
-		text: 'Are you sure to approve this leave?',
-		icon: 'info',
-		showCancelButton: true,
-		confirmButtonColor: '#3085d6',
-		cancelButtonColor: '#d33',
-		cancelButtonText: 'Cancel',
-		confirmButtonText: 'Yes',
-		showLoaderOnConfirm: true,
-
-		preConfirm: function() {
-			return new Promise(function(resolve) {
-				$.ajax({
-					url: '{{ url('leaverapprove') }}' + '/' + ackID,
-					type: 'PATCH',
-					dataType: 'json',
-					data: {
-							id: ackID,
-							cancel: 3,
-							_token : $('meta[name=csrf-token]').attr('content')
-					},
-				})
-				.done(function(response){
-					swal.fire('Accept', response.message, response.status)
-					.then(function(){
-						window.location.reload(true);
-					});
-					// $('#cancel_btn_' + ackID).parent().parent().remove();
-				})
-				.fail(function(){
-					swal.fire('Oops...', 'Something went wrong with ajax !', 'error');
-				})
-			});
-		},
-		allowOutsideClick: false
-	})
-	.then((result) => {
-		if (result.dismiss === swal.DismissReason.cancel) {
-			swal.fire('Cancel Action', 'Leave is still active.', 'info')
-		}
-	});
-}
-//auto refresh right after clicking OK button
-$(document).on('click', '.swal2-confirm', function(e){
-	window.location.reload(true);
-});
-
-
-
+window.data = {
+	url: {
+		leavecancel: '{{ url('api/leavecancel') }}',
+		leaverapprove: '{{ url('api/leaverapprove') }}',
+	},
+};
 @endsection
 

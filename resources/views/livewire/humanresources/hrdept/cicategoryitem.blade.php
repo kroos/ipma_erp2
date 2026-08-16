@@ -12,7 +12,7 @@
 				@if($cicategory->count())
 					@foreach($cicategory->hasmanycicategoryitem()->get() as $item)
 						<tr>
-							<td class="w-75" {!! ($item->description)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.$item->description.'"':null !!}>
+							<td class="w-75" @if($item->description) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $item->description }}" @endif>
 								{{-- {{ Str::limit($item->description, 9, ' >') }} --}}
 								{{ $item->description }}
 							</td>

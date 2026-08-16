@@ -49,7 +49,7 @@
 															@if($cicategory->count())
 																@foreach($cicategory->hasmanycicategoryitem()->get() as $item)
 																	<tr wire:key="{{ $item->id.now() }}">
-																		<td {!! ($item->description)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.$item->description.'"':null !!}>
+																		<td @if($item->description) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $item->description }}" @endif>
 																			<label for="categoryitem_{{ $item->id }}">
 																				<input type="checkbox" value="{{ $item->id }}" id="categoryitem_{{ $item->id }}" wire:model.change="cicategory_item_id">
 																				{{-- {{ Str::limit($item->description, 9, ' >') }} --}}

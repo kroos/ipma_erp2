@@ -1,20 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-$user = \Auth::user()->belongstostaff->id;
-
-$appraisals = DB::table('pivot_apoint_appraisals')
-  ->join('logins', 'logins.staff_id', '=', 'pivot_apoint_appraisals.evaluatee_id')
-  ->join('staffs', 'staffs.id', '=', 'pivot_apoint_appraisals.evaluatee_id')
-  ->where('pivot_apoint_appraisals.evaluator_id', $user)
-  ->where('logins.active', 1)
-  //->whereNull('pivot_apoint_appraisals.finalise_date')
-  ->whereNull('pivot_apoint_appraisals.deleted_at')
-  ->select('pivot_apoint_appraisals.id as apointid', 'staffs.name', 'logins.username', 'staffs.appraisal_category_id', 'pivot_apoint_appraisals.finalise_date')
-  ->orderBy('logins.username', 'ASC')
-  ->get();
-?>
 
 <div class="container">
   <div class="row mt-3">
@@ -67,21 +53,13 @@ $appraisals = DB::table('pivot_apoint_appraisals')
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-// datatables
-$.fn.dataTable.moment( 'D MMM YYYY' );
-$.fn.dataTable.moment( 'h:mm a' );
-$('#staff').DataTable({
-  "paging": false,
-  "order": [ 0, 'asc' ],
-  "columnDefs": [
-                  { type: 'string', 'targets': [0] },
-                  { type: 'string', 'targets': [1] },
-                ],
-  responsive: true
-});
-
-$(function () {
-  $('[data-toggle="tooltip"]').tooltip()
-});
+window.data = {
+	route: {
+	},
+	url: {
+	},
+	old: {
+	},
+	errors: @json($errors->toArray()),
+};
 @endsection

@@ -81,9 +81,9 @@ class MCLeaveController extends Controller
 	/**
 	 * Update the specified resource in storage.
 	 */
-	public function update(Request $request, HRLeaveMC $mcleave): RedirectResponse
+public function update(UpdateHRLeaveRequest $request, HRLeaveMC $mcleave): RedirectResponse
 	{
-		$mcleave->update($request->except(['_method', '_token']));
+		$mcleave->update($request->only(['mc_leave', 'mc_leave_adjustment', 'mc_leave_utilize', 'mc_leave_balance', 'remarks']));
 		Session::flash('message', 'Data successfully updated!');
 		return Redirect::route('mcleave.index');
 	}

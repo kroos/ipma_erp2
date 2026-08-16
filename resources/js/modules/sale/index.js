@@ -2,22 +2,21 @@ const { route, url, old } = window.data;
 
 /* tooltip */
 $(document).ready(function(){
-	$('[data-bs-toggle="tooltip"]').tooltip();
+	$('[data-bs-toggle="tooltip"]').tooltip({ ...config.tooltip });
 });
 
 /* datatables */
 $.fn.dataTable.moment( 'D MMM YYYY' );
 $.fn.dataTable.moment( 'YYYY' );
 $.fn.dataTable.moment( 'h:mm a' );
-var table = $('#sales').DataTable({
-	...config.datatable,
-	"columnDefs": [
+var table = $('#sales').DataTable({ ...config.datatable,
+    "columnDefs": [
 		{ type: 'date', 'targets': [1,3] },
 	],
 })
 .on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
 	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip();
+		$('[data-bs-toggle="tooltip"]').tooltip({ ...config.tooltip });
 	});
 });
 
@@ -45,9 +44,8 @@ $(document).on('click', '.sale-approve, .sale-send', async function (e) {
 
 async function handleSwalAction(id, options) {
 	try {
-		const result = await swal.fire({
-			...config.swal,
-			preConfirm: async () => {
+		const result = await swal.fire({ ...config.swal,
+    preConfirm: async () => {
 				try {
 					const response = await $.ajax({
 						url: options.url,
@@ -59,8 +57,8 @@ async function handleSwalAction(id, options) {
 				} catch (err) {
 					swal.showValidationMessage('Request failed');
 				}
-			}
-		});
+			},
+});
 
 		/* If confirmed */
 		if (result.isConfirmed && result.value) {

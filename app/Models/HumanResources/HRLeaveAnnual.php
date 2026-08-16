@@ -18,26 +18,33 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class HRLeaveAnnual extends Model
 {
-	use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes;
 
-	// protected $connection = 'mysql';
-	protected $table = 'hr_leave_annuals';
+    // protected $connection = 'mysql';
+    protected $table = 'hr_leave_annuals';
 
-	/////////////////////////////////////////////////////////////////////////////////////////
-	// hasmany relationship
+    protected $fillable = [
+	'annual_leave',
+	'annual_leave_adjustment',
+	'annual_leave_utilize',
+	'annual_leave_balance',
+	'remarks',
+    ];
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-	// db relation belongsToMany
-	public function belongstomanyleave(): BelongsToMany
-	{
-		return $this->belongsToMany(\App\Models\HumanResources\HRLeave::class, 'pivot_leave_annuals', 'leave_annual_id', 'leave_id')->withTimestamps();
-	}
+   /////////////////////////////////////////////////////////////////////////////////////////
+    // hasmany relationship
 
-	/////////////////////////////////////////////////////////////////////////////////////////
-	//belongsto relationship
-	public function belongstostaff(): BelongsTo
-	{
-		return $this->belongsTo(\App\Models\Staff::class, 'staff_id');
-	}
+   /////////////////////////////////////////////////////////////////////////////////////////////////////
+    // db relation belongsToMany
+    public function belongstomanyleave(): BelongsToMany
+    {
+        return $this->belongsToMany(\App\Models\HumanResources\HRLeave::class, 'pivot_leave_annuals', 'leave_annual_id', 'leave_id')->withTimestamps();
+    }
+
+   /////////////////////////////////////////////////////////////////////////////////////////
+    //belongsto relationship
+    public function belongstostaff(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Staff::class, 'staff_id');
+    }
 }
-

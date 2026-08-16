@@ -1,0 +1,4 @@
+• StaffRequestStore.php & StaffRequestUpdate.php: Replace 'image' => 'nullable|file|max:5120|mimes:jpeg,jpg,png,bmp' with 'image' => 'nullable|file|max:5120|mimetypes:image/jpeg,image/png,image/bmp' (Laravel mimetypes rule uses finfo for real MIME detection, closing double-extension bypass)
+• StaffController store() & update(): Replace filename-building lines using getClientOriginalName() + raw username with generated name: $currentDate = Carbon::now()->format('Y-m-d-H-i-s'); $fileName = $currentDate.'_'.Str::slug($request->username).'.'.$request->file('image')->guessExtension(); Store only this generated filename, never client-supplied name
+• Both files: php -l check and php artisan test must pass
+• Commented-out 'document' rule lines left untouched

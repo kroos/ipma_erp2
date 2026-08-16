@@ -1,27 +1,5 @@
 <?php
-use App\Models\HumanResources\HROutstation;
-// load db facade
-use Illuminate\Database\Eloquent\Builder;
-
 use Carbon\Carbon;
-
-$r = HROutstation::where('staff_id', \Auth::user()->belongstostaff->id)
-		->where(function (Builder $query) {
-			$query->whereDate('date_from', '<=', now())
-			->whereDate('date_to', '>=', now());
-		})
-		->where('active', 1)
-		->get();
-		// ->ddrawsql();
-// dd($r);
-if ($r->count()) {
-	$t = true;
-	foreach ($r as $k => $v) {
-			$loc[$v->id] = $v->belongstocustomer?->customer;
-	}
-} else {
-	$t = false;
-}
 
 
 ?>
@@ -29,7 +7,7 @@ if ($r->count()) {
 @extends('layouts.app')
 @section('content')
 <div class="container row align-items-start justify-content-center">
-	@if ($t)
+	@if ($eligible)
 		<h4>Outstation Attendance</h4>
 
 		<div id="map_canvas" class="my-2 vw-50 vh-100">
@@ -118,37 +96,12 @@ if ($r->count()) {
 @endsection
 
 @section('js')
-	@if ($t)
-		navigator.geolocation.getCurrentPosition(function(location) {
-			console.log(location.coords.latitude);
-			console.log(location.coords.longitude);
-			console.log(location.coords.accuracy);
-			$('#lat').val(location.coords.latitude);
-			$('#lon').val(location.coords.longitude);
-			$('#acc').val(location.coords.accuracy);
-			var lat = location.coords.latitude;
-			var lon = location.coords.longitude;
-
-			// initializing google map
-			let map;
-			async function initMap() {
-				const position = { lat: lat, lng: lon };
-				const { Map } = await google.maps.importLibrary("maps");
-				const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-
-				map = new Map(document.getElementById("map_canvas"), {
-					zoom: 15,
-					center: position,
-					mapId: "DEMO_MAP_ID",
-				});
-
-				const marker = new AdvancedMarkerElement({
-					map: map,
-					position: position,
-					title: "My Location",
-				});
-			}
-			initMap();
-		});
-	@endif
+window.data = {
+	route: {},
+	url: {},
+	old: {
+		eligible: @json($eligible), 
+	},
+	errors: @json($errors->toArray()),
+};
 @endsection

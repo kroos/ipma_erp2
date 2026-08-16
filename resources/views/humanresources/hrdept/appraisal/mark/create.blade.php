@@ -1,65 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-  <style>
-    .img1 {
-      text-align: center;
-    }
-
-    p {
-      margin: 0;
-      padding: 0;
-    }
-
-    .tr-td-border,
-    .tr-td-border td {
-      border: 1px solid black;
-    }
-
-    .td-border-left-right {
-      border-width: 0px 1px 0px 1px;
-      /* top, right, bottom, left */
-    }
-
-    .td-border-right {
-      border-width: 0px 1px 0px 0px;
-      /* top, right, bottom, left */
-    }
-
-    .td-border-left-right-bottom {
-      border-width: 0px 1px 1px 1px;
-      /* top, right, bottom, left */
-    }
-
-    .td-border-right-bottom {
-      border-width: 0px 1px 1px 0px;
-      /* top, right, bottom, left */
-    }
-  </style>
-
-  <?php
-
-  use Carbon\Carbon;
-  use App\Models\Staff;
-  use App\Models\HumanResources\HRAppraisalMark;
-
-  $staff = Staff::join('pivot_apoint_appraisals', 'pivot_apoint_appraisals.evaluatee_id', '=', 'staffs.id')->join('logins', 'logins.staff_id', '=', 'staffs.id')->where('pivot_apoint_appraisals.id', $id)->where('logins.active', 1)->select('staffs.id as staffid', 'staffs.appraisal_category_id as catid', 'staffs.*', 'logins.*', 'pivot_apoint_appraisals.*')->first();
-
-  $pivotappraisal = DB::table('pivot_category_appraisals')
-      ->join('option_appraisal_categories', 'option_appraisal_categories.id', '=', 'pivot_category_appraisals.category_id')
-      ->where('pivot_category_appraisals.category_id', $staff?->catid)
-      ->orderBy('version', 'DESC')
-      ->first();
-
-  $appraisals = DB::table('pivot_category_appraisals')
-      ->where('category_id', $pivotappraisal?->category_id)
-      ->where('version', $pivotappraisal?->version)
-      ->orderBy('sort', 'ASC')
-      ->orderBy('id', 'ASC')
-      ->get();
-  ?>
-
-  <div class="container">
+  <?php use Carbon\Carbon; ?>
+  <div class="page-humanresources-hrdept-appraisal-mark-create container">
     @include('humanresources.hrdept.navhr')
 
     <!-- POPUP NOTIFICATION START -->
@@ -97,7 +40,7 @@
         <td>{{ $staff?->username }}</td>
         <td>Bahagian</td>
         <td>:</td>
-        <td>{{ Staff::find($staff?->staffid)?->belongstomanydepartment()?->where('main', 1)->first()->department }}</td>
+        <td>{{ $staff_dept }}</td>
       </tr>
       <tr>
         <td width="150px">Nama Pekerja</td>
@@ -151,7 +94,7 @@
           <table width="100%">
             <tr>
               <td>
-                {!! $section->section !!}
+                {{ $section->section }}
               </td>
             </tr>
           </table>
@@ -181,7 +124,7 @@
                   {{ $no }}
                 </td>
                 <td colspan="3" class="td-border-right">
-                  {!! $section_sub->section_sub !!}
+                  {{ $section_sub->section_sub }}
                 </td>
               </tr>
 
@@ -201,15 +144,13 @@
                     {{ $no_sub }})
                   </td>
                   <td colspan="3" class="td-border-right">
-                    {!! $main_question->main_question !!}
+                    {{ $main_question->main_question }}
                   </td>
                 </tr>
 
                 @foreach ($questions as $question)
                   <?php
-                  $loop1 = HRAppraisalMark::where('pivot_apoint_id', $id)
-                      ->where('question_id', $question->id)
-                      ->first();
+                  $loop1 = $markByQuestion[$question->id] ?? null;
 
                   if ($mark1 < $question->mark) {
                       $mark1 = $question->mark;
@@ -224,10 +165,10 @@
                       <input type="radio" name="{{ '1' . $no . $no_sub }}" value="{{ $question->id }}" {{ ($loop1?->question_id == $question->id)? 'checked' : NULL }} required>
                     </td>
                     <td width="50px" style="vertical-align:text-top;">
-                      {!! $question->mark !!}m -
+                      {{ $question->mark }}m -
                     </td>
                     <td class="td-border-right">
-                      {!! $question->question !!}
+                      {{ $question->question }}
                     </td>
                   </tr>
                   <tr height="10px">
@@ -266,7 +207,7 @@
           <table width="100%">
             <tr>
               <td>
-                {!! $section->section !!}
+                {{ $section->section }}
               </td>
             </tr>
           </table>
@@ -303,9 +244,7 @@
 
             @foreach ($section_subs as $section_sub)
               <?php
-              $loop2 = HRAppraisalMark::where('pivot_apoint_id', $id)
-                  ->where('section_sub_id', $section_sub->id)
-                  ->first();
+              $loop2 = $markBySectionSub[$section_sub->id] ?? null;
 
               $total_mark2 = $total_mark2 + 5;
               ?>
@@ -319,7 +258,7 @@
                   {{ $no }}
                 </td>
                 <td>
-                  {!! $section_sub->section_sub !!}
+                  {{ $section_sub->section_sub }}
                 </td>
                 <td align="center">
                   <input type="radio" name="{{ '2' . $no }}" value="1" {{ ($loop2->mark == 1)? 'checked' : NULL }} required>
@@ -353,7 +292,7 @@
           <table width="100%">
             <tr>
               <td>
-                {!! $section->section !!}
+                {{ $section->section }}
               </td>
             </tr>
           </table>
@@ -361,9 +300,7 @@
           <table width="100%">
             @foreach ($section_subs as $section_sub)
               <?php
-              $loop3 = HRAppraisalMark::where('pivot_apoint_id', $id)
-                  ->where('section_sub_id', $section_sub->id)
-                  ->first();
+              $loop3 = $markBySectionSub[$section_sub->id] ?? null;
               ?>
 
               <input type="hidden" name="arrayid3[]" value="{{ 'id3' . $no }}">
@@ -375,7 +312,7 @@
                   {{ $no }})
                 </td>
                 <td>
-                  {!! $section_sub->section_sub !!}
+                  {{ $section_sub->section_sub }}
                 </td>
               </tr>
               <tr>
@@ -398,7 +335,7 @@
           <table width="100%">
             <tr>
               <td>
-                {!! $section->section !!}
+                {{ $section->section }}
               </td>
             </tr>
           </table>
@@ -418,15 +355,13 @@
                   {{ $no }})
                 </td>
                 <td colspan="2">
-                  {!! $section_sub->section_sub !!}
+                  {{ $section_sub->section_sub }}
                 </td>
               </tr>
 
               @foreach ($main_questions as $main_question)
                 <?php
-                $loop4 = HRAppraisalMark::where('pivot_apoint_id', $id)
-                    ->where('main_question_id', $main_question->id)
-                    ->first();
+                $loop4 = $markByMainQuestion[$main_question->id] ?? null;
                 ?>
 
                 <input type="hidden" name="arraymark4[]" value="{{ '4' . $no }}">
@@ -437,7 +372,7 @@
                     <input type="radio" name="{{ '4'.$no }}" value="{{ $main_question?->id }}" {{ ($loop4?->main_question_id == $main_question?->id)?'checked':NULL }} required>
                   </td>
                   <td>
-                    {!! $main_question->main_question !!}
+                    {{ $main_question->main_question }}
                   </td>
                 </tr>
               @endforeach
@@ -470,7 +405,13 @@
 @endsection
 
 @section('js')
-  $(document).ready(function(){
-    $("#notification").modal('show');
-  });
+window.data = {
+	route: {
+	},
+	url: {
+	},
+	old: {
+	},
+	errors: @json($errors->toArray()),
+};
 @endsection

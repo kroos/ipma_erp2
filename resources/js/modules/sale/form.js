@@ -5,14 +5,12 @@ function getError(name) {
 
 /* tooltip */
 $(document).ready(function(){
-	$('[data-bs-toggle="tooltip"]').tooltip();
+	$('[data-bs-toggle="tooltip"]').tooltip({ ...config.tooltip });
 });
 
 
 /* date */
-$('#nam, #delivery').datetimepicker({
-	format:'YYYY-MM-DD',
-	// useCurrent: false,
+$('#nam, #delivery').datetimepicker({ ...config.datetimepicker,
 }).on('dp.change', function(e){
 	$('#form').bootstrapValidator('revalidateField', $('[name="date_order"]'));
 	$('#form').bootstrapValidator('revalidateField', $('[name="delivery_at"]'));
@@ -20,9 +18,8 @@ $('#nam, #delivery').datetimepicker({
 
 
 /* customer */
-$('#cust').select2({
-	...config.select2,
-	ajax: {
+$('#cust').select2({ ...config.select2,
+    ajax: {
 		url: route.customer,
 		type: 'POST',
 		dataType: 'json',
@@ -190,9 +187,8 @@ function populateSelect(i = 0){
 		if (val) ids.push(val);
 	});
 
-	$(`#jdu_${i},.uom`).select2({
-		...config.select2,
-		ajax: {
+	$(`#jdu_${i},.uom`).select2({ ...config.select2,
+    ajax: {
 			url: route.uom,
 			type: 'POST',
 			dataType: 'json',
@@ -203,11 +199,10 @@ function populateSelect(i = 0){
 				return query;
 			}
 		},
-	});
+});
 
-	$(`#jobdescmach_${i},.machine`).select2({
-		...config.select2,
-		ajax: {
+	$(`#jobdescmach_${i},.machine`).select2({ ...config.select2,
+    ajax: {
 			url: route.machine,
 			type: 'GET',
 			dataType: 'json',
@@ -218,14 +213,12 @@ function populateSelect(i = 0){
 				return query;
 			}
 		},
-	}).on('change', function(){
+}).on('change', function(){
 		$(`#jobdescmachacc_${i}`).empty().trigger('change');
 	});
 
-	$(`#jobdescmachacc_${i},.machine_accessory`).select2({
-		...config.select2,
-		closeOnSelect: true,
-		ajax: {
+	$(`#jobdescmachacc_${i},.machine_accessory`).select2({ ...config.select2,
+    ajax: {
 			url: route.machineaccessories,
 			type: 'GET',
 			dataType: 'json',
@@ -250,7 +243,7 @@ function populateSelect(i = 0){
 			}
 
 		},
-	});
+});
 
 }
 
@@ -324,7 +317,6 @@ $('#jdesc_wrap').addRemRow({
 			method: 'DELETE',
 			dataType: 'json',
 			data: {
-				// _token: '{{ csrf_token() }}'
 			}
 		}
 	},

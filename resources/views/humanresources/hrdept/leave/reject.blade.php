@@ -1,44 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-// load models
-use App\Models\Staff;
-use App\Models\HumanResources\HRLeave;
-use App\Models\HumanResources\HRLeaveAnnual;
-use App\Models\HumanResources\HRLeaveMC;
-use App\Models\HumanResources\HRLeaveMaternity;
-use App\Models\HumanResources\HRLeaveReplacement;
-use App\Models\HumanResources\HRLeaveApprovalBackup;
-use App\Models\HumanResources\HRLeaveApprovalSupervisor;
-use App\Models\HumanResources\HRLeaveApprovalHOD;
-use App\Models\HumanResources\HRLeaveApprovalDirector;
-use App\Models\HumanResources\HRLeaveApprovalHR;
-
-// load array helper
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-
-// load sql builder
-use Illuminate\Database\Eloquent\Builder;
-
-use \Carbon\Carbon;
-use \Carbon\CarbonPeriod;
-
-use \App\Helpers\UnavailableDateTime;
-
-// who am i?
-$me1 = \Auth::user()->belongstostaff->div_id == 1;		// hod
-$me2 = \Auth::user()->belongstostaff->div_id == 5;		// hod assistant
-$me3 = \Auth::user()->belongstostaff->div_id == 4;		// supervisor
-$me4 = \Auth::user()->belongstostaff->div_id == 3;		// HR
-$me5 = \Auth::user()->belongstostaff->authorise_id == 1;	// admin
-$me6 = \Auth::user()->belongstostaff->div_id == 2;		// director
-$dept = \Auth::user()->belongstostaff->belongstomanydepartment()->wherePivot('main', 1)->first();
-$deptid = $dept->id;
-$branch = $dept->branch_id;
-$category = $dept->category_id;
-?>
 <div class="container row align-items-start justify-content-center">
 @include('humanresources.hrdept.navhr')
 	<h4>Leaves</h4>
@@ -87,43 +49,10 @@ if ( ($ul->leave_type_id == 9) || ($ul->leave_type_id != 9 && $ul->half_type_id 
 	$dte = \Carbon\Carbon::parse($ul->date_time_end)->format('j M Y ');
 	$dper = $ul->period_day.' day/s';
 }
-
-if ($me1) {																				// hod
-	if ($deptid == 21 || $deptid == 28) {																// hod | dept prod A | dept prod B
-		$ha = Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->id == $deptid || Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->category_id == 2;
-	} elseif($deptid == 14) {															// hod | not dept prod A | not dept prod B | HR
-		$ha = true;
-	} elseif($deptid == 6) {															// hod | not dept prod A | not dept prod B | not HR | cust serv
-		$ha = Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->id == $deptid || Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->id == 7 || Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->id == 3;
-	} elseif ($deptid == 23) {															// hod | not dept prod A | not dept prod B | not HR | not cust serv | puchasing
-		$ha = Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->id == $deptid || Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->id == 16 || Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->id == 17;
-	} else {																			// hod | not dept prod A | not dept prod B | not HR | not cust serv | not puchasing | other dept
-		$ha = Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->id == $deptid;
-	}
-} elseif($me2) {																		// not hod | asst hod
-	if($deptid == 14) {																	// not hod | not dept prod A | not dept prod B | HR
-		$ha = true;
-	} elseif($deptid == 6) {															// not hod | not dept prod A | not dept prod B | not HR | cust serv
-		$ha = Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->id == $deptid || Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->id == 7 || Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->id == 3;
-	}
-} elseif($me3) {																		// not hod | not asst hod | supervisor
-	if($branch == 1) {																	// not hod | not asst hod | supervisor | branch A
-		$ha = Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->id == $deptid || (Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->category_id == 2 && Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->branch_id == $branch);
-	} elseif ($branch == 2) {															// not hod | not asst hod | supervisor | not branch A | branch B
-		$ha = Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->id == $deptid || (Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->category_id == 2 && Staff::find($ul->staff_id)?->belongstomanydepartment()?->wherePivot('main', 1)->first()?->branch_id == $branch);
-	}
-} elseif($me6) {																		// not hod | not asst hod | not supervisor | director
-	$ha = true;
-} elseif($me5) {																		// not hod | not asst hod | not supervisor | not director | admin
-	$ha = true;
-} else {
-	$ha = false;
-}
 ?>
-					@if( $ha )
 						<tr>
-							<td><a href="{{ route('staff.show', $ul->staff_id) }}" target="_blank">{{ App\Models\Login::where([['staff_id', $ul->staff_id], ['active', 1]])->first()->username ?? NULL }}</a></td>
-							<td {!!  ($ul->staff_id)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.$ul->belongstostaff?->name.'"':null !!}>
+							<td><a href="{{ route('staff.show', $ul->staff_id) }}" target="_blank">{{ $ul->username }}</a></td>
+							<td @if($ul->staff_id) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $ul->belongstostaff?->name }}" @endif>
 								{{ Str::words($ul->belongstostaff?->name, 3, ' >') }}
 							</td>
 							<td><a href="{{ route('hrleave.show', $ul->id) }}" target="_blank">HR9-{{ str_pad( $ul->leave_no, 5, "0", STR_PAD_LEFT ) }}/{{ $ul->leave_year }}</a></td>
@@ -132,7 +61,7 @@ if ($me1) {																				// hod
 							<td>{{ $dts }}</td>
 							<td>{{ $dte }}</td>
 							<td>{{ $dper }}</td>
-							<td {!! ($ul->reason)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.$ul->reason.'"':null !!}>
+							<td @if($ul->reason) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $ul->reason }}" @endif>
 								{{ Str::limit($ul->reason, 10, ' >') }}
 							</td>
 							<td>
@@ -147,53 +76,53 @@ if ($me1) {																				// hod
 
 								<table class="table table-hover table-sm">
 									<tbody>
-										@if($ul->hasmanyleaveapprovalbackup()->get()->isNotEmpty())
+										@if($ul->hasmanyleaveapprovalbackup?->isNotEmpty())
 											<tr>
-												<!-- <td>Backup {{ $ul->hasmanyleaveapprovalbackup()->first()->belongstostaff?->name }}</td> -->
+												<!-- <td>Backup {{ $ul->hasmanyleaveapprovalbackup?->first()->belongstostaff?->name }}</td> -->
 												<th>Backup</th>
-												<td>{{ $ul->hasmanyleaveapprovalbackup()->first()->belongstoleavestatus?->status ?? 'Pending' }}</td>
+												<td>{{ $ul->hasmanyleaveapprovalbackup?->first()->belongstoleavestatus?->status ?? 'Pending' }}</td>
 												<th>Remarks</th>
-												<td {!! ($ul->hasmanyleaveapprovalbackup()->first()?->remarks)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.$ul->hasmanyleaveapprovalbackup()->first()?->remarks.'"':null !!}>{{ Str::limit($ul->hasmanyleaveapprovalbackup()->first()?->remarks, 7, ' >>') }}</td>
+												<td @if($ul->hasmanyleaveapprovalbackup?->first()?->remarks) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $ul->hasmanyleaveapprovalbackup?->first()?->remarks }}" @endif>{{ Str::limit($ul->hasmanyleaveapprovalbackup?->first()?->remarks, 7, ' >>') }}</td>
 											</tr>
 										@endif
 
-										@if($ul->hasmanyleaveapprovalsupervisor()->get()->isNotEmpty())
+										@if($ul->hasmanyleaveapprovalsupervisor?->isNotEmpty())
 											<tr>
-												<!-- <td>Supervisor {{ $ul->hasmanyleaveapprovalsupervisor()->first()->belongstostaff?->name }}</td> -->
+												<!-- <td>Supervisor {{ $ul->hasmanyleaveapprovalsupervisor?->first()->belongstostaff?->name }}</td> -->
 												<th>Supervisor</th>
-												<td>{{ $ul->hasmanyleaveapprovalsupervisor()->first()->belongstoleavestatus?->status ?? 'Pending' }}</td>
+												<td>{{ $ul->hasmanyleaveapprovalsupervisor?->first()->belongstoleavestatus?->status ?? 'Pending' }}</td>
 												<th>Remarks</th>
-												<td {!! ($ul->hasmanyleaveapprovalsupervisor()->first()?->remarks)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.$ul->hasmanyleaveapprovalsupervisor()->first()?->remarks.'"':null !!}>{{ Str::limit($ul->hasmanyleaveapprovalsupervisor()->first()?->remarks, 7, ' >>') }}</td>
+												<td @if($ul->hasmanyleaveapprovalsupervisor?->first()?->remarks) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $ul->hasmanyleaveapprovalsupervisor?->first()?->remarks }}" @endif>{{ Str::limit($ul->hasmanyleaveapprovalsupervisor?->first()?->remarks, 7, ' >>') }}</td>
 											</tr>
 										@endif
 
-										@if($ul->hasmanyleaveapprovalhod()->get()->isNotEmpty())
+										@if($ul->hasmanyleaveapprovalhod?->isNotEmpty())
 											<tr>
-												<!-- <td>HOD {{ $ul->hasmanyleaveapprovalhod()->first()->belongstostaff?->name }}</td> -->
+												<!-- <td>HOD {{ $ul->hasmanyleaveapprovalhod?->first()->belongstostaff?->name }}</td> -->
 												<th>HOD</th>
-												<td>{{ $ul->hasmanyleaveapprovalhod()->first()->belongstoleavestatus?->status ?? 'Pending' }}</td>
+												<td>{{ $ul->hasmanyleaveapprovalhod?->first()->belongstoleavestatus?->status ?? 'Pending' }}</td>
 												<th>Remarks</th>
-												<td {!! ($ul->hasmanyleaveapprovalhod()->first()?->remarks)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.$ul->hasmanyleaveapprovalhod()->first()?->remarks.'"':null !!}>{{ Str::limit($ul->hasmanyleaveapprovalhod()->first()?->remarks, 7, ' >>') }}</td>
+												<td @if($ul->hasmanyleaveapprovalhod?->first()?->remarks) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $ul->hasmanyleaveapprovalhod?->first()?->remarks }}" @endif>{{ Str::limit($ul->hasmanyleaveapprovalhod?->first()?->remarks, 7, ' >>') }}</td>
 											</tr>
 										@endif
 
-										@if($ul->hasmanyleaveapprovaldir()->get()->isNotEmpty())
+										@if($ul->hasmanyleaveapprovaldir?->isNotEmpty())
 											<tr>
-												<!-- <td>Director {{ $ul->hasmanyleaveapprovaldir()->first()->belongstostaff?->name }}</td> -->
+												<!-- <td>Director {{ $ul->hasmanyleaveapprovaldir?->first()->belongstostaff?->name }}</td> -->
 												<th>Director</th>
-												<td>{{ $ul->hasmanyleaveapprovaldir()->first()->belongstoleavestatus?->status ?? 'Pending' }}</td>
+												<td>{{ $ul->hasmanyleaveapprovaldir?->first()->belongstoleavestatus?->status ?? 'Pending' }}</td>
 												<th>Remarks</th>
-												<td {!! ($ul->hasmanyleaveapprovaldir()->first()?->remarks)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.$ul->hasmanyleaveapprovaldir()->first()?->remarks.'"':null !!}>{{ Str::limit($ul->hasmanyleaveapprovaldir()->first()?->remarks, 7, ' >>') }}</td>
+												<td @if($ul->hasmanyleaveapprovaldir?->first()?->remarks) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $ul->hasmanyleaveapprovaldir?->first()?->remarks }}" @endif>{{ Str::limit($ul->hasmanyleaveapprovaldir?->first()?->remarks, 7, ' >>') }}</td>
 											</tr>
 										@endif
 
-										@if($ul->hasmanyleaveapprovalhr()->get()->isNotEmpty())
+										@if($ul->hasmanyleaveapprovalhr?->isNotEmpty())
 											<tr>
-												<!-- <td>HR {{ $ul->hasmanyleaveapprovalhr()->first()->belongstostaff?->name }}</td> -->
+												<!-- <td>HR {{ $ul->hasmanyleaveapprovalhr?->first()->belongstostaff?->name }}</td> -->
 												<th>HR</th>
-												<td>{{ $ul->hasmanyleaveapprovalhr()->first()->belongstoleavestatus?->status ?? 'Pending' }}</td>
+												<td>{{ $ul->hasmanyleaveapprovalhr?->first()->belongstoleavestatus?->status ?? 'Pending' }}</td>
 												<th>Remarks</th>
-												<td {!! ($ul->hasmanyleaveapprovalhr()->first()?->remarks)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.$ul->hasmanyleaveapprovalhr()->first()?->remarks.'"':null !!}>{{ Str::limit($ul->hasmanyleaveapprovalhr()->first()?->remarks, 7, ' >>') }}</td>
+												<td @if($ul->hasmanyleaveapprovalhr?->first()?->remarks) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $ul->hasmanyleaveapprovalhr?->first()?->remarks }}" @endif>{{ Str::limit($ul->hasmanyleaveapprovalhr?->first()?->remarks, 7, ' >>') }}</td>
 											</tr>
 										@endif
 									</tbody>
@@ -245,14 +174,13 @@ if ($me1) {																				// hod
 									</div> -->
 								@endif
 							</td>
-							<td {!! ($ul->remarks)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.$ul->remarks.'"':null !!}>
+							<td @if($ul->remarks) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $ul->remarks }}" @endif>
 								{{ Str::limit($ul->remarks, 10, ' >') }}
 							</td>
-							<td {!! ($ul->hasmanyleaveamend()->first()?->amend_note)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.$ul->hasmanyleaveamend()->first()?->amend_note.'"':null !!}>
-								{{ Str::limit($ul->hasmanyleaveamend()->first()?->amend_note, 10, ' >') }}
+							<td @if($ul->hasmanyleaveamend?->first()?->amend_note) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $ul->hasmanyleaveamend?->first()?->amend_note }}" @endif>
+								{{ Str::limit($ul->hasmanyleaveamend?->first()?->amend_note, 10, ' >') }}
 							</td>
 						</tr>
-					@endif
 				@endforeach
 			</tbody>
 		</table>
@@ -264,62 +192,15 @@ if ($me1) {																				// hod
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-// tooltip
-$(document).ready(function(){
-	$('[data-bs-toggle="tooltip"]').tooltip();
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// datatables
-$.fn.dataTable.moment( 'D MMM YYYY' );
-$.fn.dataTable.moment( 'h:mm a' );
-$('#upleave').DataTable({
-	"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
-	"columnDefs": [
-					{ type: 'date', 'targets': [4,5,6] },
-					// { type: 'time', 'targets': [6] },
-				],
-	"order": [ 5, 'desc' ],
-	responsive: true
-})
-.on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
-	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip();
-	});}
-);
-
-$('#toleave').DataTable({
-	"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
-	"columnDefs": [
-					{ type: 'date', 'targets': [4,5,6] },
-					// { type: 'time', 'targets': [6] },
-				],
-	"order": [ 5, 'desc' ],
-	responsive: true
-})
-.on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
-	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip();
-	});}
-);
-
-$('#paleave').DataTable({
-	// "paging": false,
-	"lengthMenu": [ [100, 250, 500, -1], [100, 250, 500, "All"] ],
-	"columnDefs": [
-					{ type: 'date', 'targets': [4,5,6] },
-					// { type: 'time', 'targets': [6] },
-				],
-	"order": [ 5, 'desc' ],
-	responsive: true
-})
-.on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
-	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip();
-	});}
-);
-
+window.data = {
+	route: {
+	},
+	url: {
+	},
+	old: {
+	},
+	errors: @json($errors->toArray()),
+};
 @endsection
 
 @section('nonjquery')

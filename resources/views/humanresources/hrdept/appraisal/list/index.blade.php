@@ -3,15 +3,6 @@
 
 @section('content')
 
-<style>
-  /* table,
-  tr,
-  td,
-  div {
-    border: 1px solid black;
-  } */
-</style>
-
 <?php
 
 use \App\Models\Staff;
@@ -28,7 +19,7 @@ $staffs = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
   ->get();
 ?>
 
-<div class="container">
+<div class="page-humanresources-hrdept-appraisal-list-index container">
   @include('humanresources.hrdept.navhr')
 
   <div class="row mt-3">
@@ -112,63 +103,14 @@ $staffs = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-// datatables
-$.fn.dataTable.moment( 'D MMM YYYY' );
-$.fn.dataTable.moment( 'h:mm a' );
-$('#staff').DataTable({
-"paging": false,
-"order": [ 0, 'asc' ],
-responsive: true
-});
-
-$(function () {
-$('[data-toggle="tooltip"]').tooltip()
-});
-
-
-////////////////////////////////////////////////////////////////////////////////////
-// DISTRIBUTE APPRAISAL
-$(document).on('click', '.distribute', function(e){
-
-e.preventDefault();
-swal.fire({
-title: 'DISTRIBUTE',
-text: "Do you want to distribute current year appraisal?",
-icon: 'info',
-showCancelButton: true,
-confirmButtonColor: '#3085d6',
-cancelButtonColor: '#d33',
-confirmButtonText: 'Yes',
-showLoaderOnConfirm: true,
-
-preConfirm: function() {
-return new Promise(function(resolve) {
-$.ajax({
-type: 'PATCH',
-url: '{{ url('appraisallist/update') }}',
-data: {
-_token : $('meta[name=csrf-token]').attr('content'),
-},
-dataType: 'json'
-})
-.done(function(response){
-swal.fire('Distributed', response.message, response.status)
-.then(function(){
-window.location.reload(true);
-});
-})
-.fail(function(){
-swal.fire('Error', 'Something wrong with ajax!', 'error');
-})
-});
-},
-allowOutsideClick: false
-})
-.then((result) => {
-if (result.dismiss === swal.DismissReason.cancel) {
-swal.fire('Cancelled', 'Process has been cancelled', 'info')
-}
-});
-});
+window.data = {
+	route: {
+	},
+	url: {
+		appraisallistUpdate: '{{ url('appraisallist/update') }}',
+	},
+	old: {
+	},
+	errors: @json($errors->toArray()),
+};
 @endsection

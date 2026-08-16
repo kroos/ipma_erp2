@@ -66,17 +66,12 @@ class AttendanceUploadController extends Controller
 	*/
 	public function create(Request $request): View
 	{
-		if (!$request->id) {
-			if (session()->exists('lastBatchIdAttPop')) {
-				$bid = session()->get('lastBatchIdAttPop');
-			} else {
-				$bid = 1;
-			}
-		} else {
-			$bid = $request->id;
+		$batchId = $request->id ?: session('lastBatchIdAttPop');
+		if ($batchId) {
+			session()->forget('lastBatchIdAttPop');
 		}
-		$batch = Bus::findBatch($bid);
-		return view('humanresources.hrdept.attendance.attendanceupload.create', ['batch' => $batch]);
+		$batch = Bus::findBatch($batchId ?: 1);
+		return view('humanresources.hrdept.attendance.attendanceupload.create', ['batch' => $batch, 'batchId' => $batchId]);
 	}
 
 	/**

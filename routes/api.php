@@ -50,12 +50,10 @@ Route::middleware(['auth:sanctum', 'auth'])->group(function () {
     Route::post('/taxexemptionpercentage', 'taxexemptionpercentage')->name('taxexemptionpercentage.taxexemptionpercentage');
     Route::post('/relationship', 'relationship')->name('relationship.relationship');
     Route::post('/status', 'status')->name('status.status');
-    Route::post('/department', 'department')->name('department.department');
     Route::post('/restdaygroup', 'restdaygroup')->name('restdaygroup.restdaygroup');
     Route::post('/staffcrossbackup', 'staffcrossbackup')->name('staffcrossbackup.staffcrossbackup');
     Route::post('/unblockhalfdayleave', 'unblockhalfdayleave')->name('unblockhalfdayleave.unblockhalfdayleave');
     Route::post('/leaveevents', 'leaveevents')->name('leaveevents');
-    Route::post('/division', 'division')->name('division');
     Route::post('/staffattendance', 'staffattendance')->name('staffattendance');
     Route::post('/staffattendancelist', 'staffattendancelist')->name('staffattendancelist');
     Route::post('/staffpercentage', 'staffpercentage')->name('staffpercentage');
@@ -73,24 +71,9 @@ Route::middleware(['auth:sanctum', 'auth'])->group(function () {
     Route::post('/attendanceabsentindicator', 'attendanceabsentindicator')->name('attendanceabsentindicator');
     Route::post('/week_dates', 'week_dates')->name('week_dates');
     Route::get('/sales/getOptSalesGetItem', 'getOptSalesGetItem')->name('getOptSalesGetItem');
+    Route::get('/sales/getOptSalesType', 'getOptSalesType')->name('sales.getOptSalesType');
+    Route::get('/sales/getOptSalesDeliveryType', 'getOptSalesDeliveryType')->name('sales.getOptSalesDeliveryType');
 
-
-    /* ajax_hr */
-/*    Route::patch('/leavecancel/{hrleave}', 'leavecancel')->name('leavecancel.leavecancel');
-    Route::patch('/uploaddoc/{hrleave}', 'uploaddoc')->name('uploaddoc');
-    Route::patch('/leaverapprove/{hrleaveapprovalbackup}', 'leaverapprove')->name('leaverapprove.leaverapprove');
-    Route::patch('/supervisorstatus', 'supervisorstatus')->name('leavestatus.supervisorstatus');
-    Route::patch('/hodstatus', 'hodstatus')->name('leavestatus.hodstatus');
-    Route::patch('/dirstatus', 'dirstatus')->name('leavestatus.dirstatus');
-    Route::patch('/hrstatus', 'hrstatus')->name('leavestatus.hrstatus');
-    Route::patch('/deactivatestaff/{staff}', 'deactivatestaff')->name('deactivatestaff');
-    Route::delete('/deletecrossbackup/{staff}', 'deletecrossbackup')->name('deletecrossbackup');
-    Route::patch('/staffactivate/{staff}', 'staffactivate')->name('staff.activate');
-    Route::post('/generateannualleave', 'generateannualleave')->name('generateannualleave');
-    Route::post('/generatemcleave', 'generatemcleave')->name('generatemcleave');
-    Route::post('/generatematernityleave', 'generatematernityleave')->name('generatematernityleave');
-    Route::post('/confirmoutstationattendance', 'confirmoutstationattendance')->name('confirmoutstationattendance');
-*/
 
 
 

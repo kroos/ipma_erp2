@@ -9,6 +9,15 @@
   python scripts/fake_agent.py -p x --fix       -> Bug Fixer brain (fix note)
   python scripts/fake_agent.py -p x --docs      -> Doc Writer brain (docs)
   python scripts/fake_agent.py -p x --docs-ask  -> Doc Writer brain (clarify)
+  python scripts/fake_agent.py -p x --docs-file <path>
+                         -> Doc Writer brain that WRITES the contract JSON
+                            to <path> itself (simulates the brain's MCP
+                            filesystem write) and replies with prose only
+                            (no JSON block) — for the disk-salvage path
+  python scripts/fake_agent.py -p x --docs-ask-docs
+                         -> Doc Writer brain that returns docs ALONGSIDE a
+                            clarifying question (non-interactive runs must
+                            keep the docs instead of discarding them)
 """
 
 from __future__ import annotations
@@ -83,6 +92,27 @@ def main() -> None:
             _wrap('{"docs": [{"path": "docs/feature-login.md", "title": "Login Flow", '
                   '"summary": "Login + email verification flow", '
                   '"content": "# Login Flow\\n\\nHandled by LoginController."}], "questions": []}')
+    elif "--docs-file" in args:
+        # simulates a brain with filesystem MCP: writes the docs contract
+        # to <path> itself, then replies with prose (no JSON block)
+        target = args[args.index("--docs-file") + 1]
+        payload = {"docs": [{"path": "docs/salvaged.md", "title": "Salvaged Doc",
+                   "summary": "Written by the brain via filesystem MCP",
+                   "content": "# Salvaged\\n\\nRecovered from the brain-written file."}],
+                  "questions": []}
+        import os
+        from pathlib import Path as _Path
+        _Path(target).parent.mkdir(parents=True, exist_ok=True)
+        _Path(target).write_text(json.dumps(payload), encoding="utf-8")
+        print(f"I wrote the docs contract to {os.path.basename(target)} myself. "
+              "No JSON block needed.")
+    elif "--docs-ask-docs" in args:
+        # returns docs ALONGSIDE a clarifying question — one-shot runs must
+        # keep the docs (best effort) instead of discarding the payload
+        _wrap('{"docs": [{"path": "docs/feature-login.md", "title": "Login Flow", '
+              '"summary": "Login + email verification flow", '
+              '"content": "# Login Flow\\n\\nRedirects unverified users."}], '
+              '"questions": ["Which controller handles the redirect?"]}')
     else:
         print(f"ECHO: {prompt[:200]}")
 

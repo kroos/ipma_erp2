@@ -14,6 +14,22 @@ const config = {
 		width: '100%',
 	},
 
+	datetimepicker: {
+		icons: {
+			time: "fas fa-regular fa-clock fa-beat",
+			date: "fas fa-regular fa-calendar fa-beat",
+			up: "fa-regular fa-circle-up fa-beat",
+			down: "fa-regular fa-circle-down fa-beat",
+			previous: 'fas fa-regular fa-arrow-left fa-beat',
+			next: 'fas fa-regular fa-arrow-right fa-beat',
+			today: 'fas fa-regular fa-calendar-day fa-beat',
+			clear: 'fas fa-regular fa-broom-wide fa-beat',
+			close: 'fas fa-regular fa-rectangle-xmark fa-beat'
+		},
+		format: 'YYYY-MM-DD',
+		useCurrent: false,
+	},
+
 	datatable: {
 		lengthMenu: [[50, 100, -1], [50, 100, 'All']],
 		columnDefs: [
@@ -47,6 +63,12 @@ const config = {
 			right: 'multiMonthYear,dayGridMonth,timeGridWeek',
 		},
 	},
+	tooltip: {
+		placement: 'top',
+		trigger: 'hover focus',
+		container: 'body',
+	},
+
 	swal: {
 		title: 'Are you sure?',
 		text: 'It will be deleted permanently!',

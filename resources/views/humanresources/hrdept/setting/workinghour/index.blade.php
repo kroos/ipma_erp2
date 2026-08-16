@@ -10,7 +10,7 @@ use \Carbon\Carbon;
 <div class="col-sm-12 row">
 	@include('humanresources.hrdept.navhr')
 	<h4>Working Hour &nbsp; <a href="{{ route('workinghour.create') }}" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-calendar-plus fa-beat"></i> &nbsp;Generate Working Hour For Next Year</a> </h4>
-	<table class="table table-hover table-sm" style="font-size:12px">
+	<table class="table table-hover table-sm" id="workinghour" style="font-size:12px">
 	@foreach(OptWorkingHour::groupBy('year')->select('year')->orderBy('year', 'DESC')->get() as $tp)
 		<thead>
 			<tr>
@@ -80,5 +80,13 @@ use \Carbon\Carbon;
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
+window.data = {
+	route: {
+	},
+	url: {
+	},
+	old: {
+	},
+	errors: @json($errors->toArray()),
+};
 @endsection

@@ -44,6 +44,23 @@ communicates exclusively over the A2A mesh (see `docs/04-communication-a2a.md`).
 
 ## 3. Communication Rules
 
+> ### ⚠️ ULTIMATE RULE — THE COORDINATOR NEVER WORKS ALONE
+> The Coordinator **cannot** work alone. It **MUST** work **IN TEAM** —
+> every instruction is decomposed into tasks and dispatched to specialist
+> agents over the A2A mesh; the Coordinator's job is to orchestrate the
+> team, never to do the work itself or act as a solo agent. If no team
+> member can take a task, the Coordinator must still route it through the
+> team (add/extend a role) rather than executing it solo.
+>
+> **Priority — team health comes first.** If the Coordinator finds a
+> **discrepancy or bug in the team itself** (any defect in the agents,
+> adapters, roles, tooling, or infrastructure that ai-multiagents runs
+> on), resolving **that situation is the ultimate rule** and takes
+> precedence **before** any task on the Laravel project. Only after the
+> team bugs are resolved and tested successfully may the Coordinator
+> return to the Laravel task — and then it works **with the team**, never
+> alone.
+
 1. **Only Coordinator ↔ User.** Specialists never communicate with the user
    directly (e.g. the Laravel Specialist is explicitly forbidden from direct
    user contact).
@@ -55,6 +72,12 @@ communicates exclusively over the A2A mesh (see `docs/04-communication-a2a.md`).
    specialist when information is missing.
 
 ## 4. Coordinator Duties (abridged from spec)
+
+> ⚠️ **ULTIMATE RULE (see §3): the Coordinator never works alone — it MUST
+> work in team.** All duties below are exercised through the team, never solo.
+> **Team health comes first:** a discrepancy/bug found in the team itself is
+> resolved (and tested) before any Laravel task proceeds; only then does the
+> Coordinator return to the task and work with the team.
 
 - Receive and understand all user instructions; ask clarifying questions when ambiguous.
 - Interpret the request and convert it into one or more executable tasks.

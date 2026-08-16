@@ -44,10 +44,9 @@ class AppraisalSettingController extends Controller
 		return view('humanresources.hrdept.appraisal.setting.create');
 	}
 
-	public function update(Request $request, HRAppraisalSetting $appraisalsetting): JsonResponse
-	{
-		// dd($request->all(), $request->except(['_token', 'id']));
-		$appraisalsetting->update($request->except(['_token', 'id']));
-		return response()->json(['message' => 'Success', 'status' => 'success']);
-	}
+public function update(Request $request, HRAppraisalSetting $appraisalsetting): JsonResponse
+    {
+        $appraisalsetting->update($request->only(['value1', 'value2', 'value3']));
+        return response()->json(['message' => 'Success', 'status' => 'success']);
+    }
 }

@@ -1,5 +1,4 @@
 <?php
-
 namespace {{ namespace }};
 
 // use Illuminate\Database\Eloquent\Model;
@@ -17,23 +16,23 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class {{ class }} extends Pivot
 {
-    // use SoftDeletes;
-    // protected $connection = '';
-    // protected $table = '';
-    // protected $primaryKey = '';
-    // public $incrementing = true;
-    // protected $keyType = '';
-    // const CREATED_AT = '';
-    // const UPDATED_AT = '';
-    // protected $rememberTokenName = '';
+	// use SoftDeletes;
+	// protected $connection = '';
+	// protected $table = '';
+	// protected $primaryKey = '';
+	// public $incrementing = true;
+	// protected $keyType = '';
+	// const CREATED_AT = '';
+	// const UPDATED_AT = '';
+	// protected $rememberTokenName = '';
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////
-    // set column attribute
-    // public function setNameAttribute($value)
-    // {
-    //     $this->attributes['name'] = ucwords(Str::lower($value));
-    // }
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+	// set column attribute
+	// public function setNameAttribute($value)
+	// {
+	//     $this->attributes['name'] = ucwords(Str::lower($value));
+	// }
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////
-    // relationship
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+	// relationship
 }

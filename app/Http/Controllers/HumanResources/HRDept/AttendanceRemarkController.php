@@ -89,7 +89,7 @@ class AttendanceRemarkController extends Controller
 		HRAttendance::where('staff_id', $request->staff_id)
 					->where(function (Builder $query) use ($request) {
 						$query->whereDate('attend_date', '>=', $request->date_from)
-						->whereDate('attend_date', '<=', $request->date_from);
+						->whereDate('attend_date', '<=', $request->date_to);
 					})
 					->update([
 						'remarks' => ucwords(Str::lower($request->hr_attendance_remarks)),
@@ -151,7 +151,7 @@ class AttendanceRemarkController extends Controller
 		HRAttendance::where('staff_id', $attendanceremark->staff_id)
 					->where(function (Builder $query) use ($attendanceremark) {
 						$query->whereDate('attend_date', '>=', $attendanceremark->date_from)
-						->whereDate('attend_date', '<=', $attendanceremark->date_from);
+						->whereDate('attend_date', '<=', $attendanceremark->date_to);
 					})
 					->update([
 						'remarks' => null,
@@ -162,7 +162,7 @@ class AttendanceRemarkController extends Controller
 		HRAttendance::where('staff_id', $request->staff_id)
 					->where(function (Builder $query) use ($request) {
 						$query->whereDate('attend_date', '>=', $request->date_from)
-						->whereDate('attend_date', '<=', $request->date_from);
+						->whereDate('attend_date', '<=', $request->date_to);
 					})
 					->update([
 						'remarks' => ucwords(Str::lower($request->hr_attendance_remarks)),
@@ -186,10 +186,10 @@ class AttendanceRemarkController extends Controller
 	 */
 	public function destroy(HRAttendanceRemark $attendanceremark): JsonResponse
 	{
-		HRAttendance::where('staff_id', $attendanceremark->id)
+		HRAttendance::where('staff_id', $attendanceremark->staff_id)
 					->where(function (Builder $query) use ($attendanceremark) {
 						$query->whereDate('attend_date', '>=', $attendanceremark->date_from)
-						->whereDate('attend_date', '<=', $attendanceremark->date_from);
+						->whereDate('attend_date', '<=', $attendanceremark->date_to);
 					})
 					->update([
 						'remarks' => null,

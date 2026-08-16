@@ -3,7 +3,6 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Illuminate\Database\Eloquent\Model;
 use App\Models\Model;
@@ -28,7 +27,6 @@ class Staff extends Model // implements MustVerifyEmail
 {
 	use Notifiable, HasFactory, SoftDeletes, Auditable;
 
-	protected $connection = 'mysql';
 	protected $table = 'staffs';
 	protected $dates = ['deleted_at'];
 

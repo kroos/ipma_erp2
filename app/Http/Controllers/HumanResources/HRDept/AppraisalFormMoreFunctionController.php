@@ -41,6 +41,9 @@ use \Carbon\Carbon;
 use \Carbon\CarbonPeriod;
 use \Carbon\CarbonInterval;
 
+// load services
+use App\Services\HumanResources\AppraisalService;
+
 // load pdf
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -60,7 +63,9 @@ class AppraisalFormMoreFunctionController extends Controller
    */
   public function print(Request $request)
   {
-    $pdf = PDF::loadView('humanresources.hrdept.appraisal.form.printpdf', ['id' => $request->id]);
+    $appraisalService = new AppraisalService();
+
+    $pdf = PDF::loadView('humanresources.hrdept.appraisal.form.printpdf', ['id' => $request->id] + $appraisalService->formData($request->id));
     // return $pdf->download('appraisal form ' . $current_datetime . '.pdf');
     return $pdf->stream();
   }

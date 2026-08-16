@@ -2,67 +2,6 @@ const { route } = window.data;
 
 $(document).ready(function () {
 
-	// Show the progress bar
-	$("#progress-bar").show();
-
-	let progress = 0;
-	const spark = $("#spark");
-	const bar = $("#progress-bar");
-	const progressEl = $("#progress");
-	let intervalSpeed = 300;
-	let progressInterval = setInterval(runProgress, intervalSpeed);
-	function runProgress() {
-		progress += 5;
-		if (progress >= 95 && progress < 100) {
-			// SLOW MOTION MODE
-			clearInterval(progressInterval);
-			intervalSpeed = 800; // slower
-			progressInterval = setInterval(runProgress, intervalSpeed);
-		}
-
-		$('#progress-bar').attr('aria-valuenow', progress);
-		progressEl.css('width', progress + '%').html(progress + '%');
-		spark.css('left', progress + '%');
-		createTrail(progress);
-		if (progress >= 100) {
-			clearInterval(progressInterval);
-			dramaticExplosion();
-		}
-	}
-
-	function createTrail(progress) {
-		const trail = $('<div class="spark-trail"></div>');
-		const barHeight = $("#progress-bar").height();
-		trail.css({
-			left: progress + '%',
-			top: barHeight / 2 + (Math.random() * 10 - 5)
-		});
-		$("#progress-bar").append(trail);
-		setTimeout(() => trail.remove(), 600);
-	}
-
-	function dramaticExplosion() {
-		const boom = $('<div class="boom"></div>');
-		const barHeight = $("#progress-bar").height();
-		boom.css({
-			left: '100%',
-			top: barHeight / 2,
-			transform: 'translate(-50%, -50%)'
-		});
-		$("#progress-bar").append(boom);
-		$("#spark").fadeOut(200);
-
-		// ⚡ Flash screen
-		$("#flash").addClass("flash-active");
-		// 💥 Screen shake
-		$("body").addClass("shake");
-		setTimeout(() => {
-			$("#flash").removeClass("flash-active");
-			$("body").removeClass("shake");
-			boom.remove();
-		}, 500);
-	}
-
 	$.ajax({
 		url: route.staffdaily,
 		type: "POST",
@@ -75,7 +14,7 @@ $(document).ready(function () {
 					let row1 = `
 							<tr>
 									<td class="text-center">${value.date}</td>
-									<td class="text-center">${value.working}</td>
+									<td class="text-center"><span class="badge text-bg-secondary">${value.working}</span></td>
 									<td class="text-center">${value.overallpercentage}%</td>
 									<td class="text-center">${value.workingpeople}</td>
 									<td class="text-center" colspan="2">${value.outstation}</td>
@@ -86,7 +25,7 @@ $(document).ready(function () {
 							</tr>`;
 
 					let row2 = `
-							<tr>
+							<tr class="table-light">
 									<td class="text-center" colspan="4"></td>
 									<td class="text-center" colspan="2">${formatLocations(value.locoutstation)}</td>
 									<td class="text-center" colspan="2">${formatLocations(value.locationleave)}</td>
@@ -98,19 +37,66 @@ $(document).ready(function () {
 					summaryTable.append(row1 + row2);
 			});
 
+			renderStatCards(data);
 			renderChart(data);
+
+			if (data.length > 0) {
+				$("#summary-period").text(data[0].date + " — " + data[data.length - 1].date);
+			}
 	})
 	.fail(function (jqXHR, textStatus, errorThrown) {
 			console.error("AJAX Error:", textStatus, errorThrown);
-	})
-	.always(function () {
-		// Hide the progress bar when the request is complete
-		$("#progress-bar").hide();
-		clearInterval(progressInterval); // Stop the progress simulation
 	});
 
 	function formatLocations(locations) {
-			return $.isEmptyObject(locations) ? "" : Object.entries(locations).map(([k, v]) => `${k}: ${v}`).join("<br/>");
+			return $.isEmptyObject(locations) ? "—" : Object.entries(locations).map(([k, v]) => `${k}: ${v}`).join("<br/>");
+	}
+
+	function renderStatCards(data) {
+			const latest = data[data.length - 1];
+			if (!latest) return;
+
+			const cards = [
+					{
+							icon: "fa-solid fa-chart-simple",
+							label: "Attendance",
+							value: latest.overallpercentage + "%",
+							accent: "accent-green"
+					},
+					{
+							icon: "fa-solid fa-user-check",
+							label: "Available Staff",
+							value: latest.workingpeople,
+							accent: "accent-blue"
+					},
+					{
+							icon: "fa-solid fa-person-walking-luggage",
+							label: "Outstation",
+							value: latest.outstation,
+							accent: "accent-amber"
+					},
+					{
+							icon: "fa-solid fa-mug-hot",
+							label: "On Leave",
+							value: latest.leave,
+							accent: "accent-red"
+					}
+			];
+
+			let html = cards.map(card => `
+					<div class="col-6 col-md-3">
+							<div class="stat-card ${card.accent}">
+									<div class="d-flex align-items-center gap-3">
+											<span class="stat-icon"><i class="${card.icon}"></i></span>
+											<div>
+													<div class="stat-label">${card.label}</div>
+													<div class="stat-value">${card.value}</div>
+											</div>
+									</div>
+							</div>
+					</div>`).join("");
+
+			$("#stat-cards").html(html);
 	}
 
 	function renderChart(data) {

@@ -6,19 +6,9 @@ use Illuminate\Http\Request;
 
 // use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
-use App\Helpers\UnavailableDateTime;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 
-use App\Helpers\TimeCalculator;
-use App\Models\Staff;
-use App\Models\Login;
-use App\Models\HumanResources\HRHolidayCalendar;
-use App\Models\HumanResources\HRLeave;
-use App\Models\HumanResources\OptDayType;
-use App\Models\HumanResources\OptTcms;
-use App\Models\HumanResources\HROvertime;
-use App\Models\HumanResources\HROutstation;
 
 ?>
 <div class="container table-responsive row align-items-start justify-content-center">
@@ -28,12 +18,12 @@ use App\Models\HumanResources\HROutstation;
 		<form method="GET" action="{{ route('attendancereportpdf.store') }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form-horizontal" enctype="multipart/form-data">
 			@csrf
 			<div class="col-sm-2">
-				<input type="hidden" name="from" value="{!! $request->from !!}">
-				<input type="hidden" name="to" value="{!! $request->to !!}">
+				<input type="hidden" name="from" value="{{ $request->from }}">
+				<input type="hidden" name="to" value="{{ $request->to }}">
 				@if($sa)
 				<?php $po = 1; ?>
 				@foreach($sa as $key)
-				<input type="hidden" id="{{ $po++ }}" name="staff_id[]" value="{!! $key->staff_id !!}">
+				<input type="hidden" id="{{ $po++ }}" name="staff_id[]" value="{{ $key->staff_id }}">
 				@endforeach
 				@endif
 				<input type="submit" class="form-control form-control-sm btn btn-sm btn-outline-secondary" value="Print PDF" target="_blank">
@@ -55,9 +45,9 @@ use App\Models\HumanResources\HROutstation;
 		?>
 		<div class="d-print-table">
 			<h5>
-				{{ Login::where([['staff_id', $v->staff_id], ['active', 1]])->first()?->username }} {{ Staff::find($v->staff_id)->name }}<br />
-				{{ Staff::find($v->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->department }}<br />
-				{{ Staff::find($v->staff_id)->belongstorestdaygroup?->group }}
+				{{ \App\Models\Login::where([['staff_id', $v->staff_id], ['active', 1]])->first()?->username }} {{ \App\Models\Staff::find($v->staff_id)->name }}<br />
+				{{ \App\Models\Staff::find($v->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->department }}<br />
+				{{ \App\Models\Staff::find($v->staff_id)->belongstorestdaygroup?->group }}
 			</h5>
 			<table id="attendancestaff_" class="table table-hover table-sm table-bordered align-middle" style="font-size:12px">
 				<thead>
@@ -84,11 +74,11 @@ use App\Models\HumanResources\HROutstation;
 <?php
 /////////////////////////////
 // to determine working hour of each user
-$wh = UnavailableDateTime::workinghourtime($v1->attend_date, $v->belongstostaff->id)->first();
+$wh = \App\Helpers\UnavailableDateTime::workinghourtime($v1->attend_date, $v->belongstostaff->id)->first();
 
 // looking for leave of each staff
 // $l = $v->belongstostaff->hasmanyleave()
-$l = HRLeave::where('staff_id', $v->staff_id)
+$l = \App\Models\HumanResources\HRLeave::where('staff_id', $v->staff_id)
 		->where(function (Builder $query) {
 			$query->whereIn('leave_status_id', [5, 6])->orWhereNull('leave_status_id');
 		})
@@ -98,9 +88,9 @@ $l = HRLeave::where('staff_id', $v->staff_id)
 		})
 		->first();
 
-$o = HROvertime::where([['staff_id', $v->staff_id], ['ot_date', $v1->attend_date], ['active', 1]])->first();
+$o = \App\Models\HumanResources\HROvertime::where([['staff_id', $v->staff_id], ['ot_date', $v1->attend_date], ['active', 1]])->first();
 
-$os = HROutstation::where('staff_id', $v->staff_id)
+$os = \App\Models\HumanResources\HROutstation::where('staff_id', $v->staff_id)
 		->where('active', 1)
 		->where(function (Builder $query) use ($v1){
 			$query->whereDate('date_from', '<=', $v1->attend_date)
@@ -117,7 +107,7 @@ $out = Carbon::parse($v1->out)->equalTo('00:00:00');
 $sun = Carbon::parse($v1->attend_date)->dayOfWeek == 0;		// sunday
 $sat = Carbon::parse($v1->attend_date)->dayOfWeek == 6;		// saturday
 
-$hdate = HRHolidayCalendar::
+$hdate = \App\Models\HumanResources\HRHolidayCalendar::
 		where(function (Builder $query) use ($v1){
 			$query->whereDate('date_start', '<=', $v1->attend_date)
 			->whereDate('date_end', '>=', $v1->attend_date);
@@ -125,23 +115,23 @@ $hdate = HRHolidayCalendar::
 		->get();
 
 if($hdate->isNotEmpty()) {											// date holiday
-	$dayt = OptDayType::find(3)->daytype;							// show what day: HOLIDAY
+	$dayt = \App\Models\HumanResources\OptDayType::find(3)->daytype;							// show what day: HOLIDAY
 	$dtype = false;
 } elseif($hdate->isEmpty()) {										// date not holiday
 	if(Carbon::parse($v1->attend_date)->dayOfWeek == 0) {			// sunday
-		$dayt = OptDayType::find(2)->daytype;
+		$dayt = \App\Models\HumanResources\OptDayType::find(2)->daytype;
 		$dtype = false;
 	} elseif(Carbon::parse($v1->attend_date)->dayOfWeek == 6) {		// saturday
 		$sat = $v->belongstostaff->belongstorestdaygroup?->hasmanyrestdaycalendar()->whereDate('saturday_date', $v1->attend_date)->first();
 		if($sat) {													// determine if user belongs to sat group restday
-			$dayt = OptDayType::find(2)->daytype;					// show what day: RESTDAY
+			$dayt = \App\Models\HumanResources\OptDayType::find(2)->daytype;					// show what day: RESTDAY
 			$dtype = false;
 		} else {
-			$dayt = OptDayType::find(1)->daytype;					// show what day: WORKDAY
+			$dayt = \App\Models\HumanResources\OptDayType::find(1)->daytype;					// show what day: WORKDAY
 			$dtype = true;
 		}
 	} else {														// all other day is working day
-		$dayt = OptDayType::find(1)->daytype;						// show what day: WORKDAY
+		$dayt = \App\Models\HumanResources\OptDayType::find(1)->daytype;						// show what day: WORKDAY
 		$dtype = true;
 	}
 }
@@ -155,29 +145,29 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// outstation | working | leave | no in | no break | no resume
 						if ($out) {																					// outstation | working | leave | no in | no break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | leave | no in | no break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | working | leave | no in | no break | resume
 						if ($out) {																					// outstation | working | leave | no in | no break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | leave | no in | no break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -185,29 +175,29 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// outstation | working | leave | no in | break | no resume
 						if ($out) {																					// outstation | working | leave | no in | break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | leave | no in | break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | working | leave | no in | break | resume
 						if ($out) {																					// outstation | working | leave | no in | break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | leave | no in | break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -217,29 +207,29 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// outstation | working | leave | in | no break | no resume
 						if ($out) {																					// outstation | working | leave | in | no break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | leave | in | no break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | working | leave | in | no break | resume
 						if ($out) {																					// outstation | working | leave | in | no break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | leave | in | no break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -247,29 +237,29 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// outstation | working | leave | in | break | no resume
 						if ($out) {																					// outstation | working | leave | in | break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | leave | in | break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | working | leave | in | break | resume
 						if ($out) {																					// outstation | working | leave | in | break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | leave | in | break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -281,29 +271,29 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// outstation | working | no leave | no in | no break | no resume
 						if ($out) {																					// outstation | working | no leave | no in | no break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | no leave | no in | no break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | working | no leave | no in | no break | resume
 						if ($out) {																					// outstation | working | no leave | no in | no break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | no leave | no in | no break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -313,13 +303,13 @@ if ($os->isNotEmpty()) {																							// outstation |
 							if (is_null($v1->attendance_type_id)) {
 								$ll = '<a href="'.route('attendance.edit', $v1->id).'">Check</a>';					// pls check
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | no leave | no in | break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
 								$ll = '<a href="'.route('attendance.edit', $v1->id).'">Check</a>';					// pls check
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | working | no leave | no in | break | resume
@@ -327,17 +317,17 @@ if ($os->isNotEmpty()) {																							// outstation |
 							if (is_null($v1->attendance_type_id)) {
 								$ll = '<a href="'.route('attendance.edit', $v1->id).'">Check</a>';					// pls check
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | no leave | no in | break | resume | out
 							if (is_null($v1->attendance_type_id)) {
 								if ($break == $resume) {															// check for break and resume is the same value
-									$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+									$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 								} else {
 									$ll = '<a href="'.route('attendance.edit', $v1->id).'">Check</a>';					// pls check
 								}
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -348,22 +338,22 @@ if ($os->isNotEmpty()) {																							// outstation |
 						if ($out) {																					// outstation | working | no leave | in | no break | no resume | no out
 							if (Carbon::parse(now())->gt($v1->attend_date)) {
 								if (is_null($v1->attendance_type_id)) {
-									$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+									$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 								} else {
-									$ll = OptTcms::find($v1->attendance_type_id)->leave;
+									$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 								}
 							} else {
 								if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 							}
 						} else {																					// outstation | working | no leave | in | no break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | working | no leave | in | no break | resume
@@ -371,13 +361,13 @@ if ($os->isNotEmpty()) {																							// outstation |
 							if (is_null($v1->attendance_type_id)) {
 								$ll = '<a href="'.route('attendance.edit', $v1->id).'">Check</a>';					// pls check
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | no leave | in | no break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -385,33 +375,33 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// outstation | working | no leave | in | break | no resume
 						if ($out) {																					// outstation | working | no leave | in | break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | no leave | in | break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | working | no leave | in | break | resume
 						if ($out) {																					// outstation | working | no leave | in | break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
 								if ($break == $resume) {															// check for break and resume is the same value
-									$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+									$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 								} else {
 									$ll = '<a href="'.route('attendance.edit', $v1->id).'">Check</a>';					// pls check
 								}
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | working | no leave | in | break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -425,29 +415,29 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// outstation | no working | leave | no in | no break | no resume
 						if ($out) {																					// outstation | no working | leave | no in | no break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | leave | no in | no break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | no working | leave | no in | no break | resume
 						if ($out) {																					// outstation | no working | leave | no in | no break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | leave | no in | no break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -455,29 +445,29 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// outstation | no working | leave | no in | break | no resume
 						if ($out) {																					// outstation | no working | leave | no in | break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | leave | no in | break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | no working | leave | no in | break | resume
 						if ($out) {																					// outstation | no working | leave | no in | break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | leave | no in | break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -487,29 +477,29 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// outstation | no working | leave | in | no break | no resume
 						if ($out) {																					// outstation | no working | leave | in | no break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | leave | in | no break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | no working | leave | in | no break | resume
 						if ($out) {																					// outstation | no working | leave | in | no break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | leave | in | no break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -517,29 +507,29 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// outstation | no working | leave | in | break | no resume
 						if ($out) {																					// outstation | no working | leave | in | break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | leave | in | break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | no working | leave | in | break | resume
 						if ($out) {																					// outstation | no working | leave | in | break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | leave | in | break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -551,29 +541,29 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// outstation | no working | no leave | no in | no break | no resume
 						if ($out) {																					// outstation | no working | no leave | no in | no break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | no leave | no in | no break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | no working | no leave | no in | no break | resume
 						if ($out) {																					// outstation | no working | no leave | no in | no break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | no leave | no in | no break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -581,29 +571,29 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// outstation | no working | no leave | no in | break | no resume
 						if ($out) {																					// outstation | no working | no leave | no in | break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | no leave | no in | break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | no working | no leave | no in | break | resume
 						if ($out) {																					// outstation | no working | no leave | no in | break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | no leave | no in | break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -613,29 +603,29 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// outstation | no working | no leave | in | no break | no resume
 						if ($out) {																					// outstation | no working | no leave | in | no break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | no leave | in | no break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | no working | no leave | in | no break | resume
 						if ($out) {																					// outstation | no working | no leave | in | no break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | no leave | in | no break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -643,29 +633,29 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// outstation | no working | no leave | in | break | no resume
 						if ($out) {																					// outstation | no working | no leave | in | break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | no leave | in | break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// outstation | no working | no leave | in | break | resume
 						if ($out) {																					// outstation | no working | no leave | in | break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// outstation | no working | no leave | in | break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(4)->leave.'</a>';					// outstation
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.e(\App\Models\HumanResources\OptTcms::find(4)->leave).'</a>';					// outstation
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -807,15 +797,15 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// no outstation | working | no leave | no in | no break | no resume
 						if ($out) {																					// no outstation | working | no leave | no in | no break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(1)->leave.'</a>';					// absent
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.\App\Models\HumanResources\OptTcms::find(1)->leave.'</a>';					// absent
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// no outstation | working | no leave | no in | no break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(2)->leave.'</a>';					// half absent
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.\App\Models\HumanResources\OptTcms::find(2)->leave.'</a>';					// half absent
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// no outstation | working | no leave | no in | no break | resume
@@ -823,13 +813,13 @@ if ($os->isNotEmpty()) {																							// outstation |
 							if (is_null($v1->attendance_type_id)) {
 								$ll = '<a href="'.route('attendance.edit', $v1->id).'">Check</a>';					//  pls check
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// no outstation | working | no leave | no in | no break | resume | out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(2)->leave.'</a>';					// half absent
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.\App\Models\HumanResources\OptTcms::find(2)->leave.'</a>';					// half absent
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -839,13 +829,13 @@ if ($os->isNotEmpty()) {																							// outstation |
 							if (is_null($v1->attendance_type_id)) {
 								$ll = '<a href="'.route('attendance.edit', $v1->id).'">Check</a>';					// pls check
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// no outstation |  outstation | working | no leave | no in | break | no resume | out
 							if (is_null($v1->attendance_type_id)) {
 								$ll = '<a href="'.route('attendance.edit', $v1->id).'">Check</a>';					// pls check
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					} else {																						// no outstation |  outstation | working | no leave | no in | break | resume
@@ -853,17 +843,17 @@ if ($os->isNotEmpty()) {																							// outstation |
 							if (is_null($v1->attendance_type_id)) {
 								$ll = '<a href="'.route('attendance.edit', $v1->id).'">Check</a>';					// pls check
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// no outstation |  outstation | working | no leave | no in | break | resume | out
 							if (is_null($v1->attendance_type_id)) {
 								if ($break == $resume) {															// check for break and resume is the same value
-									$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(2)->leave.'</a>';					// half absent
+									$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.\App\Models\HumanResources\OptTcms::find(2)->leave.'</a>';					// half absent
 								} else {
 									$ll = '<a href="'.route('attendance.edit', $v1->id).'">Check</a>';					// pls check
 								}
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						}
 					}
@@ -874,9 +864,9 @@ if ($os->isNotEmpty()) {																							// outstation |
 						if ($out) {																					// no outstation |  outstation | working | no leave | in | no break | no resume | no out
 							if (Carbon::parse(now())->gt($v1->attend_date)) {
 								if (is_null($v1->attendance_type_id)) {
-									$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(2)->leave.'</a>';					// half absent
+									$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.\App\Models\HumanResources\OptTcms::find(2)->leave.'</a>';					// half absent
 								} else {
-									$ll = OptTcms::find($v1->attendance_type_id)->leave;
+									$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 								}
 							} else {
 								$ll = false;
@@ -889,7 +879,7 @@ if ($os->isNotEmpty()) {																							// outstation |
 							if (is_null($v1->attendance_type_id)) {
 								$ll = '<a href="'.route('attendance.edit', $v1->id).'">Check</a>';					// pls check
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// no outstation |  outstation | working | no leave | in | no break | resume | out
 							$ll = false;
@@ -899,9 +889,9 @@ if ($os->isNotEmpty()) {																							// outstation |
 					if ($resume) {																					// no outstation |  outstation | working | no leave | in | break | no resume
 						if ($out) {																					// no outstation |  outstation | working | no leave | in | break | no resume | no out
 							if (is_null($v1->attendance_type_id)) {
-								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(2)->leave.'</a>';					// half absent
+								$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.\App\Models\HumanResources\OptTcms::find(2)->leave.'</a>';					// half absent
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// no outstation | working | no leave | in | break | no resume | out
 							$ll = false;
@@ -910,12 +900,12 @@ if ($os->isNotEmpty()) {																							// outstation |
 						if ($out) {																					// no outstation | working | no leave | in | break | resume | no out
 							if (is_null($v1->attendance_type_id)) {
 								if ($break == $resume) {															// check for break and resume is the same value
-									$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.OptTcms::find(2)->leave.'</a>';					// half absent
+									$ll = '<a href="'.route('attendance.edit', $v1->id).'">'.\App\Models\HumanResources\OptTcms::find(2)->leave.'</a>';					// half absent
 								} else {
 									$ll = '<a href="'.route('attendance.edit', $v1->id).'">Check</a>';					// pls check
 								}
 							} else {
-								$ll = OptTcms::find($v1->attendance_type_id)->leave;
+								$ll = e(\App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave);
 							}
 						} else {																					// no outstation | working | no leave | in | break | resume | out
 							$ll = false;
@@ -1058,11 +1048,11 @@ if($l) {
 } else {
 	$lea = NULL;
 }
-// $username = Login::where([['staff_id', $v->staff_id], ['active', 1]])->first()->username;
+// $username = \App\Models\Login::where([['staff_id', $v->staff_id], ['active', 1]])->first()->username;
 ?>
 						<tr class="{{ (Carbon::parse($v1->attend_date)->dayOfWeek == 0)?'table-secondary':NULL }}">
-							<td>{{ Login::where([['staff_id', $v->staff_id], ['active', 1]])->first()?->username }}</td>
-							<td>{{ Staff::find($v->staff_id)->name }}</td>
+							<td>{{ \App\Models\Login::where([['staff_id', $v->staff_id], ['active', 1]])->first()?->username }}</td>
+							<td>{{ \App\Models\Staff::find($v->staff_id)->name }}</td>
 							<td>{{ $dayt }}</td>
 							<td>{!! $ll !!}</td>
 							<td>{!! $lea !!}</td>
@@ -1131,8 +1121,8 @@ if($l) {
 					@endforeach
 						<tr>
 							<td colspan="10" rowspan="1"></td>
-							<td><strong class="text-success">{{ TimeCalculator::total_time($m[$i]) }}</strong></td>
-							<td><strong class="text-success">{{ TimeCalculator::total_time($p[$i]) }}</strong></td>
+							<td><strong class="text-success">{{ \App\Helpers\TimeCalculator::total_time($m[$i]) }}</strong></td>
+							<td><strong class="text-success">{{ \App\Helpers\TimeCalculator::total_time($p[$i]) }}</strong></td>
 							<td colspan="2" rowspan="1"></td>
 						</tr>
 					</tbody>
@@ -1151,72 +1141,5 @@ if($l) {
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-// datepicker
-$('#from').datetimepicker({
-	icons: {
-		time: "fas fas-regular fa-clock fa-beat",
-		date: "fas fas-regular fa-calendar fa-beat",
-		up: "fa-regular fa-circle-up fa-beat",
-		down: "fa-regular fa-circle-down fa-beat",
-		previous: 'fas fas-regular fa-arrow-left fa-beat',
-		next: 'fas fas-regular fa-arrow-right fa-beat',
-		today: 'fas fas-regular fa-calenday-day fa-beat',
-		clear: 'fas fas-regular fa-broom-wide fa-beat',
-		close: 'fas fas-regular fa-rectangle-xmark fa-beat'
-	},
-	format: 'YYYY-MM-DD',
-	useCurrent: true,
-})
-.on('dp.change dp.update', function(e) {
 
-});
-
-$('#to').datetimepicker({
-	icons: {
-		time: "fas fas-regular fa-clock fa-beat",
-		date: "fas fas-regular fa-calendar fa-beat",
-		up: "fa-regular fa-circle-up fa-beat",
-		down: "fa-regular fa-circle-down fa-beat",
-		previous: 'fas fas-regular fa-arrow-left fa-beat',
-		next: 'fas fas-regular fa-arrow-right fa-beat',
-		today: 'fas fas-regular fa-calenday-day fa-beat',
-		clear: 'fas fas-regular fa-broom-wide fa-beat',
-		close: 'fas fas-regular fa-rectangle-xmark fa-beat'
-	},
-	format: 'YYYY-MM-DD',
-	useCurrent: true,
-})
-.on('dp.change dp.update', function(e) {
-
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// tooltip
-// $(document).ready(function(){
-// 	$('[data-bs-toggle="tooltip"]').tooltip();
-// });
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// datatables
-$.fn.dataTable.moment( 'D MMM YYYY' );
-$.fn.dataTable.moment( 'D MMM YYYY h:mm a' );
-$('#attendancestaff').DataTable({
-	"columnDefs": [
-					{ type: 'date', 'targets': [3] },
-					{ type: 'time', 'targets': [4] },
-					{ type: 'time', 'targets': [5] },
-					{ type: 'time', 'targets': [6] },
-					{ type: 'time', 'targets': [7] },
-				],
-	"lengthMenu": [ [-1], ["All"] ],
-	"order": [[3, "asc" ]],	// sorting the 6th column descending
-})
-.on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
-	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip();
-	});}
-);
-
-/////////////////////////////////////////////////////////////////////////////////////////
 @endsection

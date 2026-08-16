@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\DB;
 // load models
 use App\Models\HumanResources\HRLeaveAnnual;
 
+// load services
+use App\Services\HumanResources\EntitlementService;
+
 // load array helper
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -44,7 +47,19 @@ class HRAnnualLeaveController extends Controller
 	 */
 	public function index(): View
 	{
-		return view('humanresources.hrdept.entitlement.annual.index');
+		$config = [
+			'title' => 'Annual Leave Entitlement',
+			'variant' => 'entitlement',
+			'model' => HRLeaveAnnual::class,
+			'endpoint' => 'hrannualleave.index',
+			'label' => 'Annual',
+			'field' => 'annual_leave',
+			'columns' => ['ID', 'Name', 'Annual Leave', 'Annual Leave Adjustment', 'Annual Leave Utilize', 'Annual Leave Balance', 'Remarks', '&nbsp;'],
+		];
+
+		$rows = app(EntitlementService::class)->rows(HRLeaveAnnual::class, $config['field']);
+
+		return view('humanresources.hrdept.entitlement.index', compact('config', 'rows'));
 	}
 
 	/**

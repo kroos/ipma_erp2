@@ -25,6 +25,9 @@ use App\Models\HumanResources\HRAppraisalMainQuestion;
 use App\Models\HumanResources\HRAppraisalQuestion;
 use App\Models\HumanResources\OptAppraisalCategories;
 
+// load services
+use App\Services\HumanResources\AppraisalService;
+
 // load paginator
 use Illuminate\Pagination\Paginator;
 
@@ -58,7 +61,13 @@ class AppraisalFormController extends Controller
   public function index(): View
   {
     $categorys = OptAppraisalCategories::all();
-    return view('humanresources.hrdept.appraisal.form.index', ['categories' => $categorys]);
+
+    $appraisalService = new AppraisalService();
+
+    return view('humanresources.hrdept.appraisal.form.index', [
+      'categories' => $categorys,
+      'formVersions' => $appraisalService->formVersionsByCategory(),
+    ]);
   }
 
   /**
@@ -181,7 +190,9 @@ class AppraisalFormController extends Controller
    */
   public function show($appraisalform): View
   {
-    return view('humanresources.hrdept.appraisal.form.show', ['id' => $appraisalform]);
+    $appraisalService = new AppraisalService();
+
+    return view('humanresources.hrdept.appraisal.form.show', ['id' => $appraisalform] + $appraisalService->formData($appraisalform));
   }
 
   /**
@@ -189,7 +200,9 @@ class AppraisalFormController extends Controller
    */
   public function edit($appraisalform): View
   {
-    return view('humanresources.hrdept.appraisal.form.edit', ['id' => $appraisalform]);
+    $appraisalService = new AppraisalService();
+
+    return view('humanresources.hrdept.appraisal.form.edit', ['id' => $appraisalform] + $appraisalService->formData($appraisalform));
   }
 
   /**

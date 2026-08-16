@@ -57,8 +57,6 @@
 
 use Carbon\Carbon;
 
-use App\Models\HumanResources\HROvertime;
-
 $no = 1;
 $total_col = 0;
 $total_hour = '0';
@@ -130,12 +128,7 @@ if ($date_start != NULL && $date_end != NULL) {
     </td>
     @foreach ($rows as $row)
     <?php
-    $ot = HROvertime::join('hr_overtime_ranges', 'hr_overtime_ranges.id', '=', 'hr_overtimes.overtime_range_id')
-      ->where('hr_overtimes.ot_date', '=', $row)
-      ->where('hr_overtimes.staff_id', '=', $overtime->staff_id)
-      ->where('hr_overtimes.active', 1)
-      ->select('hr_overtimes.assign_staff_id', 'hr_overtime_ranges.total_time')
-      ->first();
+    $ot = $otMap[$overtime->staff_id][$row] ?? null;
 
     $background = "";
 
@@ -150,7 +143,7 @@ if ($date_start != NULL && $date_end != NULL) {
     <td align="center" style="<?php echo $background; ?>">
       <?php
       if ($ot) {
-        echo $timeString_per_person = (Carbon::parse($ot->total_time))->format('H:i');
+        echo $timeString_per_person = (Carbon::parse($ot->belongstoovertimerange?->total_time))->format('H:i');
 
         // Explode the time string into an array of hours, minutes, and seconds
         $timeArray_per_person = explode(':', $timeString_per_person);

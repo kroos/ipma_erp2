@@ -1,0 +1,155 @@
+<?php
+namespace App\Http\Controllers{{ folderController }};
+use App\Http\Controllers\Controller;
+
+// for controller output
+use Illuminate\Http\{
+	JsonResponse,
+	RedirectResponse,
+	// Response
+};
+// use Illuminate\Support\Facades\Redirect;
+use Illuminate\View\View;
+
+// models
+use App\Models\{
+	{{ namespaceModel }},
+};
+
+// load request
+use Illuminate\Http\Request;
+use App\Http\Requests{{ folderController }}\{
+	Store{{ classController }}Request,
+	Update{{ classController }}Request,
+};
+// use Illuminate\Support\Facades\Validator;
+// use Illuminate\Validation\Rule;
+
+// resource
+// use App\Resources\{{ namespaceController }}Resource;
+
+// service
+// use App\Services\{{ namespaceController }}Service;
+
+// policy
+// use App\Policies\{{ namespaceController }}Policy;
+
+// load db facade
+// use Illuminate\Database\Eloquent\Builder;
+// use Illuminate\Support\Facades\DB;
+
+// load batch and queue
+// use Illuminate\Bus\Batch;
+// use Illuminate\Support\Facades\Bus;
+
+// load email & notification
+// use Illuminate\Support\Facades\{
+// 	Mail, Notification
+// };
+
+// load helper
+use Illuminate\Support\{
+	Arr, Str, Collection, Facades\Storage
+};
+
+// load Carbon library
+use \Carbon\{
+	Carbon, CarbonPeriod, CarbonInterval
+};
+
+// use Session;
+// use Throwable;
+// use Exception;
+// use Log;
+
+// load pdf
+// use Barryvdh\DomPDF\Facade\Pdf;
+
+class {{ classController }}Controller extends Controller
+{
+	/**
+	 * Display a listing of the resource.
+	 */
+	public function index(): View
+	{
+		return view('{{ variableController }}.index');
+	}
+
+	/**
+	 * Show the form for creating a new resource.
+	 */
+	public function create(): View
+	{
+		return view('{{ variableController }}.create');
+	}
+
+	/**
+	 * Store a newly created resource in storage.
+	 */
+	public function store(Store{{ classController }}Request $request): RedirectResponse
+	{
+		$result = {{ classModel }}::create(
+			$request->except('_token')
+		);
+
+		$result->hasManyRelationship()->createMany(
+			$request->arrays
+		);
+
+		return redirect()->route('{{ variableController }}.index')->with('success', 'Data Added');
+	}
+
+	/**
+	 * Display the specified resource.
+	 */
+	public function show({{ classModel }} ${{ variableModel }}): View
+	{
+		return view('{{ variableController }}.show', ['var' => ${{ variableModel }}]);
+	}
+
+	/**
+	 * Show the form for editing the specified resource.
+	 */
+	public function edit({{ classModel }} ${{ variableModel }}): View
+	{
+		return view('{{ variableController }}.edit', ['var' => ${{ variableModel }}]);
+	}
+
+	/**
+	 * Update the specified resource in storage.
+	 */
+	public function update(
+		Update{{ classController }}Request $request,
+		{{ classModel }} ${{ variableModel }}
+	): RedirectResponse
+	{
+		// ${{ variableModel }}->update(
+		// 	$request->validated()
+		// );
+
+		${{ variableModel }}->update(
+			$request->except('_token', '_method')
+		);
+
+		foreach ($request->arrays as $array) {
+			${{ variableModel }}->hasManyRelationship()->updateOrCreate(
+				['id' => $array['id'] ?? null],
+				$array
+			);
+		}
+
+		return redirect()->route('{{ variableController }}.index')->with('success', 'Data Updated');
+	}
+
+	/**
+	 * Remove the specified resource from storage.
+	 */
+	public function destroy({{ classModel }} ${{ variableModel }}): JsonResponse
+	{
+		${{ variableModel }}->delete();
+		return response()->json([
+			'status' => 'success',
+			'message' => 'Data Deleted',
+		]);
+	}
+}

@@ -23,21 +23,11 @@ class HRLeaveMaternity extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'hr_leave_maternities';
 
-	/////////////////////////////////////////////////////////////////////////////////////////
-	// hasmany relationship
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-	// db relation belongsToMany
-	public function belongstomanyleave(): BelongsToMany
-	{
-		return $this->belongsToMany(\App\Models\HumanResources\HRLeave::class, 'pivot_leave_maternities', 'leave_maternity_id', 'leave_id')->withTimestamps();
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////
-	//belongsto relationship
-	public function belongstostaff(): BelongsTo
-	{
-		return $this->belongsTo(\App\Models\Staff::class, 'staff_id');
-	}
+	protected $fillable = [
+	'maternity_leave',
+	'maternity_leave_adjustment',
+	'maternity_leave_utilize',
+	'maternity_leave_balance',
+	'remarks',
+];
 }
-

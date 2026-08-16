@@ -70,16 +70,9 @@
 </style>
 
 <?php
-$pivotappraisal = DB::table('pivot_category_appraisals')
-    ->where('id', $id)
-    ->first();
-$category = App\Models\HumanResources\OptAppraisalCategories::where('id', $pivotappraisal->category_id)->first();
-$appraisals = DB::table('pivot_category_appraisals')
-    ->where('category_id', $pivotappraisal->category_id)
-    ->where('version', $pivotappraisal->version)
-    ->orderBy('sort', 'ASC')
-    ->orderBy('id', 'ASC')
-    ->get();
+$pivotappraisal = $pivotappraisal ?? null;
+$category = $category ?? null;
+$appraisals = $appraisals ?? collect();
 ?>
 
 <div class="container">
@@ -111,7 +104,7 @@ $appraisals = DB::table('pivot_category_appraisals')
         <table width="100%">
           <tr>
             <td>
-              {!! $section->section !!}
+              {{ $section->section }}
             </td>
           </tr>
         </table>
@@ -141,7 +134,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                 {{ $no }}
               </td>
               <td colspan="3" class="td-border-right">
-                {!! $section_sub->section_sub !!}
+                {{ $section_sub->section_sub }}
               </td>
             </tr>
 
@@ -159,7 +152,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   {{ $no_sub }})
                 </td>
                 <td colspan="3" class="td-border-right">
-                  {!! $main_question->main_question !!}
+                  {{ $main_question->main_question }}
                 </td>
               </tr>
 
@@ -170,10 +163,10 @@ $appraisals = DB::table('pivot_category_appraisals')
                     <input type="button">
                   </td>
                   <td width="30px" style="vertical-align:text-top;">
-                    {!! $question->mark !!}m -
+                    {{ $question->mark }}m -
                   </td>
                   <td class="td-border-right">
-                    {!! $question->question !!}
+                    {{ $question->question }}
                   </td>
                 </tr>
                 <tr height="10px">
@@ -204,7 +197,7 @@ $appraisals = DB::table('pivot_category_appraisals')
           <table width="100%">
             <tr>
               <td>
-                {!! $section->section !!}
+                {{ $section->section }}
               </td>
             </tr>
           </table>
@@ -245,7 +238,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   {{ $no }}
                 </td>
                 <td>
-                  {!! $section_sub->section_sub !!}
+                  {{ $section_sub->section_sub }}
                 </td>
                 <td align="center">
                   <input type="button">
@@ -277,7 +270,7 @@ $appraisals = DB::table('pivot_category_appraisals')
           <table width="100%">
             <tr>
               <td>
-                {!! $section->section !!}
+                {{ $section->section }}
               </td>
             </tr>
           </table>
@@ -289,7 +282,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   {{ $no }})
                 </td>
                 <td>
-                  {!! $section_sub->section_sub !!}
+                  {{ $section_sub->section_sub }}
                 </td>
               </tr>
               <tr>
@@ -314,7 +307,7 @@ $appraisals = DB::table('pivot_category_appraisals')
           <table width="100%">
             <tr>
               <td>
-                {!! $section->section !!}
+                {{ $section->section }}
               </td>
             </tr>
           </table>
@@ -334,7 +327,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   {{ $no }})
                 </td>
                 <td colspan="2">
-                  {!! $section_sub->section_sub !!}
+                  {{ $section_sub->section_sub }}
                 </td>
               </tr>
 
@@ -345,7 +338,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                     <input type="button">
                   </td>
                   <td>
-                    {!! $main_question->main_question !!}
+                    {{ $main_question->main_question }}
                   </td>
                 </tr>
               @endforeach

@@ -23,21 +23,11 @@ class HRLeaveMC extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'hr_leave_mc';
 
-	/////////////////////////////////////////////////////////////////////////////////////////
-	// hasmany relationship
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-	// db relation belongsToMany
-	public function belongstomanyleave(): BelongsToMany
-	{
-		return $this->belongsToMany(\App\Models\HumanResources\HRLeave::class, 'pivot_leave_mc', 'leave_mc_id', 'leave_id')->withTimestamps();
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////
-	//belongsto relationship
-	public function belongstostaff(): BelongsTo
-	{
-		return $this->belongsTo(\App\Models\Staff::class, 'staff_id');
-	}
+	protected $fillable = [
+	'mc_leave',
+	'mc_leave_adjustment',
+	'mc_leave_utilize',
+	'mc_leave_balance',
+	'remarks',
+];
 }
-

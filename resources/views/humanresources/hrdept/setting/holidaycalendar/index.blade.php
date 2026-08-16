@@ -11,7 +11,7 @@ use \Carbon\Carbon;
 	@include('humanresources.hrdept.navhr')
 	<h4>Holiday Calendar &nbsp; <a href="{{ route('holidaycalendar.create') }}" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-calendar-plus fa-beat"></i> &nbsp;Add Holiday</a> </h4>
 
-	<table class="table table-hover table-sm" style="font-size:12px">
+	<table class="table table-hover table-sm" id="holidaycalendar" style="font-size:12px">
 	@foreach(HRHolidayCalendar::groupByRaw('YEAR(date_start)')->selectRaw('YEAR(date_start) as year')->orderBy('date_start', 'DESC')->get() as $tp)
 		<thead>
 			<tr>
@@ -38,8 +38,10 @@ use \Carbon\Carbon;
 				<td>{{ Carbon::parse($t->date_start)->daysUntil($t->date_end, 1)->count() }} day/s</td>
 				<td>{{ $t->remarks }}</td>
 				<td>
-					<a class="btn btn-sm btn-outline-secondary" href="{{ route('holidaycalendar.edit', $t->id) }}"><i class="far fa-edit"></i></a>
-					<span class="btn btn-sm btn-outline-secondary text-danger delete_button" href="{{ route('holidaycalendar.destroy', $t->id) }}" id="delete_product_{{ $t->id }}" data-id="{{ $t->id }}"><i class="far fa-trash-alt"></i></span>
+					<div class="btn-group btn-group-sm" role="group">
+						<a class="btn btn-sm btn-outline-secondary" href="{{ route('holidaycalendar.edit', $t->id) }}"><i class="far fa-edit"></i></a>
+						<button type="button" class="btn btn-sm btn-outline-secondary text-danger holiday-delete" data-id="{{ $t->id }}"><i class="far fa-trash-alt"></i></button>
+					</div>
 				</td>
 			</tr>
 		@endforeach
@@ -50,56 +52,14 @@ use \Carbon\Carbon;
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-// ajax post delete row
-$(document).on('click', '.delete_button', function(e){
-
-	var productId = $(this).data('id');
-	SwalDelete(productId);
-	e.preventDefault();
-});
-
-function SwalDelete(productId){
-	swal.fire({
-		title: 'Are you sure?',
-		text: "It will be deleted permanently!",
-		type: 'warning',
-		showCancelButton: true,
-		confirmButtonColor: '#3085d6',
-		cancelButtonColor: '#d33',
-		confirmButtonText: 'Yes, delete it!',
-		showLoaderOnConfirm: true,
-
-		preConfirm: function() {
-			return new Promise(function(resolve) {
-				$.ajax({
-					url: '{{ url('holidaycalendar') }}' + '/' + productId,
-					type: 'DELETE',
-					data: {
-							_token : $('meta[name=csrf-token]').attr('content'),
-							id: productId,
-					},
-					dataType: 'json'
-				})
-				.done(function(response){
-					swal.fire('Deleted!', response.message, response.status)
-					.then(function(){
-						window.location.reload(true);
-					});
-					//$('#delete_product_' + productId).parent().parent().remove();
-				})
-				.fail(function(){
-					swal.fire('Oops...', 'Something went wrong with ajax !', 'error');
-				})
-			});
-		},
-		allowOutsideClick: false
-	})
-	.then((result) => {
-		if (result.dismiss === swal.DismissReason.cancel) {
-			swal.fire('Cancelled', 'Your data is safe from delete', 'info')
-		}
-	});
-}
-
+window.data = {
+	route: {
+	},
+	url: {
+		holidaycalendar: '{{ url('holidaycalendar') }}',
+	},
+	old: {
+	},
+	errors: @json($errors->toArray()),
+};
 @endsection

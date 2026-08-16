@@ -8,6 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Staff;
 use App\Models\HumanResources\HRLeave;
 
+// services
+use App\Services\HumanResources\EntitlementService;
+
 use Illuminate\Database\Eloquent\Builder;
 
 // for controller output
@@ -40,16 +43,19 @@ class HRMCUPLLeaveController extends Controller
 	 */
 	public function index(): View
 	{
-		$upls = HRLeave::groupByRaw('YEAR(date_time_start)')
-						->selectRaw('YEAR(date_time_start) as ryear')
-						->where('leave_type_id', 11)
-						->where(function(Builder $query) {
-							$query->whereIn('leave_status_id', [5, 6])->orWhereNull('leave_status_id');
-						})
-						->orderBy('ryear', 'DESC')
-						->get();
-						// ->ddrawsql();
-		return view('humanresources.hrdept.entitlement.mcupl.index', ['upls' => $upls]);
+		$config = [
+			'title' => 'Unpaid Medical Certificate Leave',
+			'table_title' => 'Unpaid Leave Entitlement',
+			'variant' => 'upl',
+			'model' => HRLeave::class,
+			'endpoint' => 'hrmcuplleave.index',
+			'leave_type_ids' => [11],
+			'columns' => ['ID', 'Name', 'Leave ID', 'Leave Type', 'Duration', 'From', 'To', 'Remarks'],
+		];
+
+		$rows = app(EntitlementService::class)->uplRows($config['leave_type_ids']);
+
+		return view('humanresources.hrdept.entitlement.index', compact('config', 'rows'));
 	}
 
 	/**

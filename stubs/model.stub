@@ -37,9 +37,10 @@ class {{ class }} extends Model
 	// const UPDATED_AT = '';
 	// protected $rememberTokenName = '';
 
-	// protected $casts = [
+	protected $casts = [
 	// 	'is_active' => 'boolean',
-	// ];
+	// 	'users_id' => 'integer',					// foreign key
+	];
 
 	// public function sluggable(): array
 	// {
@@ -53,21 +54,13 @@ class {{ class }} extends Model
 	// 	return 'slug';
 	// }
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-	// set column attribute
-	// protected function ColumnName(): Attribute
-	// {
-	// 	return Attribute::make(
-	// 		set: fn ($value) => Str::slug($value),
-	// 	);
-	// }
-
+//////////////////////////////////////////////////////////////////////
 	// protected function setColumnNameAttribute($value)
 	// {
 	//     $this->attributes['ColumnName'] = ucwords(Str::lower($value));
 	// }
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 	// relationship
 
 }

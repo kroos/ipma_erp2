@@ -1,8 +1,3 @@
-<?php
-use App\Models\Staff;
-use App\Models\HumanResources\HROvertimeRange;
-
-?>
 @extends('layouts.app')
 
 @section('content')
@@ -21,8 +16,8 @@ use App\Models\HumanResources\HROvertimeRange;
 				<div class="col-auto">
 					<select name="staff_id" id="rel" class="form-select form-select-sm @error('staff_id') is-invalid @enderror">
 						<option value="">Please choose</option>
-						@foreach(Staff::where('active', 1)->get() as $key)
-							<option value="{{ $key->id }}" {{ ($overtime->staff_id == $key->id)?'selected':NULL }}>{{ $key->hasmanylogin()->where('active', 1)->first()->username }} - {{ $key->name }}</option>
+						@foreach($staffs as $id => $label)
+							<option value="{{ $id }}" {{ ($overtime->staff_id == $id)?'selected':NULL }}>{{ $label }}</option>
 						@endforeach
 					</select>
 				</div>
@@ -40,8 +35,8 @@ use App\Models\HumanResources\HROvertimeRange;
 				<div class="col-auto">
 					<select name="overtime_range_id" id="mar" class="form-select form-select-sm col-auto @error('overtime_range_id') is-invalid @enderror" placeholder="Marital Status">
 						<option value="">Please choose</option>
-						@foreach(HROvertimeRange::where('active', 1)->get() as $key)
-							<option value="{{ $key->id }}" {{ ($key->id == old('overtime_range_id', $overtime->overtime_range_id))?'selected':NULL }}>{{ \Carbon\Carbon::parse($key->start)->format('g:i a') }} <=> {{ \Carbon\Carbon::parse($key->end)->format('g:i a') }}</option>
+						@foreach($overtimeRanges as $id => $label)
+							<option value="{{ $id }}" {{ ($id == old('overtime_range_id', $overtime->overtime_range_id))?'selected':NULL }}>{{ $label }}</option>
 						@endforeach
 					</select>
 				</div>
@@ -63,56 +58,14 @@ use App\Models\HumanResources\HROvertimeRange;
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-$('#nam').datetimepicker({
-	icons: {
-		time: "fas fas-regular fa-clock fa-beat",
-		date: "fas fas-regular fa-calendar fa-beat",
-		up: "fa-regular fa-circle-up fa-beat",
-		down: "fa-regular fa-circle-down fa-beat",
-		previous: 'fas fas-regular fa-arrow-left fa-beat',
-		next: 'fas fas-regular fa-arrow-right fa-beat',
-		today: 'fas fas-regular fa-calenday-day fa-beat',
-		clear: 'fas fas-regular fa-broom-wide fa-beat',
-		close: 'fas fas-regular fa-rectangle-xmark fa-beat'
+window.data = {
+	route: {
 	},
-	format: 'YYYY-MM-DD',
-	useCurrent: true,
-});
-
-$('#mar, #rel').select2({
-	placeholder: 'Please Select',
-	width: '100%',
-	allowClear: true,
-	closeOnSelect: true,
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// bootstrap validator
-$('#form').bootstrapValidator({
-	fields: {
-		ot_date: {
-			validators: {
-				notEmpty: {
-					message: 'Please insert password. '
-				},
-			}
-		},
-		staff_id: {
-			validators: {
-				notEmpty: {
-					message: 'Please choose. '
-				},
-			}
-		},
-		overtime_range_id: {
-			validators: {
-				notEmpty: {
-					message: 'Please choose. '
-				},
-			}
-		},
-	}
-});
-
+	url: {
+	},
+	old: {
+	},
+	errors: @json($errors->toArray()),
+	editId: @json(isset($overtime) ? $overtime->id : null),
+};
 @endsection

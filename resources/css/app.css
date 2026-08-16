@@ -56,7 +56,6 @@
 body {
     font-family: 'Roboto Flex' !important;
     font-size: 15px;
-    font-weight: 100 1000;
     font-style: normal;
 }
 
@@ -65,4 +64,1469 @@ body {
     font-family: inherit;
     font-size: 1.1em;
 }
+
+/* ==========================================================================
+   IPMA DESIGN SYSTEM — "Enterprise Gateway" / "Trust & Authority"
+   Professional · Corporate · Modern (WCAG AAA friendly)
+   Tokens first, then component overrides. Plain CSS — compiled by postcss.
+   ========================================================================== */
+
+:root {
+    /* Brand */
+    --ipma-primary: #0F172A;          /* slate-900 — trust & authority */
+    --ipma-primary-600: #1e293b;      /* slate-800 */
+    --ipma-primary-500: #334155;      /* slate-700 */
+    --ipma-accent: #10b981;           /* emerald-500 — fresh, corporate */
+    --ipma-accent-600: #059669;       /* emerald-600 */
+    --ipma-accent-soft: #d1fae5;      /* emerald-100 */
+
+    /* Neutrals */
+    --ipma-bg: #f1f5f9;               /* slate-100 page background */
+    --ipma-surface: #ffffff;
+    --ipma-surface-soft: #f8fafc;     /* slate-50 */
+    --ipma-text: #0f172a;
+    --ipma-text-muted: #64748b;       /* slate-500 */
+    --ipma-border: #e2e8f0;           /* slate-200 */
+
+    /* Elevation & shape */
+    --ipma-radius-sm: .5rem;
+    --ipma-radius: .75rem;
+    --ipma-radius-lg: 1rem;
+    --ipma-shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
+    --ipma-shadow: 0 4px 6px -1px rgba(15, 23, 42, .10), 0 2px 4px -2px rgba(15, 23, 42, .06);
+    --ipma-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, .12), 0 4px 6px -4px rgba(15, 23, 42, .10);
+
+    /* Typography */
+    --ipma-font-sans: 'Roboto Flex', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* ---------- Base ---------- */
+
+body {
+    background-color: var(--ipma-bg);
+    background-image:
+        radial-gradient(1200px 600px at 85% -10%, rgba(15, 23, 42, .04), transparent 60%),
+        radial-gradient(900px 500px at -10% 10%, rgba(16, 185, 129, .05), transparent 60%);
+    background-attachment: fixed;
+    color: var(--ipma-text);
+    letter-spacing: .01em;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--ipma-primary);
+    letter-spacing: -.015em;
+}
+
+a {
+    color: var(--ipma-primary-600);
+}
+
+a:hover {
+    color: var(--ipma-accent-600);
+}
+
+::selection {
+    background: var(--ipma-accent-soft);
+    color: var(--ipma-primary);
+}
+
+/* ---------- Cards: soft surface, subtle elevation ---------- */
+
+.card {
+    border: 1px solid var(--ipma-border);
+    border-radius: var(--ipma-radius);
+    background: var(--ipma-surface);
+    box-shadow: var(--ipma-shadow-sm);
+    transition: box-shadow .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.card:hover {
+    box-shadow: var(--ipma-shadow);
+}
+
+.card-header {
+    background: var(--ipma-surface-soft);
+    border-bottom: 1px solid var(--ipma-border);
+    border-radius: var(--ipma-radius) var(--ipma-radius) 0 0 !important;
+    padding: .9rem 1.25rem;
+    font-weight: 600;
+}
+
+.card-footer {
+    background: var(--ipma-surface-soft);
+    border-top: 1px solid var(--ipma-border);
+    border-radius: 0 0 var(--ipma-radius) var(--ipma-radius) !important;
+}
+
+/* ---------- Buttons: flat, confident, consistent ---------- */
+
+.btn {
+    border-radius: var(--ipma-radius-sm);
+    font-weight: 500;
+    padding: .5rem 1rem;
+    transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .1s ease;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn-primary {
+    background-color: var(--ipma-primary);
+    border-color: var(--ipma-primary);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--ipma-primary-600);
+    border-color: var(--ipma-primary-600);
+}
+
+.btn-success {
+    background-color: var(--ipma-accent);
+    border-color: var(--ipma-accent);
+}
+
+.btn-success:hover,
+.btn-success:focus {
+    background-color: var(--ipma-accent-600);
+    border-color: var(--ipma-accent-600);
+}
+
+.btn-outline-primary {
+    color: var(--ipma-primary);
+    border-color: var(--ipma-primary);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--ipma-primary);
+    border-color: var(--ipma-primary);
+    color: #fff;
+}
+
+.btn-outline-secondary {
+    color: var(--ipma-primary-500);
+    border-color: var(--ipma-border);
+    background-color: var(--ipma-surface);
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--ipma-primary);
+    border-color: var(--ipma-primary);
+    color: #fff;
+}
+
+/* ---------- Forms: clean, focused, accessible ---------- */
+
+.form-control,
+.form-select {
+    border-radius: var(--ipma-radius-sm);
+    border-color: #cbd5e1; /* slate-300 */
+    padding: .5rem .75rem;
+    background-color: var(--ipma-surface);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--ipma-accent);
+    box-shadow: 0 0 0 .2rem rgba(16, 185, 129, .18);
+}
+
+.form-control-sm,
+.form-select-sm {
+    border-radius: calc(var(--ipma-radius-sm) - .15rem);
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--ipma-text);
+}
+
+/* ---------- Tables: crisp, scannable ---------- */
+
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-striped-bg: rgba(15, 23, 42, .02);
+    --bs-table-hover-bg: rgba(16, 185, 129, .06);
+    border-color: var(--ipma-border);
+    vertical-align: middle;
+}
+
+.table thead th {
+    background: var(--ipma-surface-soft);
+    color: var(--ipma-primary-500);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: .78rem;
+    letter-spacing: .04em;
+    border-bottom: 1px solid var(--ipma-border);
+    white-space: nowrap;
+}
+
+.table tbody tr {
+    transition: background-color .12s ease;
+}
+
+/* ---------- DataTables refinements ---------- */
+
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid #cbd5e1;
+    border-radius: var(--ipma-radius-sm);
+    padding: .35rem .6rem;
+    background: var(--ipma-surface);
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: var(--ipma-accent);
+    box-shadow: 0 0 0 .2rem rgba(16, 185, 129, .18);
+    outline: none;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--ipma-primary) !important;
+    border-color: var(--ipma-primary) !important;
+    color: #fff !important;
+    border-radius: var(--ipma-radius-sm);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current) {
+    background: var(--ipma-surface-soft) !important;
+    color: var(--ipma-primary) !important;
+}
+
+table.dataTable {
+    border-collapse: separate !important;
+    border-spacing: 0;
+}
+
+/* ---------- Stat cards (dashboard) ---------- */
+
+.stat-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--ipma-border);
+    border-radius: var(--ipma-radius);
+    background: var(--ipma-surface);
+    box-shadow: var(--ipma-shadow-sm);
+    padding: 1.25rem 1.5rem;
+    transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.stat-card:hover {
+    box-shadow: var(--ipma-shadow-lg);
+    transform: translateY(-2px);
+}
+
+.stat-card .stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--ipma-radius-sm);
+    font-size: 1.25rem;
+    color: var(--ipma-primary);
+    background: rgba(15, 23, 42, .06);
+}
+
+.stat-card .stat-label {
+    color: var(--ipma-text-muted);
+    font-size: .8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+.stat-card .stat-value {
+    color: var(--ipma-primary);
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.1;
+}
+
+.stat-card.accent-green .stat-icon {
+    color: var(--ipma-accent-600);
+    background: var(--ipma-accent-soft);
+}
+
+.stat-card.accent-amber .stat-icon {
+    color: #b45309;
+    background: #fef3c7;
+}
+
+.stat-card.accent-red .stat-icon {
+    color: #b91c1c;
+    background: #fee2e2;
+}
+
+.stat-card.accent-blue .stat-icon {
+    color: #1d4ed8;
+    background: #dbeafe;
+}
+
+/* ---------- Launch cards (dashboard quick links) ---------- */
+
+.launch-card {
+    border: 1px solid var(--ipma-border);
+    border-radius: var(--ipma-radius);
+    background: var(--ipma-surface);
+    box-shadow: var(--ipma-shadow-sm);
+    transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+}
+
+.launch-card:hover {
+    box-shadow: var(--ipma-shadow-lg);
+    transform: translateY(-2px);
+    border-color: var(--ipma-accent);
+}
+
+.launch-card .stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--ipma-radius-sm);
+    font-size: 1.25rem;
+    color: var(--ipma-primary);
+    background: rgba(15, 23, 42, .06);
+}
+
+.launch-card .stat-label {
+    color: var(--ipma-primary);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.launch-card.accent-green .stat-icon {
+    color: var(--ipma-accent-600);
+    background: var(--ipma-accent-soft);
+}
+
+.launch-card.accent-amber .stat-icon {
+    color: #b45309;
+    background: #fef3c7;
+}
+
+.launch-card.accent-red .stat-icon {
+    color: #b91c1c;
+    background: #fee2e2;
+}
+
+.launch-card.accent-blue .stat-icon {
+    color: #1d4ed8;
+    background: #dbeafe;
+}
+
+/* ---------- Page header ---------- */
+
+.page-header {
+    margin-bottom: 1.25rem;
+}
+
+.page-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.page-header .page-subtitle {
+    color: var(--ipma-text-muted);
+    margin: .15rem 0 0;
+}
+
+/* ---------- Badges ---------- */
+
+.badge {
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+
+/* ---------- Login screen ---------- */
+
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(1000px 500px at 80% -5%, rgba(16, 185, 129, .12), transparent 60%),
+        radial-gradient(1100px 600px at 10% 110%, rgba(15, 23, 42, .10), transparent 60%),
+        linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
+    padding: 1rem;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    border: 0;
+    border-radius: var(--ipma-radius-lg);
+    box-shadow: var(--ipma-shadow-lg);
+}
+
+.login-card .card-header {
+    background: var(--ipma-primary);
+    color: #fff;
+    text-align: center;
+    border-radius: var(--ipma-radius-lg) var(--ipma-radius-lg) 0 0 !important;
+    padding: 2rem 1.5rem 1.5rem;
+}
+
+.login-card .card-header h3 {
+    color: #fff;
+    font-weight: 700;
+    margin: .75rem 0 0;
+    letter-spacing: -.01em;
+}
+
+.login-card .card-header .brand-mark {
+    width: 3.5rem;
+    height: 3.5rem;
+    object-fit: contain;
+}
+
+.login-card .card-body {
+    padding: 2rem 1.75rem 1.25rem;
+}
+
+.login-card .form-label {
+    font-weight: 600;
+}
+
+.login-card .card-footer {
+    background: transparent;
+    border-top: 1px solid var(--ipma-border);
+    border-radius: 0 0 var(--ipma-radius-lg) var(--ipma-radius-lg) !important;
+    padding: 1rem 1.75rem 1.5rem;
+}
+
+/* ---------- Navbar ---------- */
+
+.navbar.ipma-navbar {
+    background: var(--ipma-surface);
+    border-bottom: 1px solid var(--ipma-border);
+    box-shadow: var(--ipma-shadow-sm);
+    border-radius: 0 !important;
+    margin-bottom: 0 !important;
+    padding: .65rem 1rem;
+}
+
+.ipma-navbar .navbar-brand {
+    font-weight: 700;
+    color: var(--ipma-primary);
+    letter-spacing: -.01em;
+}
+
+.ipma-navbar .nav-link {
+    color: var(--ipma-text-muted);
+    font-weight: 500;
+}
+
+.ipma-navbar .nav-link:hover,
+.ipma-navbar .nav-link.active {
+    color: var(--ipma-primary);
+}
+
+/* ---------- Secondary nav (department tabs) ---------- */
+
+.dept-nav {
+    background: var(--ipma-surface);
+    border: 1px solid var(--ipma-border);
+    border-radius: var(--ipma-radius);
+    box-shadow: var(--ipma-shadow-sm);
+    padding: .35rem .5rem;
+}
+
+.dept-nav .nav-link {
+    border-radius: calc(var(--ipma-radius-sm) - .2rem);
+    padding: .5rem 1rem;
+    color: var(--ipma-text-muted);
+    font-weight: 500;
+    transition: background-color .15s ease, color .15s ease;
+}
+
+.dept-nav .nav-link:hover {
+    color: var(--ipma-primary);
+    background: var(--ipma-surface-soft);
+}
+
+.dept-nav .nav-link.active {
+    background: var(--ipma-primary);
+    color: #fff;
+    font-weight: 600;
+}
+
+/* ---------- App shell ---------- */
+
+.ipma-app {
+    background-color: var(--ipma-bg);
+}
+
+.ipma-footer {
+    background: var(--ipma-surface);
+    border-top: 1px solid var(--ipma-border);
+    box-shadow: 0 -1px 2px rgba(15, 23, 42, .04);
+}
+
+/* ---------- Focus visibility (WCAG) ---------- */
+
+:focus-visible {
+    outline: 2px solid var(--ipma-accent);
+    outline-offset: 2px;
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+
+
+/* ==========================================================================
+   PAGE-SPECIFIC STYLES (extracted from blades — scoped per page)
+   ========================================================================== */
+/* ==== humanresources-hrdept-appraisal-apoint-index (resources/views/humanresources/hrdept/appraisal/apoint/index.blade.php) ==== */
+
+	/* div {
+		border: 1px solid black;
+	} */
+
+	.page-humanresources-hrdept-appraisal-apoint-index .scrollable-div-1{
+/* Set the width height as needed */
+		/*		width: 100%;*/
+		height: 800px;
+		/* Add scrollbars when content overflows */
+		overflow: auto;
+}
+
+	.page-humanresources-hrdept-appraisal-apoint-index .scrollable-div-2{
+/* Set the width height as needed */
+		/*		width: 100%;*/
+		height: 800px;
+		background-color: blanchedalmond;
+		/* Add scrollbars when content overflows */
+		overflow: auto;
+}
+
+	.page-humanresources-hrdept-appraisal-apoint-index .hover:hover{
+background-color: #ffcc00;
+}
+
+	.page-humanresources-hrdept-appraisal-apoint-index .pivot_delete{
+background-color: transparent;
+		border: none;
+		padding: 0;
+		margin: 0;
+}
+
+
+
+/* ==== humanresources-hrdept-appraisal-form-create (resources/views/humanresources/hrdept/appraisal/form/create.blade.php) ==== */
+
+  .page-humanresources-hrdept-appraisal-form-create .img1{
+text-align: center;
+    /* border: 1px solid black; */
+}
+
+  /* div {
+    border: 1px solid black;
+  } */
+
+
+
+/* ==== humanresources-hrdept-appraisal-form-edit (resources/views/humanresources/hrdept/appraisal/form/edit.blade.php) ==== */
+
+  .page-humanresources-hrdept-appraisal-form-edit .img1{
+text-align: center;
+}
+
+  .page-humanresources-hrdept-appraisal-form-edit p{
+margin: 0;
+    padding: 0;
+}
+
+  .page-humanresources-hrdept-appraisal-form-edit .tr-td-border, .page-humanresources-hrdept-appraisal-form-edit .tr-td-border td{
+border: 1px solid black;
+}
+
+  .page-humanresources-hrdept-appraisal-form-edit .td-border-left-right{
+border-width: 0px 1px 0px 1px;
+    /* top, right, bottom, left */
+}
+
+  .page-humanresources-hrdept-appraisal-form-edit .td-border-right{
+border-width: 0px 1px 0px 0px;
+    /* top, right, bottom, left */
+}
+
+  .page-humanresources-hrdept-appraisal-form-edit .td-border-left-right-bottom{
+border-width: 0px 1px 1px 1px;
+    /* top, right, bottom, left */
+}
+
+  .page-humanresources-hrdept-appraisal-form-edit .td-border-right-bottom{
+border-width: 0px 1px 1px 0px;
+    /* top, right, bottom, left */
+}
+
+  .page-humanresources-hrdept-appraisal-form-edit #myButton{
+background: none;
+    border: none;
+    color: black;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+    text-align: left;
+}
+
+  .page-humanresources-hrdept-appraisal-form-edit #myButton:hover{
+color: blue;
+}
+
+
+
+/* ==== humanresources-hrdept-appraisal-form-index (resources/views/humanresources/hrdept/appraisal/form/index.blade.php) ==== */
+
+  /* div {
+    border: 1px solid red;
+  } */
+
+  .page-humanresources-hrdept-appraisal-form-index a{
+color: #000000;
+    text-decoration: none;
+}
+
+
+
+/* ==== humanresources-hrdept-appraisal-form-show (resources/views/humanresources/hrdept/appraisal/form/show.blade.php) ==== */
+
+    .page-humanresources-hrdept-appraisal-form-show .img1{
+text-align: center;
+}
+
+    .page-humanresources-hrdept-appraisal-form-show p{
+margin: 0;
+      padding: 0;
+}
+
+    .page-humanresources-hrdept-appraisal-form-show .tr-td-border, .page-humanresources-hrdept-appraisal-form-show .tr-td-border td{
+border: 1px solid black;
+}
+
+    .page-humanresources-hrdept-appraisal-form-show .td-border-left-right{
+border-width: 0px 1px 0px 1px;
+      /* top, right, bottom, left */
+}
+
+    .page-humanresources-hrdept-appraisal-form-show .td-border-right{
+border-width: 0px 1px 0px 0px;
+      /* top, right, bottom, left */
+}
+
+    .page-humanresources-hrdept-appraisal-form-show .td-border-left-right-bottom{
+border-width: 0px 1px 1px 1px;
+      /* top, right, bottom, left */
+}
+
+    .page-humanresources-hrdept-appraisal-form-show .td-border-right-bottom{
+border-width: 0px 1px 1px 0px;
+      /* top, right, bottom, left */
+}
+  
+
+
+/* ==== humanresources-hrdept-appraisal-list-index (resources/views/humanresources/hrdept/appraisal/list/index.blade.php) ==== */
+
+  /* table,
+  tr,
+  td,
+  div {
+    border: 1px solid black;
+  } */
+
+
+
+/* ==== humanresources-hrdept-appraisal-mark-create (resources/views/humanresources/hrdept/appraisal/mark/create.blade.php) ==== */
+
+    .page-humanresources-hrdept-appraisal-mark-create .img1{
+text-align: center;
+}
+
+    .page-humanresources-hrdept-appraisal-mark-create p{
+margin: 0;
+      padding: 0;
+}
+
+    .page-humanresources-hrdept-appraisal-mark-create .tr-td-border, .page-humanresources-hrdept-appraisal-mark-create .tr-td-border td{
+border: 1px solid black;
+}
+
+    .page-humanresources-hrdept-appraisal-mark-create .td-border-left-right{
+border-width: 0px 1px 0px 1px;
+      /* top, right, bottom, left */
+}
+
+    .page-humanresources-hrdept-appraisal-mark-create .td-border-right{
+border-width: 0px 1px 0px 0px;
+      /* top, right, bottom, left */
+}
+
+    .page-humanresources-hrdept-appraisal-mark-create .td-border-left-right-bottom{
+border-width: 0px 1px 1px 1px;
+      /* top, right, bottom, left */
+}
+
+    .page-humanresources-hrdept-appraisal-mark-create .td-border-right-bottom{
+border-width: 0px 1px 1px 0px;
+      /* top, right, bottom, left */
+}
+  
+
+
+/* ==== humanresources-hrdept-appraisal-mark-show (resources/views/humanresources/hrdept/appraisal/mark/show.blade.php) ==== */
+
+    .page-humanresources-hrdept-appraisal-mark-show .img1{
+text-align: center;
+}
+
+    .page-humanresources-hrdept-appraisal-mark-show p{
+margin: 0;
+      padding: 0;
+}
+
+    .page-humanresources-hrdept-appraisal-mark-show .tr-td-border, .page-humanresources-hrdept-appraisal-mark-show .tr-td-border td{
+border: 1px solid black;
+}
+
+    .page-humanresources-hrdept-appraisal-mark-show .td-border-left-right{
+border-width: 0px 1px 0px 1px;
+      /* top, right, bottom, left */
+}
+
+    .page-humanresources-hrdept-appraisal-mark-show .td-border-right{
+border-width: 0px 1px 0px 0px;
+      /* top, right, bottom, left */
+}
+
+    .page-humanresources-hrdept-appraisal-mark-show .td-border-left-right-bottom{
+border-width: 0px 1px 1px 1px;
+      /* top, right, bottom, left */
+}
+
+    .page-humanresources-hrdept-appraisal-mark-show .td-border-right-bottom{
+border-width: 0px 1px 1px 0px;
+      /* top, right, bottom, left */
+}
+  
+
+
+/* ==== humanresources-hrdept-attendance-attendancedailyreport-index (resources/views/humanresources/hrdept/attendance/attendancedailyreport/index.blade.php) ==== */
+
+	.page-humanresources-hrdept-attendance-attendancedailyreport-index .table, .page-humanresources-hrdept-attendance-attendancedailyreport-index .table tr, .page-humanresources-hrdept-attendance-attendancedailyreport-index .table td{
+border: 1px solid black;
+		font-size: 12px;
+}
+
+	.page-humanresources-hrdept-attendance-attendancedailyreport-index .top-row td{
+background-color: #cccccc;
+}
+
+
+
+/* ==== humanresources-hrdept-attendance-attendancereport-create (resources/views/humanresources/hrdept/attendance/attendancereport/create.blade.php) ==== */
+
+	.page-humanresources-hrdept-attendance-attendancereport-create .scrollable-div{
+height: 400px;
+		overflow: auto;
+}
+
+
+
+/* ==== humanresources-hrdept-discipline-create (resources/views/humanresources/hrdept/discipline/create.blade.php) ==== */
+
+	/* div {
+		border: 1px solid black;
+	} */
+
+
+
+/* ==== humanresources-hrdept-discipline-edit (resources/views/humanresources/hrdept/discipline/edit.blade.php) ==== */
+
+	/* div {
+		border: 1px solid black;
+	} */
+
+
+
+/* ==== humanresources-hrdept-discipline-show (resources/views/humanresources/hrdept/discipline/show.blade.php) ==== */
+
+  /* div {
+    border: 1px solid black;
+  } */
+
+
+
+/* ==== humanresources-hrdept-leave-dirleaveapproval-index (resources/views/humanresources/hrdept/leave/dirleaveapproval/index.blade.php) ==== */
+
+  .page-humanresources-hrdept-leave-dirleaveapproval-index .table-container{
+display: table;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+  .page-humanresources-hrdept-leave-dirleaveapproval-index .table{
+display: table;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0;
+    padding-top: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+  .page-humanresources-hrdept-leave-dirleaveapproval-index .table-row{
+display: table-row;
+}
+
+  .page-humanresources-hrdept-leave-dirleaveapproval-index .table-cell-none{
+display: table-cell;
+    border: none;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-dirleaveapproval-index .table-cell{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-dirleaveapproval-index .table-cell-top{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    border-top: none;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-dirleaveapproval-index #left-detail{
+font-weight: bold;
+    background-color: transparent;
+}
+
+  .page-humanresources-hrdept-leave-dirleaveapproval-index #right-detail{
+background-color: transparent;
+}
+
+  .page-humanresources-hrdept-leave-dirleaveapproval-index #box-red{
+float: left;
+    height: 20px;
+    width: 20px;
+    background-color: red;
+    clear: both;
+}
+
+  .page-humanresources-hrdept-leave-dirleaveapproval-index #box-green{
+float: left;
+    height: 20px;
+    width: 20px;
+    background-color: green;
+    clear: both;
+}
+
+
+
+/* ==== humanresources-hrdept-leave-edit (resources/views/humanresources/hrdept/leave/edit.blade.php) ==== */
+
+	@media print {
+
+		body:has(.page-humanresources-hrdept-leave-edit){
+visibility: hidden;
+}
+
+		.page-humanresources-hrdept-leave-edit #printPageButton, .page-humanresources-hrdept-leave-edit #back{
+display: none;
+}
+
+		.page-humanresources-hrdept-leave-edit .table-container{
+visibility: visible;
+			position: absolute;
+			left: 0;
+			top: 0;
+}
+	
+}
+
+	.page-humanresources-hrdept-leave-edit .table-container{
+display: table;
+		width: 100%;
+		border-collapse: collapse;
+}
+
+	.page-humanresources-hrdept-leave-edit .table{
+display: table;
+		width: 100%;
+		border-collapse: collapse;
+		margin-top: 0;
+		padding-top: 0;
+		margin-bottom: 0;
+		padding-bottom: 0;
+}
+
+	.page-humanresources-hrdept-leave-edit .table-row{
+display: table-row;
+}
+
+	.page-humanresources-hrdept-leave-edit .table-cell{
+display: table-cell;
+		border: 1px solid #b3b3b3;
+		padding: 4px;
+		box-sizing: border-box;
+}
+
+	.page-humanresources-hrdept-leave-edit .table-cell-top{
+display: table-cell;
+		border: 1px solid #b3b3b3;
+		border-top: none;
+		padding: 4px;
+		box-sizing: border-box;
+}
+
+	.page-humanresources-hrdept-leave-edit .table-cell-top-bottom{
+display: table-cell;
+		border: 1px solid #b3b3b3;
+		border-top: none;
+		border-bottom: none;
+		padding: 0px;
+		box-sizing: border-box;
+}
+
+	.page-humanresources-hrdept-leave-edit .table-cell-hidden{
+display: table-cell;
+		border: none;
+}
+
+	.page-humanresources-hrdept-leave-edit .header{
+font-size: 22px;
+		text-align: center;
+}
+
+	.page-humanresources-hrdept-leave-edit .theme{
+background-color: #e6e6e6;
+}
+
+	.page-humanresources-hrdept-leave-edit .table-cell-top1{
+display: table-cell;
+		border: 1px solid #b3b3b3;
+		border-top: none;
+		padding: 0px;
+		box-sizing: border-box;
+}
+
+
+
+/* ==== humanresources-hrdept-leave-hodleaveapproval-index (resources/views/humanresources/hrdept/leave/hodleaveapproval/index.blade.php) ==== */
+
+  .page-humanresources-hrdept-leave-hodleaveapproval-index .table-container{
+display: table;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+  .page-humanresources-hrdept-leave-hodleaveapproval-index .table{
+display: table;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0;
+    padding-top: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+  .page-humanresources-hrdept-leave-hodleaveapproval-index .table-row{
+display: table-row;
+}
+
+  .page-humanresources-hrdept-leave-hodleaveapproval-index .table-cell-none{
+display: table-cell;
+    border: none;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-hodleaveapproval-index .table-cell{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-hodleaveapproval-index .table-cell-top{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    border-top: none;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-hodleaveapproval-index #left-detail{
+font-weight: bold;
+    background-color: transparent;
+}
+
+  .page-humanresources-hrdept-leave-hodleaveapproval-index #right-detail{
+background-color: transparent;
+}
+
+  .page-humanresources-hrdept-leave-hodleaveapproval-index #box-red{
+float: left;
+    height: 20px;
+    width: 20px;
+    background-color: red;
+    clear: both;
+}
+
+  .page-humanresources-hrdept-leave-hodleaveapproval-index #box-green{
+float: left;
+    height: 20px;
+    width: 20px;
+    background-color: green;
+    clear: both;
+}
+
+
+
+/* ==== humanresources-hrdept-leave-hrleaveapproval-index (resources/views/humanresources/hrdept/leave/hrleaveapproval/index.blade.php) ==== */
+
+  .page-humanresources-hrdept-leave-hrleaveapproval-index .table-container{
+display: table;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+  .page-humanresources-hrdept-leave-hrleaveapproval-index .table{
+display: table;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0;
+    padding-top: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+  .page-humanresources-hrdept-leave-hrleaveapproval-index .table-row{
+display: table-row;
+}
+
+  .page-humanresources-hrdept-leave-hrleaveapproval-index .table-cell-none{
+display: table-cell;
+    border: none;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-hrleaveapproval-index .table-cell{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-hrleaveapproval-index .table-cell-top{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    border-top: none;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-hrleaveapproval-index #left-detail{
+font-weight: bold;
+    background-color: transparent;
+}
+
+  .page-humanresources-hrdept-leave-hrleaveapproval-index #right-detail{
+background-color: transparent;
+}
+
+  .page-humanresources-hrdept-leave-hrleaveapproval-index #box-red{
+float: left;
+    height: 20px;
+    width: 20px;
+    background-color: red;
+    clear: both;
+}
+
+  .page-humanresources-hrdept-leave-hrleaveapproval-index #box-green{
+float: left;
+    height: 20px;
+    width: 20px;
+    background-color: green;
+    clear: both;
+}
+
+
+
+/* ==== humanresources-hrdept-leave-show (resources/views/humanresources/hrdept/leave/show.blade.php) ==== */
+
+  @media print {
+
+    body:has(.page-humanresources-hrdept-leave-show){
+visibility: hidden;
+}
+
+    .page-humanresources-hrdept-leave-show #printPageButton, .page-humanresources-hrdept-leave-show #back{
+display: none;
+}
+
+    .page-humanresources-hrdept-leave-show .table-container{
+visibility: visible;
+      position: absolute;
+      left: 0;
+      top: 0;
+}
+  
+}
+
+  .page-humanresources-hrdept-leave-show .table-container{
+display: table;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+  .page-humanresources-hrdept-leave-show .table{
+display: table;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0;
+    padding-top: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+  .page-humanresources-hrdept-leave-show .table-row{
+display: table-row;
+}
+
+  .page-humanresources-hrdept-leave-show .table-cell{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-show .table-cell-top{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    border-top: none;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-show .table-cell-top-bottom{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    border-top: none;
+    border-bottom: none;
+    padding: 0px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-show .table-cell-hidden{
+display: table-cell;
+    border: none;
+}
+
+  .page-humanresources-hrdept-leave-show .header{
+font-size: 22px;
+    text-align: center;
+}
+
+  .page-humanresources-hrdept-leave-show .theme{
+background-color: #e6e6e6;
+}
+
+  .page-humanresources-hrdept-leave-show .table-cell-top1{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    border-top: none;
+    padding: 0px;
+    box-sizing: border-box;
+}
+
+
+
+/* ==== humanresources-hrdept-leave-supervisorleaveapproval-index (resources/views/humanresources/hrdept/leave/supervisorleaveapproval/index.blade.php) ==== */
+
+  .page-humanresources-hrdept-leave-supervisorleaveapproval-index .table-container{
+display: table;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+  .page-humanresources-hrdept-leave-supervisorleaveapproval-index .table{
+display: table;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0;
+    padding-top: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+  .page-humanresources-hrdept-leave-supervisorleaveapproval-index .table-row{
+display: table-row;
+}
+
+  .page-humanresources-hrdept-leave-supervisorleaveapproval-index .table-cell-none{
+display: table-cell;
+    border: none;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-supervisorleaveapproval-index .table-cell{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-supervisorleaveapproval-index .table-cell-top{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    border-top: none;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-hrdept-leave-supervisorleaveapproval-index #left-detail{
+font-weight: bold;
+    background-color: transparent;
+}
+
+  .page-humanresources-hrdept-leave-supervisorleaveapproval-index #right-detail{
+background-color: transparent;
+}
+
+  .page-humanresources-hrdept-leave-supervisorleaveapproval-index #box-red{
+float: left;
+    height: 20px;
+    width: 20px;
+    background-color: red;
+    clear: both;
+}
+
+  .page-humanresources-hrdept-leave-supervisorleaveapproval-index #box-green{
+float: left;
+    height: 20px;
+    width: 20px;
+    background-color: green;
+    clear: both;
+}
+
+
+
+/* ==== humanresources-hrdept-outstation-create (resources/views/humanresources/hrdept/outstation/create.blade.php) ==== */
+
+	.page-humanresources-hrdept-outstation-create .scrollable-div{
+/* Set the width height as needed */
+/*		width: 100%;*/
+		height: 400px;
+		background-color: blanchedalmond;
+		/* Add scrollbars when content overflows */
+		overflow: auto;
+}
+
+	.page-humanresources-hrdept-outstation-create p{
+margin-top: 4px;
+		margin-bottom: 4px;
+}
+
+
+
+/* ==== humanresources-hrdept-overtime-create (resources/views/humanresources/hrdept/overtime/create.blade.php) ==== */
+
+	.page-humanresources-hrdept-overtime-create .scrollable-div{
+/* Set the width height as needed */
+		/*		width: 100%;*/
+		height: 400px;
+		background-color: blanchedalmond;
+		/* Add scrollbars when content overflows */
+		overflow: auto;
+}
+
+	.page-humanresources-hrdept-overtime-create p{
+margin-top: 4px;
+		margin-bottom: 4px;
+}
+
+
+
+/* ==== humanresources-hrdept-overtime-overtimereport-index (resources/views/humanresources/hrdept/overtime/overtimereport/index.blade.php) ==== */
+
+  .page-humanresources-hrdept-overtime-overtimereport-index .table, .page-humanresources-hrdept-overtime-overtimereport-index .table tr, .page-humanresources-hrdept-overtime-overtimereport-index .table td{
+border: 1px solid black;
+    font-size: 14px;
+}
+
+  .page-humanresources-hrdept-overtime-overtimereport-index .top-row td{
+background-color: #cccccc;
+}
+
+
+
+/* ==== humanresources-hrdept-rleave-create (resources/views/humanresources/hrdept/rleave/create.blade.php) ==== */
+
+	.page-humanresources-hrdept-rleave-create .scrollable-div{
+/* Set the width height as needed */
+/*		width: 100%;*/
+		height: 400px;
+		background-color: blanchedalmond;
+		/* Add scrollbars when content overflows */
+		overflow: auto;
+}
+
+	.page-humanresources-hrdept-rleave-create p{
+margin-top: 4px;
+		margin-bottom: 4px;
+}
+
+
+
+/* ==== humanresources-hrdept-rleave-edit (resources/views/humanresources/hrdept/rleave/edit.blade.php) ==== */
+
+  /* div {
+    border: 1px solid black;
+  } */
+
+
+  .page-humanresources-hrdept-rleave-edit .scrollable-div{
+/* Set the width height as needed */
+    width: 100%;
+    height: 400px;
+    background-color: blanchedalmond;
+    /* Add scrollbars when content overflows */
+    overflow: auto;
+}
+
+  .page-humanresources-hrdept-rleave-edit p{
+margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+
+
+/* ==== humanresources-hrdept-rleave-index (resources/views/humanresources/hrdept/rleave/index.blade.php) ==== */
+
+	.page-humanresources-hrdept-rleave-index .btn-sm-custom{
+padding: 0px;
+		background: none;
+		border: none;
+		font-size: 15px;
+		width: 100%;
+		height: 100%;
+}
+
+
+
+/* ==== humanresources-leave-show (resources/views/humanresources/leave/show.blade.php) ==== */
+
+  @media print {
+
+    body:has(.page-humanresources-leave-show){
+visibility: hidden;
+}
+
+    .page-humanresources-leave-show #printPageButton, .page-humanresources-leave-show #back{
+display: none;
+}
+
+    .page-humanresources-leave-show .table-container{
+visibility: visible;
+      position: absolute;
+      left: 0;
+      top: 0;
+}
+  
+}
+
+  .page-humanresources-leave-show .table-container{
+display: table;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+  .page-humanresources-leave-show .table{
+display: table;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0;
+    padding-top: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+  .page-humanresources-leave-show .table-row{
+display: table-row;
+}
+
+  .page-humanresources-leave-show .table-cell{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-leave-show .table-cell-top{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    border-top: none;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-leave-show .table-cell-top-bottom{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    border-top: none;
+    border-bottom: none;
+    padding: 0px;
+    box-sizing: border-box;
+}
+
+  .page-humanresources-leave-show .table-cell-hidden{
+display: table-cell;
+    border: none;
+}
+
+  .page-humanresources-leave-show .header{
+font-size: 22px;
+    text-align: center;
+}
+
+  .page-humanresources-leave-show .theme{
+background-color: #e6e6e6;
+}
+
+  .page-humanresources-leave-show .table-cell-top1{
+display: table-cell;
+    border: 1px solid #b3b3b3;
+    border-top: none;
+    padding: 0px;
+    box-sizing: border-box;
+}
+
+
 

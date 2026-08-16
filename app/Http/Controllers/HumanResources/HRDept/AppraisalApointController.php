@@ -22,6 +22,9 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Staff;
 use App\Models\HumanResources\DepartmentPivot;
 
+// load services
+use App\Services\HumanResources\AppraisalService;
+
 // load paginator
 use Illuminate\Pagination\Paginator;
 
@@ -56,7 +59,9 @@ class AppraisalApointController extends Controller
   {
     $departments = DepartmentPivot::all();
 
-    return view('humanresources.hrdept.appraisal.apoint.index', ['departments' => $departments]);
+    $appraisalService = new AppraisalService();
+
+    return view('humanresources.hrdept.appraisal.apoint.index', ['departments' => $departments] + $appraisalService->apointIndexData());
   }
 
   /**

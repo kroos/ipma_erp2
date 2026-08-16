@@ -2,7 +2,6 @@
 
 @section('content')
 <?php
-use App\Models\Staff;
 ?>
 <div class="container row justify-content-center align-items-start">
 @include('humanresources.hrdept.navhr')
@@ -49,7 +48,7 @@ $branch = $dept->branch_id;
 $category = $dept->category_id;
 $r = 1;
 ?>
-				@foreach(Staff::where('active', 1)->get() as $s)
+				@foreach($activeStaff as $s)
 <?php
 if ($me1) {																				// hod
 	if ($deptid == 21) {																// hod | dept prod A
@@ -167,7 +166,7 @@ $branch = $dept->branch_id;
 $category = $dept->category_id;
 $t = 1;
 ?>
-				@foreach(Staff::where('active', '<>', 1)->get() as $s)
+				@foreach($inactiveStaff as $s)
 <?php
 if ($me1) {																				// hod
 	if ($deptid == 21) {																// hod | dept prod A
@@ -242,7 +241,7 @@ if ($me1) {																				// hod
 												<div class="form-group row mb-3 {{ $errors->has('password') ? 'has-error' : '' }}">
 													<label for="pass" class="col-form-label col-sm-3">Password : </label>
 													<div class="col-auto" style="position: relative">
-														<input type="text" name="password" value="{{ old('password', @$s->password) }}" id="pass" class="form-control form-control-sm col-sm-12 @error('password') is-invalid @enderror" placeholder="Password" required>
+														<input type="password" name="password" value="{{ old('password') }}" id="pass" class="form-control form-control-sm col-sm-12 @error('password') is-invalid @enderror" placeholder="Password" required>
 													</div>
 												</div>
 											<!-- 	<div class="form-group row mb-3 g-3 p-2">
@@ -288,22 +287,6 @@ if ($me1) {																				// hod
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-// tooltip
-$(document).ready(function(){
-	$('[data-bs-toggle="tooltip"]').tooltip();
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// datatables
-$.fn.dataTable.moment( 'D MMM YYYY' );
-$.fn.dataTable.moment( 'D MMM YYYY h:mm a' );
-$('#staff, #inactivestaff').DataTable({
-	...config.datatable
-})
-.on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
-	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip();
-	});}
-);
+window.data = {};
 @endsection
+

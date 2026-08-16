@@ -3902,8 +3902,8 @@ class AttendanceProcessJob implements ShouldQueue
 					}
 				}
 				$attrem = HRAttendanceRemark::where(function(Builder $query) use ($s) {
-													$query->whereDate('date_from', '>=', $s->attend_date)
-													->whereDate('date_to', '<=', $s->attend_date);
+													$query->whereDate('date_from', '<=', $s->attend_date)
+													->whereDate('date_to', '>=', $s->attend_date);
 												})
 												->where('staff_id', $s->staff_id)
 												->get();

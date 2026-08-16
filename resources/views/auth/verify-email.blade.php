@@ -25,9 +25,9 @@
             @csrf
 
             <div>
-                <x-primary-button>
+                <button type="submit" class="btn btn-sm btn-outline-secondary">
                     {{ __('Resend Verification Email') }}
-                </x-primary-button>
+                </button>
             </div>
         </form>
 

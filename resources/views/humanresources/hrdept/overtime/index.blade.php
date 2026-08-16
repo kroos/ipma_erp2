@@ -3,7 +3,6 @@
 @section('content')
 <?php
 use Illuminate\Support\Facades\DB;
-use App\Models\Staff;
 use \Carbon\Carbon;
 ?>
 <div class="container row justify-content-center align-items-start">
@@ -49,29 +48,29 @@ $category = $dept->category_id;
 <?php
 if ($me1) {																				// hod
 	if ($deptid == 21) {																// hod | dept prod A
-		$ha = Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid || Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->category_id == 2;
+		$ha = $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid || $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->category_id == 2;
 	} elseif($deptid == 28) {															// hod | not dept prod A | dept prod B
-		$ha = Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid || Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->category_id == 2;
+		$ha = $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid || $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->category_id == 2;
 	} elseif($deptid == 14) {															// hod | not dept prod A | not dept prod B | HR
 		$ha = true;
 	} elseif($deptid == 6) {															// hod | not dept prod A | not dept prod B | not HR | cust serv
-		$ha = Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid || Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->id == 7;
+		$ha = $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid || $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->id == 7;
 	} elseif ($deptid == 23) {															// hod | not dept prod A | not dept prod B | not HR | not cust serv | puchasing
-		$ha = Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid || Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->id == 16 || Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->id == 17;
+		$ha = $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid || $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->id == 16 || $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->id == 17;
 	} else {																			// hod | not dept prod A | not dept prod B | not HR | not cust serv | not puchasing | other dept
-		$ha = Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid;
+		$ha = $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid;
 	}
 } elseif($me2) {																		// not hod | asst hod
 	if($deptid == 14) {																	// not hod | not dept prod A | not dept prod B | HR
 		$ha = true;
 	} elseif($deptid == 6) {															// not hod | not dept prod A | not dept prod B | not HR | cust serv
-		$ha = Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid || Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->id == 7;
+		$ha = $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid || $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->id == 7;
 	}
 } elseif($me3) {																		// not hod | not asst hod | supervisor
 	if($branch == 1) {																	// not hod | not asst hod | supervisor | branch A
-		$ha = Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid || (Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->category_id == 2 && Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->branch_id == $branch);
+		$ha = $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid || ($key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->category_id == 2 && $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->branch_id == $branch);
 	} elseif ($branch == 2) {															// not hod | not asst hod | supervisor | not branch A | branch B
-		$ha = Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid || (Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->category_id == 2 && Staff::find($key->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->branch_id == $branch);
+		$ha = $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->id == $deptid || ($key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->category_id == 2 && $key->belongstostaff?->belongstomanydepartment()->wherePivot('main', 1)->first()->branch_id == $branch);
 	}
 } elseif($me6) {																		// not hod | not asst hod | not supervisor | director
 	$ha = true;
@@ -112,84 +111,16 @@ if ($me1) {																				// hod
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-// tooltip
-$(document).ready(function(){
-	$('[data-bs-toggle="tooltip"]').tooltip();
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// datatables
-$.fn.dataTable.moment( 'D MMM YYYY' );
-$.fn.dataTable.moment( 'D MMM YYYY h:mm a' );
-$('#overtime').DataTable({
-	"lengthMenu": [ [10,25,50,100,150,200,-1], [10,25,50,100,150,200,"All"] ],
-	// "lengthMenu": [ [-1], ["All"] ],
-	"columnDefs": [
-					{ type: 'date', 'targets': [2] },
-					{ type: 'time', 'targets': [3] },
-					{ type: 'time', 'targets': [4] },
-				],
-	"order": [[2, "DESC" ]],	// sorting the 6th column descending
-	responsive: true
-})
-.on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
-	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip();
-	});}
-);
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// DELETE
-$(document).on('click', '.delete_overtime', function(e){
-	var ackID = $(this).data('id');
-	SwalDelete(ackID);
-	e.preventDefault();
-});
-
-function SwalDelete(ackID, ackSoftcopy, ackTable){
-	swal.fire({
-		title: 'Delete Overtime',
-		text: 'Are you sure to delete this overtime?',
-		icon: 'info',
-		showCancelButton: true,
-		confirmButtonColor: '#3085d6',
-		cancelButtonColor: '#d33',
-		cancelButtonText: 'Cancel',
-		confirmButtonText: 'Yes',
-		showLoaderOnConfirm: true,
-
-		preConfirm: function() {
-			return new Promise(function(resolve) {
-				$.ajax({
-					url: '{{ url('overtime') }}' + '/' + ackID,
-					type: 'DELETE',
-					dataType: 'json',
-					data: {
-						id: ackID,
-						_token : $('meta[name=csrf-token]').attr('content')
-					},
-				})
-				.done(function(response){
-					swal.fire('Accept', response.message, response.status)
-					.then(function(){
-						window.location.reload(true);
-					});
-				})
-				.fail(function(){
-					swal.fire('Oops...', 'Something went wrong with ajax!', 'error');
-				})
-			});
-		},
-		allowOutsideClick: false
-	})
-	.then((result) => {
-		if (result.dismiss === swal.DismissReason.cancel) {
-			swal.fire('Cancel Action', '', 'info')
-		}
-	})
+window.data = {
+	route: {
+	},
+	url: {
+		overtime: '{{ url('overtime') }}',
+	},
+	old: {
+	},
+	errors: @json($errors->toArray()),
 };
-
 @endsection
 
 @section('nonjquery')

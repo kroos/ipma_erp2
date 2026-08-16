@@ -20,4 +20,10 @@ class HRAppraisalSetting extends Model
     use HasFactory;
     // protected $connection = 'mysql';
     protected $table = 'hr_appraisal_settings';
+
+    protected $fillable = [
+        'value1',
+        'value2',
+        'value3',
+    ];
 }

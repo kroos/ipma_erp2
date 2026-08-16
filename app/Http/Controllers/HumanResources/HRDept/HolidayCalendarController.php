@@ -63,12 +63,12 @@ class HolidayCalendarController extends Controller
 	/**
 	 * Store a newly created resource in storage.
 	 */
-	public function store(Request $request):RedirectResponse
-	{
-		HRHolidayCalendar::create($request->except(['_token']));
-		Session::flash('message', 'Data successfully added!');
-		return redirect( route('holidaycalendar.index') );
-	}
+public function store(Request $request):RedirectResponse
+    {
+        HRHolidayCalendar::create($request->only(['date_start', 'date_end', 'holiday', 'remarks']));
+        Session::flash('message', 'Data successfully added!');
+        return redirect( route('holidaycalendar.index') );
+    }
 
 	/**
 	 * Display the specified resource.
@@ -90,12 +90,12 @@ class HolidayCalendarController extends Controller
 	/**
 	 * Update the specified resource in storage.
 	 */
-	public function update(Request $request, HRHolidayCalendar $holidaycalendar):RedirectResponse
-	{
-		HRHolidayCalendar::where('id', $holidaycalendar->id)->update($request->except(['_token', '_method']));
-		Session::flash('message', 'Data successfully edited!');
-		return redirect( route('holidaycalendar.index') );
-	}
+public function update(Request $request, HRHolidayCalendar $holidaycalendar):RedirectResponse
+    {
+        HRHolidayCalendar::where('id', $holidaycalendar->id)->update($request->only(['date_start', 'date_end', 'holiday', 'remarks']));
+        Session::flash('message', 'Data successfully edited!');
+        return redirect( route('holidaycalendar.index') );
+    }
 
 	/**
 	 * Remove the specified resource from storage.

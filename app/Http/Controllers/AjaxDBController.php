@@ -505,8 +505,8 @@ class AjaxDBController extends Controller
 					->where('staffs.active', 1)
 					->where('logins.active', 1)
 					->where(function(Builder $query) use ($request) {
-						$query->where('logins.username','LIKE','%'.$request->search.'%')
-						->orWhere('staffs.name', 'LIKE', '%'.$request->search.'%');
+						$query->where('logins.username','LIKE','%'.addcslashes($request->search, '\\%_').'%')
+						->orWhere('staffs.name', 'LIKE', '%'.addcslashes($request->search, '\\%_').'%');
 					})
 					->select('staffs.id as staffid', 'staffs.name', 'logins.username')
 					->orderBy('username')
@@ -539,7 +539,7 @@ class AjaxDBController extends Controller
 
 	public function restdaygroup(Request $request): JsonResponse
 	{
-		$au = OptRestdayGroup::where('group','LIKE','%'.$request->search.'%')->get();
+		$au = OptRestdayGroup::where('group','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -554,7 +554,7 @@ class AjaxDBController extends Controller
 	public function authorise(Request $request): JsonResponse
 	{
 		// https://select2.org/data-sources/formats
-		$au = OptAuthorise::where('group','LIKE','%'.$request->search.'%')->get();
+		$au = OptAuthorise::where('group','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -568,7 +568,7 @@ class AjaxDBController extends Controller
 	public function branch(Request $request): JsonResponse
 	{
 		// https://select2.org/data-sources/formats
-		$au = OptBranch::where('location','LIKE','%'.$request->search.'%')->get();
+		$au = OptBranch::where('location','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -585,7 +585,7 @@ class AjaxDBController extends Controller
 		// https://select2.org/data-sources/formats
 		if ($request->has('search')) {
 			$au = Customer::orderBy('customer')
-							->where('customer','LIKE','%'.$request->search.'%')
+							->where('customer','LIKE','%'.addcslashes($request->search, '\\%_').'%')
 							->get();
 		} elseif($request->has('id')) {
 			$au = Customer::orderBy('customer')
@@ -608,7 +608,7 @@ class AjaxDBController extends Controller
 	public function country(Request $request): JsonResponse
 	{
 		// https://select2.org/data-sources/formats
-		$au = OptCountry::where('country','LIKE','%'.$request->search.'%')->get();
+		$au = OptCountry::where('country','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -622,7 +622,7 @@ class AjaxDBController extends Controller
 	public function educationlevel(Request $request): JsonResponse
 	{
 		// https://select2.org/data-sources/formats
-		$au = OptEducationLevel::where('education_level','LIKE','%'.$request->search.'%')->get();
+		$au = OptEducationLevel::where('education_level','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -636,7 +636,7 @@ class AjaxDBController extends Controller
 	public function gender(Request $request): JsonResponse
 	{
 		// https://select2.org/data-sources/formats
-		$au = OptGender::where('gender','LIKE','%'.$request->search.'%')->get();
+		$au = OptGender::where('gender','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -651,7 +651,7 @@ class AjaxDBController extends Controller
 	{
 		// https://select2.org/data-sources/formats
 		if ($request->has('search')) {
-			$au = OptUOM::where('uom','LIKE','%'.$request->search.'%')->get();
+			$au = OptUOM::where('uom','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		} elseif ($request->has('id')) {
 			$au = OptUOM::where('id', $request->id)->get();
 		} else {
@@ -671,7 +671,7 @@ class AjaxDBController extends Controller
 	{
 		// https://select2.org/data-sources/formats
 		if ($request->has('search')) {
-			$au = OptWeekDates::where('week','LIKE','%'.$request->search.'%')->get();
+			$au = OptWeekDates::where('week','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		} elseif ($request->has('id')) {
 			$au = OptWeekDates::where('id', $request->id)->get();
 		} else {
@@ -704,7 +704,7 @@ class AjaxDBController extends Controller
 	public function status(Request $request): JsonResponse
 	{
 		// https://select2.org/data-sources/formats
-		$au = OptStatus::where('status','LIKE','%'.$request->search.'%')->get();
+		$au = OptStatus::where('status','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -719,7 +719,7 @@ class AjaxDBController extends Controller
 	{
 		// https://select2.org/data-sources/formats
 		if ($request->has('search')) {
-			$au = OptMachine::where('machine','LIKE','%'.$request->search.'%')->orderBy('id')->get();
+			$au = OptMachine::where('machine','LIKE','%'.addcslashes($request->search, '\\%_').'%')->orderBy('id')->get();
 		} elseif ($request->has('id')) {
 			$au = OptMachine::where('id', $request->id)->get();
 		} elseif ($request->has('idNotIn')) {
@@ -740,7 +740,7 @@ class AjaxDBController extends Controller
 	public function machineaccessories(Request $request): JsonResponse
 	{
 		$values = OptMachineAccessories::when($request->search, function($q1) use ($request) {
-								$q1->where('accessory','LIKE','%'.$request->search.'%');
+								$q1->where('accessory','LIKE','%'.addcslashes($request->search, '\\%_').'%');
 							})
 						->when($request->id, function($q2) use ($request) {
 							$q2->where('id', $request->id);
@@ -758,7 +758,7 @@ class AjaxDBController extends Controller
 	public function category(Request $request): JsonResponse
 	{
 		// https://select2.org/data-sources/formats
-		$au = OptCategory::where('category','LIKE','%'.$request->search.'%')->get();
+		$au = OptCategory::where('category','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -772,7 +772,7 @@ class AjaxDBController extends Controller
 	public function healthstatus(Request $request): JsonResponse
 	{
 		// https://select2.org/data-sources/formats
-		$au = OptHealthStatus::where('health_status','LIKE','%'.$request->search.'%')->get();
+		$au = OptHealthStatus::where('health_status','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -786,7 +786,7 @@ class AjaxDBController extends Controller
 	public function maritalstatus(Request $request): JsonResponse
 	{
 		// https://select2.org/data-sources/formats
-		$au = OptMaritalStatus::where('marital_status','LIKE','%'.$request->search.'%')->get();
+		$au = OptMaritalStatus::where('marital_status','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -800,7 +800,7 @@ class AjaxDBController extends Controller
 	public function race(Request $request): JsonResponse
 	{
 		// https://select2.org/data-sources/formats
-		$au = OptRace::where('race','LIKE','%'.$request->search.'%')->get();
+		$au = OptRace::where('race','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -814,7 +814,7 @@ class AjaxDBController extends Controller
 	public function religion(Request $request): JsonResponse
 	{
 		// https://select2.org/data-sources/formats
-		$au = OptReligion::where('religion','LIKE','%'.$request->search.'%')->get();
+		$au = OptReligion::where('religion','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -828,7 +828,7 @@ class AjaxDBController extends Controller
 	public function taxexemptionpercentage(Request $request): JsonResponse
 	{
 		// https://select2.org/data-sources/formats
-		$au = OptTaxExemptionPercentage::where('tax_exemption_percentage','LIKE','%'.$request->search.'%')->get();
+		$au = OptTaxExemptionPercentage::where('tax_exemption_percentage','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -842,7 +842,7 @@ class AjaxDBController extends Controller
 	public function relationship(Request $request): JsonResponse
 	{
 		// https://select2.org/data-sources/formats
-		$au = OptRelationship::where('relationship','LIKE','%'.$request->search.'%')->get();
+		$au = OptRelationship::where('relationship','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -856,7 +856,7 @@ class AjaxDBController extends Controller
 	public function division(Request $request): JsonResponse
 	{
 		// https://select2.org/data-sources/formats
-		$au = OptDivision::where('div','LIKE','%'.$request->search.'%')->get();
+		$au = OptDivision::where('div','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 		foreach ($au as $key) {
 			$cuti['results'][] = [
 									'id' => $key->id,
@@ -1458,7 +1458,7 @@ class AjaxDBController extends Controller
 
 		// dd($dep);
 		foreach ($dep as $v) {
-			$staff = $v->belongstomanystaff()->wherePivot('main', 1)->where('active', 1)->where('name','LIKE','%'.$request->search.'%')->get();
+			$staff = $v->belongstomanystaff()->wherePivot('main', 1)->where('active', 1)->where('name','LIKE','%'.addcslashes($request->search, '\\%_').'%')->get();
 			foreach ($staff as $k) {
 				$s['results'][] = ['id' => $k->id, 'text' => $k->name];
 			}
@@ -1627,7 +1627,7 @@ class AjaxDBController extends Controller
 	public function getOptSalesGetItem(Request $request)
 	{
 		$values = OptSalesGetItem::when($request->search, function($q1) use ($request){
-								$q1->where('get_item', 'LIKE', '%'.$request->search.'%');
+								$q1->where('get_item', 'LIKE', '%'.addcslashes($request->search, '\\%_').'%');
 							})
 							->when($request->id, function($q1) use ($request){
 								$q1->where('id', $request->id);

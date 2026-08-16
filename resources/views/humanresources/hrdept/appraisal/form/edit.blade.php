@@ -5,70 +5,7 @@
 <script src="http://tan.com/js/ckeditor/ckeditor.js"></script>
 <script src="http://tan.com/js/ckeditor/adapters/jquery.js"></script> -->
 
-<style>
-  .img1 {
-    text-align: center;
-  }
-
-  p {
-    margin: 0;
-    padding: 0;
-  }
-
-  .tr-td-border,
-  .tr-td-border td {
-    border: 1px solid black;
-  }
-
-  .td-border-left-right {
-    border-width: 0px 1px 0px 1px;
-    /* top, right, bottom, left */
-  }
-
-  .td-border-right {
-    border-width: 0px 1px 0px 0px;
-    /* top, right, bottom, left */
-  }
-
-  .td-border-left-right-bottom {
-    border-width: 0px 1px 1px 1px;
-    /* top, right, bottom, left */
-  }
-
-  .td-border-right-bottom {
-    border-width: 0px 1px 1px 0px;
-    /* top, right, bottom, left */
-  }
-
-  #myButton {
-    background: none;
-    border: none;
-    color: black;
-    cursor: pointer;
-    text-decoration: underline;
-    padding: 0;
-    text-align: left;
-  }
-
-  #myButton:hover {
-    color: blue;
-  }
-</style>
-
-<?php
-$pivotappraisal = DB::table('pivot_category_appraisals')
-->where('id', $id)
-->first();
-$category = App\Models\HumanResources\OptAppraisalCategories::where('id', $pivotappraisal->category_id)->first();
-$appraisals = DB::table('pivot_category_appraisals')
-->where('category_id', $pivotappraisal->category_id)
-->where('version', $pivotappraisal->version)
-->orderBy('sort', 'ASC')
-->orderBy('id', 'ASC')
-->get();
-?>
-
-<div class="container">
+<div class="page-humanresources-hrdept-appraisal-form-edit container">
   @include('humanresources.hrdept.navhr')
 
   <h4>Appraisal Form : {{ $category->category }} Version {{ $pivotappraisal->version }}</h4>
@@ -126,7 +63,7 @@ $appraisals = DB::table('pivot_category_appraisals')
       <td>
 
         <button type="button" id="myButton" class="myButton" data-bs-toggle="modal" data-bs-target="#section{{ $section->id }}" data-id="{{ $section->id }}" data-name="section_text">
-          {!! $section->section !!}
+          {{ $section->section }}
         </button>
 
         <!-- POP UP SECTION -->
@@ -151,7 +88,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   </div>
                   <div class="row mb-1">
                     <div class="mb-1 {{ $errors->has('section_text') ? 'has-error' : '' }}">
-                      <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{!! $section->section !!}</textarea>
+                      <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{{ $section->section }}</textarea>
                     </div>
                   </div>
                 </div>
@@ -195,7 +132,7 @@ $appraisals = DB::table('pivot_category_appraisals')
       <td colspan="3" class="td-border-right">
 
         <button type="button" id="myButton" class="myButton" data-bs-toggle="modal" data-bs-target="#section_sub{{ $section_sub->id }}" data-id="{{ $section_sub->id }}" data-name="section_sub_text">
-          {!! $section_sub->section_sub !!}
+          {{ $section_sub->section_sub }}
         </button>
 
         <!-- POP UP SECTION SUB -->
@@ -220,7 +157,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   </div>
                   <div class="row mb-1">
                     <div class="mb-1 {{ $errors->has('section_sub_text') ? 'has-error' : '' }}">
-                      <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{!! $section_sub->section_sub !!}</textarea>
+                      <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{{ $section_sub->section_sub }}</textarea>
                     </div>
                   </div>
                 </div>
@@ -252,7 +189,7 @@ $appraisals = DB::table('pivot_category_appraisals')
       <td colspan="3" class="td-border-right">
 
         <button type="button" id="myButton" class="myButton" data-bs-toggle="modal" data-bs-target="#main_question{{ $main_question->id }}" data-id="{{ $main_question->id }}" data-name="main_question_text">
-          {!! $main_question->main_question !!}
+          {{ $main_question->main_question }}
         </button>
 
         <!-- POP UP MAIN QUESTION -->
@@ -280,7 +217,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   </div>
                   <div class="row mb-1">
                     <div class="mb-1 {{ $errors->has('main_question_text') ? 'has-error' : '' }}">
-                      <textarea name="main_question_text{{ $main_question->id }}" id="main_question_text{{ $main_question->id }}" class="form-control form-control-sm">{!! $main_question->main_question !!}</textarea>
+                      <textarea name="main_question_text{{ $main_question->id }}" id="main_question_text{{ $main_question->id }}" class="form-control form-control-sm">{{ $main_question->main_question }}</textarea>
                     </div>
                   </div>
                 </div>
@@ -303,12 +240,12 @@ $appraisals = DB::table('pivot_category_appraisals')
         <input type="radio" name="{{ '1' . $no . $no_sub }}" value="{{ '1' . $no . $no_sub }}">
       </td>
       <td width="50px" style="vertical-align:text-top;">
-        {!! $question->mark !!}m -
+        {{ $question->mark }}m -
       </td>
       <td class="td-border-right">
 
         <button type="button" id="myButton" class="myButton" data-bs-toggle="modal" data-bs-target="#question{{ $question->id }}" data-id="{{ $question->id }}" data-name="question_text">
-          {!! $question->question !!}
+          {{ $question->question }}
         </button>
 
         <!-- POP UP QUESTION -->
@@ -336,7 +273,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   </div>
                   <div class="row mb-1">
                     <div class="mb-1 {{ $errors->has('question_text') ? 'has-error' : '' }}">
-                      <textarea name="question_text{{ $question->id }}" id="question_text{{ $question->id }}" class="form-control form-control-sm">{!! $question->question !!}</textarea>
+                      <textarea name="question_text{{ $question->id }}" id="question_text{{ $question->id }}" class="form-control form-control-sm">{{ $question->question }}</textarea>
                     </div>
                   </div>
                 </div>
@@ -530,7 +467,7 @@ $appraisals = DB::table('pivot_category_appraisals')
     <tr>
       <td>
         <button type="button" id="myButton" class="myButton" data-bs-toggle="modal" data-bs-target="#section{{ $section->id }}" data-id="{{ $section->id }}" data-name="section_text">
-          {!! $section->section !!}
+          {{ $section->section }}
         </button>
 
         <!-- POP UP SECTION -->
@@ -554,7 +491,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   </div>
                   <div class="row mb-1">
                     <div class="mb-1 {{ $errors->has('section_text') ? 'has-error' : '' }}">
-                      <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{!! $section->section !!}</textarea>
+                      <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{{ $section->section }}</textarea>
                     </div>
                   </div>
                 </div>
@@ -609,7 +546,7 @@ $appraisals = DB::table('pivot_category_appraisals')
       <td>
 
         <button type="button" id="myButton" class="myButton" data-bs-toggle="modal" data-bs-target="#section_sub{{ $section_sub->id }}" data-id="{{ $section_sub->id }}" data-name="section_sub_text">
-          {!! $section_sub->section_sub !!}
+          {{ $section_sub->section_sub }}
         </button>
 
         <!-- POP UP SECTION SUB -->
@@ -633,7 +570,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   </div>
                   <div class="row mb-1">
                     <div class="mb-1 {{ $errors->has('section_sub_text') ? 'has-error' : '' }}">
-                      <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{!! $section_sub->section_sub !!}</textarea>
+                      <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{{ $section_sub->section_sub }}</textarea>
                     </div>
                   </div>
                 </div>
@@ -728,7 +665,7 @@ $appraisals = DB::table('pivot_category_appraisals')
       <td>
 
         <button type="button" id="myButton" class="myButton" data-bs-toggle="modal" data-bs-target="#section{{ $section->id }}" data-id="{{ $section->id }}" data-name="section_text">
-          {!! $section->section !!}
+          {{ $section->section }}
         </button>
 
         <!-- POP UP SECTION -->
@@ -752,7 +689,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   </div>
                   <div class="row mb-1">
                     <div class="mb-1 {{ $errors->has('section_text') ? 'has-error' : '' }}">
-                      <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{!! $section->section !!}</textarea>
+                      <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{{ $section->section }}</textarea>
                     </div>
                   </div>
                 </div>
@@ -778,7 +715,7 @@ $appraisals = DB::table('pivot_category_appraisals')
       <td>
 
         <button type="button" id="myButton" class="myButton" data-bs-toggle="modal" data-bs-target="#section_sub{{ $section_sub->id }}" data-id="{{ $section_sub->id }}" data-name="section_sub_text">
-          {!! $section_sub->section_sub !!}
+          {{ $section_sub->section_sub }}
         </button>
 
         <!-- POP UP SECTION SUB -->
@@ -803,7 +740,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   </div>
                   <div class="row mb-1">
                     <div class="mb-1 {{ $errors->has('section_sub_text') ? 'has-error' : '' }}">
-                      <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{!! $section_sub->section_sub !!}</textarea>
+                      <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{{ $section_sub->section_sub }}</textarea>
                     </div>
                   </div>
                 </div>
@@ -888,7 +825,7 @@ $appraisals = DB::table('pivot_category_appraisals')
       <td>
 
         <button type="button" id="myButton" class="myButton" data-bs-toggle="modal" data-bs-target="#section{{ $section->id }}" data-id="{{ $section->id }}" data-name="section_text">
-          {!! $section->section !!}
+          {{ $section->section }}
         </button>
 
         <!-- POP UP SECTION -->
@@ -913,7 +850,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   </div>
                   <div class="row mb-1">
                     <div class="mb-1 {{ $errors->has('section_text') ? 'has-error' : '' }}">
-                      <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{!! $section->section !!}</textarea>
+                      <textarea name="section_text{{ $section->id }}" id="section_text{{ $section->id }}" class="form-control form-control-sm">{{ $section->section }}</textarea>
                     </div>
                   </div>
                 </div>
@@ -947,7 +884,7 @@ $appraisals = DB::table('pivot_category_appraisals')
       <td colspan="2">
 
         <button type="button" id="myButton" class="myButton" data-bs-toggle="modal" data-bs-target="#section_sub{{ $section_sub->id }}" data-id="{{ $section_sub->id }}" data-name="section_sub_text">
-          {!! $section_sub->section_sub !!}
+          {{ $section_sub->section_sub }}
         </button>
 
         <!-- POP UP SECTION SUB -->
@@ -972,7 +909,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   </div>
                   <div class="row mb-1">
                     <div class="mb-1 {{ $errors->has('section_sub_text') ? 'has-error' : '' }}">
-                      <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{!! $section_sub->section_sub !!}</textarea>
+                      <textarea name="section_sub_text{{ $section_sub->id }}" id="section_sub_text{{ $section_sub->id }}" class="form-control form-control-sm">{{ $section_sub->section_sub }}</textarea>
                     </div>
                   </div>
                 </div>
@@ -997,7 +934,7 @@ $appraisals = DB::table('pivot_category_appraisals')
       <td>
 
         <button type="button" id="myButton" class="myButton" data-bs-toggle="modal" data-bs-target="#main_question{{ $main_question->id }}" data-id="{{ $main_question->id }}" data-name="main_question_text">
-          {!! $main_question->main_question !!}
+          {{ $main_question->main_question }}
         </button>
 
         <!-- POP UP MAIN QUESTION -->
@@ -1026,7 +963,7 @@ $appraisals = DB::table('pivot_category_appraisals')
                   </div>
                   <div class="row mb-1">
                     <div class="mb-1 {{ $errors->has('main_question_text') ? 'has-error' : '' }}">
-                      <textarea name="main_question_text{{ $main_question->id }}" id="main_question_text{{ $main_question->id }}" class="form-control form-control-sm">{!! $main_question->main_question !!}</textarea>
+                      <textarea name="main_question_text{{ $main_question->id }}" id="main_question_text{{ $main_question->id }}" class="form-control form-control-sm">{{ $main_question->main_question }}</textarea>
                     </div>
                   </div>
                 </div>
@@ -1203,424 +1140,17 @@ $appraisals = DB::table('pivot_category_appraisals')
 
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-// CKEDITOR
-$(document).ready(function() {
-  $(".myButton").on('click', function (e) {
-
-    e.preventDefault();
-    var Id = $(this).data('id');
-    var Name = $(this).data('name');
-    var editor = Name + Id;
-
-    CKEDITOR.replace(editor, {
-      toolbar: [{
-        name: 'clipboard',
-        items: ['Cut', 'Copy', 'Paste', '-', 'Undo', 'Redo']
-      },
-      {
-        name: 'basicstyles',
-        items: ['Bold', 'Italic', 'Underline', '-']
-      },
-      {
-        name: 'paragraph',
-        items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft',
-        'JustifyCenter',
-        'JustifyRight', 'JustifyBlock'
-        ]
-      },
-      {
-        name: 'styles',
-        items: ['Styles', 'Format', 'Font', 'FontSize']
-      },
-      ]
-    });
-  });
-});
-
-
-CKEDITOR.replace('section_text_add', {
-  toolbar: [{
-    name: 'clipboard',
-    items: ['Cut', 'Copy', 'Paste', '-', 'Undo', 'Redo']
-  },
-  {
-    name: 'basicstyles',
-    items: ['Bold', 'Italic', 'Underline', '-']
-  },
-  {
-    name: 'paragraph',
-    items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft',
-    'JustifyCenter',
-    'JustifyRight', 'JustifyBlock'
-    ]
-  },
-  {
-    name: 'styles',
-    items: ['Styles', 'Format', 'Font', 'FontSize']
-  },
-  ]
-});
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// ADD AJAX SECTION
-$(".form_section_add").on('submit', function (e) {
-
-  var editor = CKEDITOR.instances['section_text_add'];
-  var section_text = editor.getData();
-
-  e.preventDefault();
-  $.ajax({
-    url: '{{ url('appraisalform/update') }}',
-    type: 'PATCH',
-    data: {
-      _token: '{!! csrf_token() !!}',
-      add: 'P1',
-      sort: $('#section_sort_add').val(),
-      section: section_text
-    },
-    dataType: 'json',
-    global: false,
-    async: false,
-    success: function (response) {
-      $('#section_add').modal('hide');
-      // var row = $('#section_add').parent().parent();
-      // row.remove();
-      swal.fire({
-        title: 'Success!',
-        text: response.message,
-        icon: response.status
-      }).then((result) => {
-        if (result.isConfirmed) {
-          location.reload();
-        }
-      });
-    },
-    error: function (resp) {
-      const res = resp.responseJSON;
-      $('#section_add').modal('hide');
-      swal.fire('Error!', res.message, 'error');
-    }
-  });
-});
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// ADD AJAX SECTION SUB
-$(".form_section_sub_add").on('submit', function (e) {
-
-  var ids = $(this).data('id');
-  var editor = CKEDITOR.instances['section_sub_text_add' + ids];
-  var section_sub_text = editor.getData();
-
-  e.preventDefault();
-  $.ajax({
-    url: '{{ url('appraisalform/update') }}',
-    type: 'PATCH',
-    data: {
-      _token: '{!! csrf_token() !!}',
-      add: 'P2',
-      id: ids,
-      sort: $('#section_sub_sort_add' + ids).val(),
-      section_sub: section_sub_text
-    },
-    dataType: 'json',
-    global: false,
-    async: false,
-    success: function (response) {
-      $('#section_sub_add' + ids).modal('hide');
-      // var row = $('#section_sub_add' + ids).parent().parent();
-      // row.remove();
-      swal.fire({
-        title: 'Success!',
-        text: response.message,
-        icon: response.status
-      }).then((result) => {
-        if (result.isConfirmed) {
-          location.reload();
-        }
-      });
-    },
-    error: function (resp) {
-      const res = resp.responseJSON;
-      $('#section_sub_add' + ids).modal('hide');
-      swal.fire('Error!', res.message, 'error');
-    }
-  });
-});
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// ADD AJAX MAIN QUESTION
-$(".form_main_question_add").on('submit', function (e) {
-
-  var ids = $(this).data('id');
-  var editor = CKEDITOR.instances['main_question_text_add' + ids];
-  var main_question_text = editor.getData();
-
-  e.preventDefault();
-  $.ajax({
-    url: '{{ url('appraisalform/update') }}',
-    type: 'PATCH',
-    data: {
-      _token: '{!! csrf_token() !!}',
-      add: 'P3',
-      id: ids,
-      mark: $('#main_question_mark_add' + ids).val(),
-      sort: $('#main_question_sort_add' + ids).val(),
-      main_question: main_question_text
-    },
-    dataType: 'json',
-    global: false,
-    async: false,
-    success: function (response) {
-      $('#main_question_add' + ids).modal('hide');
-      // var row = $('#main_question_add' + ids).parent().parent();
-      // row.remove();
-      swal.fire({
-        title: 'Success!',
-        text: response.message,
-        icon: response.status
-      }).then((result) => {
-        if (result.isConfirmed) {
-          location.reload();
-        }
-      });
-    },
-    error: function (resp) {
-      const res = resp.responseJSON;
-      $('#main_question_add' + ids).modal('hide');
-      swal.fire('Error!', res.message, 'error');
-    }
-  });
-});
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// ADD AJAX QUESTION
-$(".form_question_add").on('submit', function (e) {
-
-  var ids = $(this).data('id');
-  var editor = CKEDITOR.instances['question_text_add' + ids];
-  var question_text = editor.getData();
-
-  e.preventDefault();
-  $.ajax({
-    url: '{{ url('appraisalform/update') }}',
-    type: 'PATCH',
-    data: {
-      _token: '{!! csrf_token() !!}',
-      add: 'P4',
-      id: ids,
-      mark: $('#question_mark_add' + ids).val(),
-      sort: $('#question_sort_add' + ids).val(),
-      question: question_text
-    },
-    dataType: 'json',
-    global: false,
-    async: false,
-    success: function (response) {
-      $('#question_add' + ids).modal('hide');
-      // var row = $('#question_add' + ids).parent().parent();
-      // row.remove();
-      swal.fire({
-        title: 'Success!',
-        text: response.message,
-        icon: response.status
-      }).then((result) => {
-        if (result.isConfirmed) {
-          location.reload();
-        }
-      });
-    },
-    error: function (resp) {
-      const res = resp.responseJSON;
-      $('#question_add' + ids).modal('hide');
-      swal.fire('Error!', res.message, 'error');
-    }
-  });
-});
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// EDIT AJAX SECTION
-$(".form_section").on('submit', function (e) {
-
-  var ids = $(this).data('id');
-  var editor = CKEDITOR.instances['section_text' + ids];
-  var section_text = editor.getData();
-
-  e.preventDefault();
-  $.ajax({
-    url: '{{ url('appraisalform/update') }}',
-    type: 'PATCH',
-    data: {
-      _token: '{!! csrf_token() !!}',
-      update: 'section',
-      id: ids,
-      sort: $('#section_sort' + ids).val(),
-      section: section_text
-    },
-    dataType: 'json',
-    global: false,
-    async: false,
-    success: function (response) {
-      $('#section' + ids).modal('hide');
-      // var row = $('#section' + ids).parent().parent();
-      // row.remove();
-      swal.fire({
-        title: 'Success!',
-        text: response.message,
-        icon: response.status
-      }).then((result) => {
-        if (result.isConfirmed) {
-          location.reload();
-        }
-      });
-    },
-    error: function (resp) {
-      const res = resp.responseJSON;
-      $('#section' + ids).modal('hide');
-      swal.fire('Error!', res.message, 'error');
-    }
-  });
-});
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// EDIT AJAX SECTION SUB
-$(".form_section_sub").on('submit', function (e) {
-
-  var ids = $(this).data('id');
-  var editor = CKEDITOR.instances['section_sub_text' + ids];
-  var section_sub_text = editor.getData();
-
-  e.preventDefault();
-  $.ajax({
-    url: '{{ url('appraisalform/update') }}',
-    type: 'PATCH',
-    data: {
-      _token: '{!! csrf_token() !!}',
-      update: 'section_sub',
-      id: ids,
-      sort: $('#section_sub_sort' + ids).val(),
-      section_sub: section_sub_text
-    },
-    dataType: 'json',
-    global: false,
-    async: false,
-    success: function (response) {
-      $('#section_sub' + ids).modal('hide');
-      // var row = $('#section_sub' + ids).parent().parent();
-      // row.remove();
-      swal.fire({
-        title: 'Success!',
-        text: response.message,
-        icon: response.status
-      }).then((result) => {
-        if (result.isConfirmed) {
-          location.reload();
-        }
-      });
-    },
-    error: function (resp) {
-      const res = resp.responseJSON;
-      $('#section_sub' + ids).modal('hide');
-      swal.fire('Error!', res.message, 'error');
-    }
-  });
-});
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// EDIT AJAX MAIN QUESTION
-$(".form_main_question").on('submit', function (e) {
-
-  var ids = $(this).data('id');
-  var editor = CKEDITOR.instances['main_question_text' + ids];
-  var main_question_text = editor.getData();
-
-  e.preventDefault();
-  $.ajax({
-    url: '{{ url('appraisalform/update') }}',
-    type: 'PATCH',
-    data: {
-      _token: '{!! csrf_token() !!}',
-      update: 'main_question',
-      id: ids,
-      sort: $('#main_question_sort' + ids).val(),
-      mark: $('#main_question_mark' + ids).val(),
-      main_question: main_question_text
-    },
-    dataType: 'json',
-    global: false,
-    async: false,
-    success: function (response) {
-      $('#main_question' + ids).modal('hide');
-      // var row = $('#main_question' + ids).parent().parent();
-      // row.remove();
-      swal.fire({
-        title: 'Success!',
-        text: response.message,
-        icon: response.status
-      }).then((result) => {
-        if (result.isConfirmed) {
-          location.reload();
-        }
-      });
-    },
-    error: function (resp) {
-      const res = resp.responseJSON;
-      $('#main_question' + ids).modal('hide');
-      swal.fire('Error!', res.message, 'error');
-    }
-  });
-});
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// EDIT AJAX QUESTION
-$(".form_question").on('submit', function (e) {
-
-  var ids = $(this).data('id');
-  var editor = CKEDITOR.instances['question_text' + ids];
-  var question_text = editor.getData();
-
-  e.preventDefault();
-  $.ajax({
-    url: '{{ url('appraisalform/update') }}',
-    type: 'PATCH',
-    data: {
-      _token: '{!! csrf_token() !!}',
-      update: 'question',
-      id: ids,
-      sort: $('#question_sort' + ids).val(),
-      mark: $('#question_mark' + ids).val(),
-      question: question_text
-    },
-    dataType: 'json',
-    global: false,
-    async: false,
-    success: function (response) {
-      $('#question' + ids).modal('hide');
-      // var row = $('#question' + ids).parent().parent();
-      // row.remove();
-      swal.fire({
-        title: 'Success!',
-        text: response.message,
-        icon: response.status
-      }).then((result) => {
-        if (result.isConfirmed) {
-          location.reload();
-        }
-      });
-    },
-    error: function (resp) {
-      const res = resp.responseJSON;
-      $('#question' + ids).modal('hide');
-      swal.fire('Error!', res.message, 'error');
-    }
-  });
-});
+window.data = {
+	route: {
+	},
+	url: {
+		appraisalformupdate: '{{ url('appraisalform/update') }}',
+	},
+	old: {
+	},
+	editId: @json(isset($id) ? $id : null),
+	err: {
+	},
+	errors: @json($errors->toArray()),
+};
 @endsection

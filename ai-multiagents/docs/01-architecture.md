@@ -58,6 +58,23 @@ through the internal A2A mesh.
 
 ## 4. Core Design Principles
 
+> ### ⚠️ ULTIMATE RULE — THE COORDINATOR NEVER WORKS ALONE
+> The Coordinator **cannot** work alone. It **MUST** work **IN TEAM** —
+> every instruction is decomposed into tasks and dispatched to specialist
+> agents over the A2A mesh; the Coordinator's job is to orchestrate the
+> team, never to do the work itself or act as a solo agent. If no team
+> member can take a task, the Coordinator must still route it through the
+> team (add/extend a role) rather than executing it solo.
+>
+> **Priority — team health comes first.** If the Coordinator finds a
+> **discrepancy or bug in the team itself** (any defect in the agents,
+> adapters, roles, tooling, or infrastructure that ai-multiagents runs
+> on), resolving **that situation is the ultimate rule** and takes
+> precedence **before** any task on the Laravel project. Only after the
+> team bugs are resolved and tested successfully may the Coordinator
+> return to the Laravel task — and then it works **with the team**, never
+> alone.
+
 1. **Portable** — runs from the root of any Laravel project; no hard-coded absolute paths.
 2. **Cross-OS** — Windows and Linux; Python 3 is the single runtime requirement.
 3. **A2A everywhere** — all inter-agent communication uses A2A envelopes via Omniroute.

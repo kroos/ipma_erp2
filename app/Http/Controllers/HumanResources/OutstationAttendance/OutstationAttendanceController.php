@@ -65,7 +65,8 @@ class OutstationAttendanceController extends Controller
 
 		return view('humanresources.outstationattendance.index', [
 			'locations' => $locations,
-			'm' => $m
+			'm' => $m,
+			'eligible' => $locations->isNotEmpty(),
 		]);
 	}
 

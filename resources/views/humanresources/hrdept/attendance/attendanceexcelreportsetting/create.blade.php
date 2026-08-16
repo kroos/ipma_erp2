@@ -28,27 +28,14 @@
 @endsection
 
 @section('js')
-////////////////////////////////////////////////////////////////////////////////////
-$('#1_setting,#2_setting,#3_setting,#4_setting,#5_setting').change(function() {
-	$.ajax({
-		url: "{{ url('attendancepayslipexcelsetting/update') }}/" + $(this).data('id'),
-		type: "PATCH",
-		data : {
-					id: $(this).data('id'),
-					value: $(this).val(),
-					_token: '{!! csrf_token() !!}',
-				},
-		dataType: 'json',
-		global: false,
-		async:false,
-		success: function (response) {
-			// console.log(response);
-			swal.fire("Good job!", response.message, response.status);
-		},
-		error: function(jqXHR, textStatus, errorThrown) {
-			// console.log(textStatus, errorThrown);
-			swal.fire("Ooopss! Something wrong!", errorThrown, textStatus);
-		}
-	})
-});
+window.data = {
+	route: {
+	},
+	url: {
+		update: '{{ url('attendancepayslipexcelsetting/update') }}',
+	},
+	old: {
+	},
+	errors: @json($errors->toArray()),
+};
 @endsection

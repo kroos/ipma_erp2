@@ -25,7 +25,10 @@
         <!-- <env name="DB_DATABASE" value=":memory:"/> -->
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
-        <env name="SESSION_DRIVER" value="array"/>
+        <!-- force=true: .env sets SESSION_DRIVER=database; without it PHPUnit 11 skips
+             the override when the var is already present and the smoke test hits the
+             missing `sessions` table in the partial dev DB (500) -->
+        <env name="SESSION_DRIVER" value="array" force="true"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
     </php>
 </phpunit>

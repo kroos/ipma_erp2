@@ -1,31 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<style>
-	/* div {
-		border: 1px solid black;
-	} */
-</style>
-
-<?php
-use App\Models\Staff;
-use App\Models\HumanResources\OptDisciplinaryAction;
-use App\Models\HumanResources\OptViolation;
-use App\Models\HumanResources\OptInfractions;
-
-$staff = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
-->select(DB::raw('CONCAT(username, " - ", name) AS display_name'), 'staffs.id')
-->where('staffs.active', 1)
-->where('logins.active', 1)
-->pluck('display_name', 'id')
-->toArray();
-
-$disciplinary_action = OptDisciplinaryAction::pluck('disciplinary_action', 'id')->toArray();
-$violation = OptViolation::select(DB::raw('CONCAT(IFNULL(violation, ""), " - ", IFNULL(remarks, "")) AS display_violation'), 'id')->pluck('display_violation', 'id')->toArray();
-$infraction = OptInfractions::select(DB::raw('CONCAT(IFNULL(infraction, ""), " - ", IFNULL(remarks, "")) AS display_infraction'), 'id')->pluck('display_infraction', 'id')->toArray();
-?>
-
-<div class="container">
+<div class="page-humanresources-hrdept-discipline-create container">
 	@include('humanresources.hrdept.navhr')
 	<h4>Add Discipline</h4>
 
@@ -106,7 +82,7 @@ $infraction = OptInfractions::select(DB::raw('CONCAT(IFNULL(infraction, ""), " -
 			<div class="col-md-2">
 				<label for="misconduct_date" class="form-label">Misconduct Date : </label>
 			</div>
-			<div class="col-md-10 {{ $errors->has('misconduct_date') ? 'has-error' : '' }}">
+			<div class="col-md-10 {{ $errors->has('misconduct_date') ? 'has-error' : '' }}" style="position: relative;">
 				<input type="text" name="misconduct_date" value="{{ old('misconduct_date') }}" id="misconduct_date" class="form-control form-control-sm col-auto @error('misconduct_date') is-invalid @enderror">
 			</div>
 		</div>
@@ -115,7 +91,7 @@ $infraction = OptInfractions::select(DB::raw('CONCAT(IFNULL(infraction, ""), " -
 			<div class="col-md-2">
 				<label for="action_taken_date" class="form-label">Action Taken Date : </label>
 			</div>
-			<div class="col-md-10 {{ $errors->has('action_taken_date') ? 'has-error' : '' }}">
+			<div class="col-md-10 {{ $errors->has('action_taken_date') ? 'has-error' : '' }}" style="position: relative;">
 				<input type="text" name="action_taken_date" value="{{ old('action_taken_date') }}" id="action_taken_date" class="form-control form-control-sm col-auto @error('action_taken_date') is-invalid @enderror">
 			</div>
 		</div>
@@ -167,126 +143,16 @@ $infraction = OptInfractions::select(DB::raw('CONCAT(IFNULL(infraction, ""), " -
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-$('.form-select').select2({
-	placeholder: 'Please choose',
-	//width: '100%',
-	allowClear: true,
-	closeOnSelect: true,
-});
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// DATE PICKER
-$('#misconduct_date, #action_taken_date').datetimepicker({
-	icons: {
-		time: "fas fas-regular fa-clock fa-beat",
-		date: "fas fas-regular fa-calendar fa-beat",
-		up: "fa-regular fa-circle-up fa-beat",
-		down: "fa-regular fa-circle-down fa-beat",
-		previous: 'fas fas-regular fa-arrow-left fa-beat',
-		next: 'fas fas-regular fa-arrow-right fa-beat',
-		today: 'fas fas-regular fa-calenday-day fa-beat',
-		clear: 'fas fas-regular fa-broom-wide fa-beat',
-		close: 'fas fas-regular fa-rectangle-xmark fa-beat'
+window.data = {
+	route: {
 	},
-	format: 'YYYY-MM-DD',
-	useCurrent: true,
-});
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// VALIDATOR
-$(document).ready(function() {
-	$('#form').bootstrapValidator({
-
-		fields: {
-			staff_id: {
-				validators: {
-					notEmpty: {
-						message: 'Please select staff.'
-					}
-				}
-			},
-
-			supervisor_id: {
-				validators: {
-					notEmpty: {
-						message: 'Please select supervisor incharge.'
-					}
-				}
-			},
-
-			disciplinary_action_id: {
-				validators: {
-					notEmpty: {
-						message: 'Please select disciplinary action.'
-					}
-				}
-			},
-
-			violation_id: {
-				validators: {
-					notEmpty: {
-						message: 'Please select violation.'
-					}
-				}
-			},
-
-			infraction_id: {
-				validators: {
-					notEmpty: {
-						message: 'Please select infraction.'
-					}
-				}
-			},
-
-			misconduct_date: {
-				validators: {
-					notEmpty: {
-						message: 'Please insert misconduct date.'
-					}
-				}
-			},
-
-			action_taken_date: {
-				validators: {
-					notEmpty: {
-						message: 'Please insert action taken date.'
-					}
-				}
-			},
-
-			reason: {
-				validators: {
-					notEmpty: {
-						message: 'Please insert incident description.'
-					}
-				}
-			},
-
-			action_to_be_taken: {
-				validators: {
-					notEmpty: {
-						message: 'Please insert action to be taken.'
-					}
-				}
-			},
-
-			softcopy: {
-				validators: {
-					file: {
-						extension: 'jpeg,jpg,png,bmp,pdf,doc,docx', // no space
-						type: 'image/jpeg,image/png,image/bmp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document', // no space
-						maxSize: 5242880, // 5120 * 1024,
-						message: 'The selected file is not valid. Please use jpeg, jpg, png, bmp, pdf or doc and the file is below than 5MB.'
-					},
-				}
-			},
-
-		}
-	})
-});
+	url: {
+	},
+	old: {
+	},
+	errors: @json($errors->toArray()),
+	editId: @json(isset($discipline) ? $discipline->id : null),
+};
 @endsection
 
 @section('nonjquery')

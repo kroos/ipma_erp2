@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\DB;
 // load models
 use App\Models\HumanResources\HRLeaveMC;
 
+// load services
+use App\Services\HumanResources\EntitlementService;
+
 // load array helper
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -43,7 +46,19 @@ class HRMCLeaveController extends Controller
 	 */
 	public function index(): View
 	{
-		return view('humanresources.hrdept.entitlement.mc.index');
+		$config = [
+			'title' => 'Medical Certificate Leave Entitlement',
+			'variant' => 'entitlement',
+			'model' => HRLeaveMC::class,
+			'endpoint' => 'hrmcleave.index',
+			'label' => 'Medical Certificate',
+			'field' => 'mc_leave',
+			'columns' => ['ID', 'Name', 'Medical Certificate Leave', 'Medical Certificate Leave Adjustment', 'Medical Certificate Leave Utilize', 'Medical Certificate Leave Balance', 'Remarks', '&nbsp;'],
+		];
+
+		$rows = app(EntitlementService::class)->rows(HRLeaveMC::class, $config['field']);
+
+		return view('humanresources.hrdept.entitlement.index', compact('config', 'rows'));
 	}
 
 	/**

@@ -131,6 +131,43 @@ with tempfile.TemporaryDirectory() as tmp:
     written = bool(docs) and (tmp / docs[0]["path"]).is_file()
     check("doc written to disk", written, f"path={docs[0]['path'] if docs else '?'}")
 
+    print("\n== finding-5 shape: doc brain WRITES the contract itself (no JSON) ==")
+    # the doc-writer brain holds MCP filesystem tools: it writes the docs
+    # contract to disk and replies with prose only. document() must salvage
+    # the contract from disk so the run still self-documents.
+    bus2 = LocalBusTransport()
+    executor2 = make_adapter("executor2", [], ["laravel-security"], bus2)
+    docs2 = make_adapter(
+        "docs2", ["--docs-file", str(tmp / "docs" / "brain-contract.json")],
+        roles.get("doc_writer", {}).get("capabilities", []), bus2,
+    )
+    adapters2 = {"executor2": executor2, "docs2": docs2}
+    dispatcher2 = Dispatcher(bus2, adapters2)
+    orch2 = SimpleNamespace(
+        adapters=adapters2,
+        bus=bus2,
+        dispatcher=dispatcher2,
+        roles=roles,
+        project_root=tmp,
+        state=StateStore(tmp / "state2.json"),
+    )
+    coord2 = Coordinator(
+        orch2, brain=None,
+        role_brains={"doc_writer": "docs2"},
+    )
+    plan2 = coord2._validate_plan({"clarifying_questions": [], "tasks": [
+        {"title": "audit login security",
+         "capability": "laravel-security",
+         "owner": "laravel_specialist", "dependsOn": []},
+    ]})
+    coord2._execute_plan(plan2)
+    check("doc writer ran (salvage scenario)",
+          coord2._docwriter_results is not None)
+    docs2_out = (coord2._docwriter_results or {}).get("docs", [])
+    written2 = bool(docs2_out) and (tmp / docs2_out[0]["path"]).is_file()
+    check("salvaged doc written to disk", written2,
+          f"path={docs2_out[0]['path'] if docs2_out else '?'}")
+
     print("== out-of-vocabulary capability rejected (as in brain runs) ==")
     try:
         coord._validate_plan({"clarifying_questions": [], "tasks": [

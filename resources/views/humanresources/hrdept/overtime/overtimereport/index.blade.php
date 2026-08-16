@@ -1,26 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
-<style>
-  .table,
-  .table tr,
-  .table td {
-    border: 1px solid black;
-    font-size: 14px;
-  }
-
-  .top-row td {
-    background-color: #cccccc;
-  }
-</style>
 <?php
 
 use Carbon\Carbon;
 
-use App\Models\HumanResources\OptBranch;
-use App\Models\HumanResources\HROvertime;
 
-$location = OptBranch::pluck('location', 'id')->toArray();
 
 $no = 1;
 $total_col = 0;
@@ -35,7 +20,7 @@ $currentYear = Carbon::now()->year;
 $lastYear = Carbon::now()->subYear()->year;
 ?>
 
-<div class="container">
+<div class="page-humanresources-hrdept-overtime-overtimereport-index container">
   @include('humanresources.hrdept.navhr')
   <h4>Overtime Report</h4>
 
@@ -43,16 +28,16 @@ $lastYear = Carbon::now()->subYear()->year;
     @csrf
 
   <div class="row g-3 mb-3">
-    <div class="col-auto">
+    <div class="col-auto" style="position: relative;">
       <input type="text" name="date_start" value="{{ old('date_start') }}" id="date_start" class="form-control form-control-sm col-sm-12 @error('date_start') is-invalid @enderror" placeholder="Date Start">
     </div>
-    <div class="col-auto">
+    <div class="col-auto" style="position: relative;">
       <input type="text" name="date_end" value="{{ old('date_end') }}" id="date_end" class="form-control form-control-sm col-sm-12 @error('date_end') is-invalid @enderror" placeholder="Date End">
     </div>
     <div class="col-auto">
       <select name="branch" id="branch" class="form-select form-select-sm branch @error('branch') is-invalid @enderror">
         <option value="">Please choose</option>
-        @foreach($location as $k1 => $v1)
+        @foreach($locations as $k1 => $v1)
           <option value="{{ $k1 }}" {{ (old('branch') == $k1)?'selected':NULL }}>{{ $v1 }}</option>
         @endforeach
       </select>
@@ -151,12 +136,7 @@ $lastYear = Carbon::now()->subYear()->year;
         </td>
         @foreach ($rows as $row)
           <?php
-          $ot = HROvertime::join('hr_overtime_ranges', 'hr_overtime_ranges.id', '=', 'hr_overtimes.overtime_range_id')
-            ->where('hr_overtimes.ot_date', '=', $row)
-            ->where('hr_overtimes.staff_id', '=', $overtime->staff_id)
-            ->where('hr_overtimes.active', 1)
-            ->select('hr_overtimes.assign_staff_id', 'hr_overtime_ranges.total_time')
-            ->first();
+          $ot = $otMap[$overtime->staff_id][$row] ?? null;
 
           $background = "";
 
@@ -171,7 +151,7 @@ $lastYear = Carbon::now()->subYear()->year;
         <td class="text-truncate text-center" style="max-width: 48px;<?php echo $background ?>">
           <?php
           if ($ot) {
-            echo $timeString_per_person = (Carbon::parse($ot->total_time))->format('H:i');
+            echo $timeString_per_person = (Carbon::parse($ot->belongstoovertimerange?->total_time))->format('H:i');
 
             // Explode the time string into an array of hours, minutes, and seconds
             $timeArray_per_person = explode(':', $timeString_per_person);
@@ -233,92 +213,13 @@ $lastYear = Carbon::now()->subYear()->year;
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-// DATE PICKER
-$('#date_start, #date_end').datetimepicker({
-  icons: {
-    time: "fas fas-regular fa-clock fa-beat",
-    date: "fas fas-regular fa-calendar fa-beat",
-    up: "fa-regular fa-circle-up fa-beat",
-    down: "fa-regular fa-circle-down fa-beat",
-    previous: 'fas fas-regular fa-arrow-left fa-beat',
-    next: 'fas fas-regular fa-arrow-right fa-beat',
-    today: 'fas fas-regular fa-calenday-day fa-beat',
-    clear: 'fas fas-regular fa-broom-wide fa-beat',
-    close: 'fas fas-regular fa-rectangle-xmark fa-beat'
-  },
-  format: 'YYYY-MM-DD',
-  useCurrent: true,
-});
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-$('#branch').select2({
-  placeholder: 'Location',
-  width: '100px',
-  allowClear: false,
-  closeOnSelect: true,
-});
-
-$('#title').select2({
-  placeholder: 'Title',
-  width: '100px',
-  allowClear: false,
-  closeOnSelect: true,
-});
-
-$('#month').select2({
-  placeholder: 'Month',
-  width: '130px',
-  allowClear: false,
-  closeOnSelect: true,
-});
-
-$('#year').select2({
-  placeholder: 'Year',
-  width: '100px',
-  allowClear: false,
-  closeOnSelect: true,
-});
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// VALIDATOR
-$(document).ready(function() {
-  $('#form').bootstrapValidator({
-    feedbackIcons: {
-      valid: '',
-      invalid: '',
-      validating: ''
-    },
-
-    fields: {
-      date_start: {
-        validators: {
-          notEmpty: {
-            message: 'Please select a start date.'
-          }
-        }
-      },
-
-      date_end: {
-        validators: {
-          notEmpty: {
-            message: 'Please select a end date.'
-          }
-        }
-      },
-
-      branch: {
-        validators: {
-          notEmpty: {
-            message: 'Please select a branch.'
-          }
-        }
-      },
-
-    }
-  })
-
-});
+window.data = {
+	route: {
+	},
+	url: {
+	},
+	old: {
+	},
+	errors: @json($errors->toArray()),
+};
 @endsection

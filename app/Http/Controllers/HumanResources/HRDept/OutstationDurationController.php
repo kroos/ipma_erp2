@@ -40,6 +40,9 @@ class OutstationDurationController extends Controller
 	 */
 	public function index(): View
 	{
-		return view('humanresources.hrdept.outstation.duration.index');
+		// current user's staff id (two-tier Login -> Staff), null-safe fallback
+		$staffId = auth()->user()?->belongstostaff?->id;
+
+		return view('humanresources.hrdept.outstation.duration.index', ['staffId' => $staffId]);
 	}
 }

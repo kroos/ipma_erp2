@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 // load models
 use App\Models\HumanResources\HROutstation;
 use App\Models\HumanResources\HRAttendance;
+use App\Models\Staff;
+use App\Models\Login;
 
 // for controller output
 use Illuminate\Http\RedirectResponse;
@@ -40,7 +42,18 @@ class OutstationController extends Controller
 	 */
 	public function index(): View
 	{
-		return view('humanresources.hrdept.outstation.index');
+		$nowyear = now()->startOfYear()->format('Y');
+		$lastyear = now()->startOfYear()->subDay()->startOfYear()->format('Y');
+
+		$outstationsNow = HROutstation::where('active', 1)->whereYear('date_from', $nowyear)->orderBy('date_to', 'DESC')->get();
+		$outstationsLast = HROutstation::where('active', 1)->whereYear('date_from', $lastyear)->orderBy('date_to', 'DESC')->get();
+
+		// lookup maps replace the per-row Login::/Staff:: queries the blade used to run
+		$staffIds = $outstationsNow->pluck('staff_id')->merge($outstationsLast->pluck('staff_id'))->unique();
+		$usernames = Login::whereIn('staff_id', $staffIds)->where('active', 1)->pluck('username', 'staff_id');
+		$staffNames = Staff::whereIn('id', $staffIds)->pluck('name', 'id');
+
+		return view('humanresources.hrdept.outstation.index', compact('outstationsNow', 'outstationsLast', 'usernames', 'staffNames', 'nowyear', 'lastyear'));
 	}
 
 	/**

@@ -1,56 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-  <style>
-    .img1 {
-      text-align: center;
-    }
-
-    p {
-      margin: 0;
-      padding: 0;
-    }
-
-    .tr-td-border,
-    .tr-td-border td {
-      border: 1px solid black;
-    }
-
-    .td-border-left-right {
-      border-width: 0px 1px 0px 1px;
-      /* top, right, bottom, left */
-    }
-
-    .td-border-right {
-      border-width: 0px 1px 0px 0px;
-      /* top, right, bottom, left */
-    }
-
-    .td-border-left-right-bottom {
-      border-width: 0px 1px 1px 1px;
-      /* top, right, bottom, left */
-    }
-
-    .td-border-right-bottom {
-      border-width: 0px 1px 1px 0px;
-      /* top, right, bottom, left */
-    }
-  </style>
-
-  <?php
-  $pivotappraisal = DB::table('pivot_category_appraisals')
-      ->where('id', $id)
-      ->first();
-  $category = App\Models\HumanResources\OptAppraisalCategories::where('id', $pivotappraisal->category_id)->first();
-  $appraisals = DB::table('pivot_category_appraisals')
-      ->where('category_id', $pivotappraisal->category_id)
-      ->where('version', $pivotappraisal->version)
-      ->orderBy('sort', 'ASC')
-      ->orderBy('id', 'ASC')
-      ->get();
-  ?>
-
-  <div class="container">
+  <div class="page-humanresources-hrdept-appraisal-form-show container">
     @include('humanresources.hrdept.navhr')
 
     <h4>Appraisal Form : {{ $category->category }} Version {{ $pivotappraisal->version }}</h4>
@@ -79,7 +30,7 @@
           <table width="100%">
             <tr>
               <td>
-                {!! $section->section !!}
+                {{ $section->section }}
               </td>
             </tr>
           </table>
@@ -109,7 +60,7 @@
                   {{ $no }}
                 </td>
                 <td colspan="3" class="td-border-right">
-                  {!! $section_sub->section_sub !!}
+                  {{ $section_sub->section_sub }}
                 </td>
               </tr>
 
@@ -127,7 +78,7 @@
                     {{ $no_sub }})
                   </td>
                   <td colspan="3" class="td-border-right">
-                    {!! $main_question->main_question !!}
+                    {{ $main_question->main_question }}
                   </td>
                 </tr>
 
@@ -138,10 +89,10 @@
                       <input type="radio" name="{{ '1' . $no . $no_sub }}" value="{{ '1' . $no . $no_sub }}" >
                     </td>
                     <td width="50px" style="vertical-align:text-top;">
-                      {!! $question->mark !!}m -
+                      {{ $question->mark }}m -
                     </td>
                     <td class="td-border-right">
-                      {!! $question->question !!}
+                      {{ $question->question }}
                     </td>
                   </tr>
                   <tr height="10px">
@@ -171,7 +122,7 @@
           <table width="100%">
             <tr>
               <td>
-                {!! $section->section !!}
+                {{ $section->section }}
               </td>
             </tr>
           </table>
@@ -212,7 +163,7 @@
                   {{ $no }}
                 </td>
                 <td>
-                  {!! $section_sub->section_sub !!}
+                  {{ $section_sub->section_sub }}
                 </td>
                 <td align="center">
                   <input type="radio" name="{{ '2' . $no }}" value="1">
@@ -242,7 +193,7 @@
           <table width="100%">
             <tr>
               <td>
-                {!! $section->section !!}
+                {{ $section->section }}
               </td>
             </tr>
           </table>
@@ -254,7 +205,7 @@
                   {{ $no }})
                 </td>
                 <td>
-                  {!! $section_sub->section_sub !!}
+                  {{ $section_sub->section_sub }}
                 </td>
               </tr>
               <tr>
@@ -275,7 +226,7 @@
           <table width="100%">
             <tr>
               <td>
-                {!! $section->section !!}
+                {{ $section->section }}
               </td>
             </tr>
           </table>
@@ -295,7 +246,7 @@
                   {{ $no }})
                 </td>
                 <td colspan="2">
-                  {!! $section_sub->section_sub !!}
+                  {{ $section_sub->section_sub }}
                 </td>
               </tr>
 
@@ -306,7 +257,7 @@
                     <input type="radio" name="{{ '4' . $no }}" value="{{ '4' . $no }}">
                   </td>
                   <td>
-                    {!! $main_question->main_question !!}
+                    {{ $main_question->main_question }}
                   </td>
                 </tr>
               @endforeach

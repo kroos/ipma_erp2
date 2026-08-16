@@ -20,4 +20,11 @@ class HRHolidayCalendar extends Model
     use HasFactory;
     // protected $connection = 'mysql';
     protected $table = 'hr_holiday_calendars';
+
+protected $fillable = [
+        'date_start',
+        'date_end',
+        'holiday',
+        'remarks',
+    ];
 }

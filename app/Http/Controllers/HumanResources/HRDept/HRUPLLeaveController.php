@@ -8,6 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Staff;
 use App\Models\HumanResources\HRLeave;
 
+// services
+use App\Services\HumanResources\EntitlementService;
+
 use Illuminate\Database\Eloquent\Builder;
 
 // for controller output
@@ -40,16 +43,19 @@ class HRUPLLeaveController extends Controller
 	 */
 	public function index(): View
 	{
-		$upls = HRLeave::groupByRaw('YEAR(date_time_start)')
-						->selectRaw('YEAR(date_time_start) as ryear')
-						->whereIn('leave_type_id', [3, 6, 12])
-						->where(function(Builder $query) {
-							$query->whereIn('leave_status_id', [5, 6])->orWhereNull('leave_status_id');
-						})
-						->orderBy('ryear', 'DESC')
-						->get();
-						// ->ddrawsql();
-		return view('humanresources.hrdept.entitlement.upl.index', ['upls' => $upls]);
+		$config = [
+			'title' => 'Unpaid Leave',
+			'table_title' => 'Unpaid Leave Entitlement',
+			'variant' => 'upl',
+			'model' => HRLeave::class,
+			'endpoint' => 'hruplleave.index',
+			'leave_type_ids' => [3, 6, 12],
+			'columns' => ['ID', 'Name', 'Leave ID', 'Leave Type', 'Duration', 'From', 'To', 'Remarks'],
+		];
+
+		$rows = app(EntitlementService::class)->uplRows($config['leave_type_ids']);
+
+		return view('humanresources.hrdept.entitlement.index', compact('config', 'rows'));
 	}
 
 	/**

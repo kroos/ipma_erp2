@@ -20,10 +20,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 // use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-// custom email reset password in
-// https://laracasts.com/discuss/channels/laravel/how-to-override-the-tomail-function-in-illuminateauthnotificationsresetpasswordphp
-use App\Notifications\ResetPassword;
-
 // load string helper if somehow user not passing an array
 use Illuminate\Support\Str;
 
@@ -49,7 +45,7 @@ class Login extends Authenticatable // implements MustVerifyEmail
 		'username',
 		// 'email',
 		'password',
-		'status',
+		'active',
 	];
 
 	 /**
@@ -69,7 +65,7 @@ class Login extends Authenticatable // implements MustVerifyEmail
 	 */
 	protected $casts = [
 		'email_verified_at' => 'datetime',
-		// 'password' => 'hashed',		// this is because we are using clear text password
+		'password' => 'hashed',
 	];
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,7 +131,7 @@ class Login extends Authenticatable // implements MustVerifyEmail
 	public function hasVerifiedEmail()
 	{
 		// return ! is_null($this->email_verified_at);
-		return ! is_null($this->belongstouser->email_verified_at);
+		return ! is_null($this->belongstostaff->email_verified_at);
 	}
 
 	/**
@@ -145,16 +141,9 @@ class Login extends Authenticatable // implements MustVerifyEmail
 	 */
 	public function markEmailAsVerified()
 	{
-		return $this->belongstouser->forceFill([
+		return $this->belongstostaff->forceFill([
 			'email_verified_at' => $this->freshTimestamp(),
 		])->save();
-	}
-
-	// Method to send email verification
-	public function sendEmailVerificationNotification()
-	{
-		// We override the default notification and will use our own
-		$this->notify(new EmailVerificationNotification());
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -175,13 +164,13 @@ class Login extends Authenticatable // implements MustVerifyEmail
 		}
 
 		return $user->belongstostaff()
-		->where('authorise_id', 1)
+		->where('authorise_id', config('auth.admins.authorise_id'))
 		->exists()
-		|| in_array($user->id, [117, 72]);
+		|| in_array($user->id, config('auth.admins.login_ids', []));
 	}
 
-	// high management
-	public function isHighManagement($highManagement, $dept)
+	// high management — shared logic for all levels
+	protected function checkHighManagement($highManagement, $dept): bool
 	{
 		$user = auth()->user();
 
@@ -189,35 +178,28 @@ class Login extends Authenticatable // implements MustVerifyEmail
 			return false;
 		}
 
-    // Admin always allowed
 		if ($user->isAdmin()) {
 			return true;
 		}
 
-    // User division id
 		$userDivId = $user->belongstostaff->div_id;
 
-    // Convert high management levels to array
 		$allowedDivisions = Str::contains($highManagement, '|')
 		? explode('|', $highManagement)
 		: [$highManagement];
 
-    // First check division match
 		if (!in_array($userDivId, $allowedDivisions)) {
 			return false;
 		}
 
-    // If dept is NULL, no department restriction
 		if (strtolower($dept) === 'null') {
 			return true;
 		}
 
-    // Convert department list to array
 		$allowedDepartments = Str::contains($dept, '|')
 		? explode('|', $dept)
 		: [$dept];
 
-    // Get user's main department id
 		$userDept = $user->belongstostaff
 		->belongstomanydepartment()
 		->wherePivot('main', 1)
@@ -230,152 +212,24 @@ class Login extends Authenticatable // implements MustVerifyEmail
 		return in_array($userDept->id, $allowedDepartments);
 	}
 
-	// high management level 1
-	public function isHighManagementlvl1($highManagement, $dept)
+	public function isHighManagement($highManagement, $dept): bool
 	{
-		$user = auth()->user();
-
-		if (!$user || !$user->belongstostaff) {
-			return false;
-		}
-
-    // Admin always allowed
-		if ($user->isAdmin()) {
-			return true;
-		}
-
-    // User division id
-		$userDivId = $user->belongstostaff->div_id;
-
-    // Convert high management levels to array
-		$allowedDivisions = Str::contains($highManagement, '|')
-		? explode('|', $highManagement)
-		: [$highManagement];
-
-    // First check division match
-		if (!in_array($userDivId, $allowedDivisions)) {
-			return false;
-		}
-
-    // If dept is NULL, no department restriction
-		if (strtolower($dept) === 'null') {
-			return true;
-		}
-
-    // Convert department list to array
-		$allowedDepartments = Str::contains($dept, '|')
-		? explode('|', $dept)
-		: [$dept];
-
-    // Get user's main department id
-		$userDept = $user->belongstostaff
-		->belongstomanydepartment()
-		->wherePivot('main', 1)
-		->first();
-
-		if (!$userDept) {
-			return false;
-		}
-
-		return in_array($userDept->id, $allowedDepartments);
+		return $this->checkHighManagement($highManagement, $dept);
 	}
 
-	public function isHighManagementlvl2($highManagement, $dept)
+	public function isHighManagementlvl1($highManagement, $dept): bool
 	{
-		$user = auth()->user();
-
-		if (!$user || !$user->belongstostaff) {
-			return false;
-		}
-
-    // Admin always allowed
-		if ($user->isAdmin()) {
-			return true;
-		}
-
-    // User division id
-		$userDivId = $user->belongstostaff->div_id;
-
-    // Convert high management levels to array
-		$allowedDivisions = Str::contains($highManagement, '|')
-		? explode('|', $highManagement)
-		: [$highManagement];
-
-    // First check division match
-		if (!in_array($userDivId, $allowedDivisions)) {
-			return false;
-		}
-
-    // If dept is NULL, no department restriction
-		if (strtolower($dept) === 'null') {
-			return true;
-		}
-
-    // Convert department list to array
-		$allowedDepartments = Str::contains($dept, '|')
-		? explode('|', $dept)
-		: [$dept];
-
-    // Get user's main department id
-		$userDept = $user->belongstostaff
-		->belongstomanydepartment()
-		->wherePivot('main', 1)
-		->first();
-
-		if (!$userDept) {
-			return false;
-		}
-
-		return in_array($userDept->id, $allowedDepartments);
+		return $this->checkHighManagement($highManagement, $dept);
 	}
 
-	public function isHighManagementlvl3($highManagement, $dept)
+	public function isHighManagementlvl2($highManagement, $dept): bool
 	{
-		$user = auth()->user();
+		return $this->checkHighManagement($highManagement, $dept);
+	}
 
-		if (!$user || !$user->belongstostaff) {
-			return false;
-		}
-
-    // Admin always allowed
-		if ($user->isAdmin()) {
-			return true;
-		}
-
-    // User division id
-		$userDivId = $user->belongstostaff->div_id;
-
-    // Convert high management levels to array
-		$allowedDivisions = Str::contains($highManagement, '|')
-		? explode('|', $highManagement)
-		: [$highManagement];
-
-    // First check division match
-		if (!in_array($userDivId, $allowedDivisions)) {
-			return false;
-		}
-
-    // If dept is NULL, no department restriction
-		if (strtolower($dept) === 'null') {
-			return true;
-		}
-
-    // Convert department list to array
-		$allowedDepartments = Str::contains($dept, '|')
-		? explode('|', $dept)
-		: [$dept];
-
-    // Get user's main department id
-		$userDept = $user->belongstostaff
-		->belongstomanydepartment()
-		->wherePivot('main', 1)
-		->first();
-
-		if (!$userDept) {
-			return false;
-		}
-
-		return in_array($userDept->id, $allowedDepartments);
+	public function isHighManagementlvl3($highManagement, $dept): bool
+	{
+		return $this->checkHighManagement($highManagement, $dept);
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////

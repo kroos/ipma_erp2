@@ -29,7 +29,7 @@ $c = Customer::orderBy('customer')->pluck('customer', 'id')->toArray();
 	<div class="form-group row mb-3 @error('customer_id') has-error @enderror">
 		<label for="loc" class="col-sm-2 col-form-label">Location : </label>
 		<div class="col-md-8">
-			<select name="customer_id" id="id" class="form-select form-select-sm col-sm-12 @error('customer_id') is-invalid @enderror">
+			<select name="customer_id" id="loc" class="form-select form-select-sm col-sm-12 @error('customer_id') is-invalid @enderror">
 				<option value="">Please choose</option>
 				@foreach($c as $k1 => $v1)
 					<option value="{{ $k1 }}" {{ (old('customer_id', $outstation->customer_id) == $k1)?'selected':NULL }}>{{ $v1 }}</option>
@@ -71,86 +71,14 @@ $c = Customer::orderBy('customer')->pluck('customer', 'id')->toArray();
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-$('#loc').select2({
-	placeholder: 'Please choose',
-	allowClear: true,
-	closeOnSelect: true,
-	width: '100%',
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-//date
-$('#from').datetimepicker({
-	icons: {
-		time: "fas fas-regular fa-clock fa-beat",
-		date: "fas fas-regular fa-calendar fa-beat",
-		up: "fa-regular fa-circle-up fa-beat",
-		down: "fa-regular fa-circle-down fa-beat",
-		previous: 'fas fas-regular fa-arrow-left fa-beat',
-		next: 'fas fas-regular fa-arrow-right fa-beat',
-		today: 'fas fas-regular fa-calenday-day fa-beat',
-		clear: 'fas fas-regular fa-broom-wide fa-beat',
-		close: 'fas fas-regular fa-rectangle-xmark fa-beat'
+window.data = {
+	route: {
 	},
-	format:'YYYY-MM-DD',
-	// useCurrent: false,
-})
-.on("dp.change dp.show dp.update", function (e) {
-	var minDate = $('#from').val();
-	$('#to').datetimepicker('minDate', minDate);
-	$('#form').bootstrapValidator('revalidateField', 'date_from');
-});
-
-
-$('#to').datetimepicker({
-	icons: {
-		time: "fas fas-regular fa-clock fa-beat",
-		date: "fas fas-regular fa-calendar fa-beat",
-		up: "fa-regular fa-circle-up fa-beat",
-		down: "fa-regular fa-circle-down fa-beat",
-		previous: 'fas fas-regular fa-arrow-left fa-beat',
-		next: 'fas fas-regular fa-arrow-right fa-beat',
-		today: 'fas fas-regular fa-calenday-day fa-beat',
-		clear: 'fas fas-regular fa-broom-wide fa-beat',
-		close: 'fas fas-regular fa-rectangle-xmark fa-beat'
+	url: {
 	},
-	format: 'YYYY-MM-DD',
-	// useCurrent: false //Important! See issue #1075
-})
-.on("dp.change dp.show dp.update", function (e) {
-	var maxDate = $('#to').val();
-	$('#from').datetimepicker('maxDate', maxDate);
-	$('#form').bootstrapValidator('revalidateField', 'date_to');
-});
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// bootstrap validator
-$('#form').bootstrapValidator({
-	fields: {
-		'date_from': {
-			validators: {
-				notEmpty: {
-					message: 'Please insert date start. '
-				},
-				date: {
-					format: 'YYYY-MM-DD',
-					message: 'Please insert date start. '
-				},
-			}
-		},
-		'date_to': {
-			validators: {
-				notEmpty: {
-					message: 'Please insert date end. '
-				},
-				date: {
-					format: 'YYYY-MM-DD',
-					message: 'Please insert date end. '
-				},
-			}
-		},
-	}
-});
+	old: {
+	},
+	errors: @json($errors->toArray()),
+	editId: @json(isset($outstation) ? $outstation->id : null),
+};
 @endsection

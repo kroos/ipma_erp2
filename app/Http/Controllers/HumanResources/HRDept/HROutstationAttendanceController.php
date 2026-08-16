@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 
 // load models
 use App\Models\Staff;
+use App\Models\Login;
 use App\Models\Customer;
 use App\Models\HumanResources\HROutstation;
 use App\Models\HumanResources\HROutstationAttendance;
@@ -59,7 +60,16 @@ class HROutstationAttendanceController extends Controller
 										->orderBy('in', 'ASC')
 										->get();
 										// ->ddrawSql();
-		return view('humanresources.hrdept.outstation.outstationattendance.index', ['hroa' => $hroa]);
+
+		// lookup maps replace the per-row Login::/Staff::/HROutstation:: queries the blade used to run
+		$usernames = Login::whereIn('staff_id', $hroa->pluck('staff_id'))->where('active', 1)->pluck('username', 'staff_id');
+		$staffNames = Staff::whereIn('id', $hroa->pluck('staff_id'))->pluck('name', 'id');
+		$outstationCustomers = HROutstation::with('belongstocustomer')
+				->whereIn('id', $hroa->pluck('outstation_id')->filter())
+				->get()
+				->mapWithKeys(fn ($o) => [$o->id => $o->belongstocustomer?->customer]);
+
+		return view('humanresources.hrdept.outstation.outstationattendance.index', compact('hroa', 'usernames', 'staffNames', 'outstationCustomers'));
 	}
 
 	/**

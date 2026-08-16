@@ -1,0 +1,8 @@
+[
+  {"id": "1", "title": "Fix StoreHRLeaveRequest: replace placeholder rules with real validation for date_time_start, date_time_end, reason, leave_type_id, staff_id", "status": "pending"},
+  {"id": "2", "title": "Fix UpdateHRLeaveRequest: set authorize() to true and add real rules for same fields", "status": "pending"},
+  {"id": "3", "title": "Fix HRLeaveController.store(): replace $request->except('_token') with $request->validated() and guard arrays", "status": "pending"},
+  {"id": "4", "title": "Fix HRLeaveController.update(): replace $request->except('_token', '_method') with $request->validated()", "status": "pending"},
+  {"id": "5", "title": "Add protected $fillable to HRLeave model with all columns from migration", "status": "pending"},
+  {"id": "6", "title": "Run php -l on all changed files and php artisan test to verify", "status": "pending"}
+]

@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use App\Models\HumanResources\HROvertime;
 use App\Models\HumanResources\HRAttendance;
 
+// service
+use App\Services\HumanResources\OvertimeService;
+
 // for controller output
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Redirect;
@@ -77,7 +80,7 @@ class OvertimeController extends Controller
 	 */
 	public function create(): View
 	{
-		return view('humanresources.hrdept.overtime.create');
+		return view('humanresources.hrdept.overtime.create', app(OvertimeService::class)->createData());
 	}
 
 	/**
@@ -120,7 +123,13 @@ class OvertimeController extends Controller
 	 */
 	public function edit(HROvertime $overtime): View
 	{
-		return view('humanresources.hrdept.overtime.edit', ['overtime' => $overtime]);
+		$service = app(OvertimeService::class);
+
+		return view('humanresources.hrdept.overtime.edit', [
+			'overtime' => $overtime,
+			'staffs' => $service->staffOptions(),
+			'overtimeRanges' => $service->overtimeRangeOptions(),
+		]);
 	}
 
 	/**

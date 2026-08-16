@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -24,6 +24,10 @@ class AuthServiceProvider extends ServiceProvider
         // using this to override Illuminate\Auth\EloquentUserProvider
         \Illuminate\Support\Facades\Auth::provider('loginuserprovider', function($app, array $config) {
             return new \App\Providers\Auth\EloquentUserProvider($app['hash'], $config['model']);
+        });
+
+        Gate::define('admin', function ($user) {
+            return $user->isAdmin();
         });
     }
 }

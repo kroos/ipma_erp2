@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 // load models
 use App\Models\HumanResources\HROvertime;
+use App\Models\HumanResources\OptBranch;
 
 // for controller output
 use Illuminate\Http\RedirectResponse;
@@ -46,6 +47,31 @@ class OvertimeReportController extends Controller
 	}
 
 	/**
+	 * Build a staff_id => [date => overtime] lookup map so the report blades
+	 * no longer run a per-cell HROvertime::join query.
+	 */
+	private function overtimeMap(?string $dateStart, ?string $dateEnd): array
+	{
+		$otMap = [];
+
+		if ($dateStart && $dateEnd) {
+			$ots = HROvertime::with('belongstoovertimerange', 'belongstoassignstaff')
+				->whereBetween('ot_date', [$dateStart, $dateEnd])
+				->where('active', 1)
+				->get();
+
+			foreach ($ots as $ot) {
+				$date = Carbon::parse($ot->ot_date)->format('Y-m-d');
+				if (!isset($otMap[$ot->staff_id][$date])) {
+					$otMap[$ot->staff_id][$date] = $ot;
+				}
+			}
+		}
+
+		return $otMap;
+	}
+
+	/**
 	 * Print PDF.
 	 */
 	public function print(Request $request)
@@ -74,7 +100,9 @@ class OvertimeReportController extends Controller
 		$date_start = $request->date_start;
 		$date_end = $request->date_end;
 
-		$pdf = PDF::loadView('humanresources.hrdept.overtime.overtimereport.printpdf', ['overtimes' => $overtimes, 'branch' => $branch, 'title' => $title, 'month' => $month, 'year' => $year, 'date_start' => $date_start, 'date_end' => $date_end]);
+		$otMap = $this->overtimeMap($request->date_start, $request->date_end);
+
+		$pdf = PDF::loadView('humanresources.hrdept.overtime.overtimereport.printpdf', ['overtimes' => $overtimes, 'otMap' => $otMap, 'branch' => $branch, 'title' => $title, 'month' => $month, 'year' => $year, 'date_start' => $date_start, 'date_end' => $date_end]);
 		// return $pdf->download('overtime_report ' . $current_datetime . '.pdf');
 		return $pdf->stream();
 	}
@@ -115,7 +143,10 @@ class OvertimeReportController extends Controller
 			$date_start = $request->date_start;
 			$date_end = $request->date_end;
 		}
-		return view('humanresources.hrdept.overtime.overtimereport.index', ['overtimes' => $overtimes, 'branch' => $branch, 'title' => $title, 'month' => $month, 'year' => $year, 'date_start' => $date_start, 'date_end' => $date_end]);
+		$locations = OptBranch::pluck('location', 'id')->toArray();
+		$otMap = $this->overtimeMap($date_start, $date_end);
+
+		return view('humanresources.hrdept.overtime.overtimereport.index', ['overtimes' => $overtimes, 'locations' => $locations, 'otMap' => $otMap, 'branch' => $branch, 'title' => $title, 'month' => $month, 'year' => $year, 'date_start' => $date_start, 'date_end' => $date_end]);
 	}
 
 	/**

@@ -87,7 +87,7 @@ use \Carbon\Carbon;
 								{{ $t->belongstocustomer?->customer }}
 							@endif
 						</td>
-						<td {!! ($t->remarks || $t->hr_remarks)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.$t->remarks.'<br />'.$t->hr_remarks.'"':NULL !!}>
+						<td @if($t->remarks || $t->hr_remarks) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $t->remarks }} {{ $t->hr_remarks }}" @endif>
 							{{ Str::limit($t->remarks, 8, ' >') }}
 							<br />
 							<span class="text-danger">
@@ -113,30 +113,12 @@ use \Carbon\Carbon;
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-// tooltip
-$(document).ready(function(){
-	$('[data-bs-toggle="tooltip"]').tooltip();
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// datatables
-$.fn.dataTable.moment( 'D MMM YYYY' );
-$.fn.dataTable.moment( 'h:mm a' );
-$('#inactive,#active').DataTable({
-	"paging": false,
-	"lengthMenu": [ [100, 250, 500, -1], [100, 250, 500, "All"] ],
-	"columnDefs": [
-					{ type: 'date', 'targets': [5,6] },
-					// { type: 'time', 'targets': [6] },
-				],
-	"order": [ 5, 'desc' ],
-	responsive: true
-})
-.on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
-	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip();
-	});}
-);
-/////////////////////////////////////////////////////////////////////////////////////////
+window.data = {
+	route: {
+	},
+	url: {
+	},
+	old: {
+	},
+};
 @endsection

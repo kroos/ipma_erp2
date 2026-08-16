@@ -26,10 +26,7 @@
 			</form>
 		</div>
 	</div>
-<?php
-use Illuminate\Http\Request;
-?>
-@if( isset(request()->id) || session()->exists('lastBatchId') )
+@if ($batchId)
 	<p>&nbsp</p>
 	<div id="processcsv" class="row col-sm-12">
 		<div class="progress col-sm-12" role="progressbar" aria-label="CSV Processing" aria-valuenow="{{ $batch->progress() }}" aria-valuemin="0" aria-valuemax="100">
@@ -44,114 +41,20 @@ use Illuminate\Http\Request;
 @endsection
 
 @section('js')
-$('#from1').datetimepicker({
-	icons: {
-		time: "fas fas-regular fa-clock fa-beat",
-		date: "fas fas-regular fa-calendar fa-beat",
-		up: "fa-regular fa-circle-up fa-beat",
-		down: "fa-regular fa-circle-down fa-beat",
-		previous: 'fas fas-regular fa-arrow-left fa-beat',
-		next: 'fas fas-regular fa-arrow-right fa-beat',
-		today: 'fas fas-regular fa-calenday-day fa-beat',
-		clear: 'fas fas-regular fa-broom-wide fa-beat',
-		close: 'fas fas-regular fa-rectangle-xmark fa-beat'
+window.data = {
+	route: {
+		progress: '{{ route('progress') }}',
+		create: '{{ route('excelreport.create') }}',
 	},
-	format: 'YYYY-MM-DD',
-	useCurrent: false,
-	maxDate: moment().subtract(1, 'days').format('YYYY-MM-DD'),
-})
-.on('dp.change dp.update', function(e) {
-	$('#form').bootstrapValidator('revalidateField', "from");
-	$('#to1').datetimepicker('minDate', $('#from1').val());
-});
-
-$('#to1').datetimepicker({
-	icons: {
-		time: "fas fas-regular fa-clock fa-beat",
-		date: "fas fas-regular fa-calendar fa-beat",
-		up: "fa-regular fa-circle-up fa-beat",
-		down: "fa-regular fa-circle-down fa-beat",
-		previous: 'fas fas-regular fa-arrow-left fa-beat',
-		next: 'fas fas-regular fa-arrow-right fa-beat',
-		today: 'fas fas-regular fa-calenday-day fa-beat',
-		clear: 'fas fas-regular fa-broom-wide fa-beat',
-		close: 'fas fas-regular fa-rectangle-xmark fa-beat'
+	url: {
 	},
-	format: 'YYYY-MM-DD',
-	useCurrent: false,
-	maxDate: moment().subtract(1, 'days').format('YYYY-MM-DD'),
-})
-.on('dp.change dp.update', function(e) {
-	$('#form').bootstrapValidator('revalidateField', "to");
-	$('#from1').datetimepicker('maxDate', $('#to1').val());
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-@if( isset(request()->id) || session()->exists('lastBatchId') )
-	<?php
-	$batchId = $request->id ?? session()->get('lastBatchId');
-	?>
-	setInterval(percent, 500);
-	function percent() {
-		$.ajax({
-			url: '{{ route('progress', ['id' => $batchId]) }}',
-			type: "GET",
-			data: { _token: '{{ csrf_token() }}'},
-			dataType: 'json',
-			success: function (response) {
-				window.percentbar = response.progress;
-				$('.progress').attr('aria-valuenow', percentbar).css('width', percentbar + '%');
-				$(".csvprogress").width(percentbar + '%');
-				$(".csvprogress").html(percentbar +'%');
-				$('#processedJobs').html(response.processedJobs);
-				console.log(percentbar);
-				if (percentbar == 100) {
-					clearInterval(percent);
-					window.location.replace('{{ route('excelreport.create') }}');
-					<?php
-					session()->forget('lastBatchId');
-					?>
-				}
-			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				console.log(textStatus, errorThrown);
-			}
-		})
-	}
-@endif
-/////////////////////////////////////////////////////////////////////////////////////////
-// bootstrap validator
-$(document).ready(function() {
-	$('#form').bootstrapValidator({
-		feedbackIcons: {
-			valid: 'fas fa-light fa-check',
-			invalid: 'fas fa-sharp fa-light fa-xmark',
-			validating: 'fas fa-duotone fa-spinner-third'
-		},
-		fields: {
-			from: {
-				validators: {
-					notEmpty: {
-						message: 'Please insert date '
-					},
-					date: {
-						format: 'YYYY-MM-DD',
-						message: 'Invalid date '
-					},
-				}
-			},
-			to: {
-				validators: {
-					notEmpty: {
-						message: 'Please insert date '
-					},
-					date: {
-						format: 'YYYY-MM-DD',
-						message: 'Invalid date '
-					},
-				}
-			},
-		}
-	})
-});
+	old: {
+		from: @json(old('from')),
+		to: @json(old('to')),
+	},
+	errors: @json($errors->toArray()),
+	@if ($batchId)
+	batch: '{{ $batchId }}',
+	@endif
+};
 @endsection

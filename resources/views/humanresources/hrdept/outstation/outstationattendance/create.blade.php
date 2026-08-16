@@ -60,123 +60,15 @@
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-//date
-$('#date').datetimepicker({
-	icons: {
-		time: "fas fas-regular fa-clock fa-beat",
-		date: "fas fas-regular fa-calendar fa-beat",
-		up: "fa-regular fa-circle-up fa-beat",
-		down: "fa-regular fa-circle-down fa-beat",
-		previous: 'fas fas-regular fa-arrow-left fa-beat',
-		next: 'fas fas-regular fa-arrow-right fa-beat',
-		today: 'fas fas-regular fa-calenday-day fa-beat',
-		clear: 'fas fas-regular fa-broom-wide fa-beat',
-		close: 'fas fas-regular fa-rectangle-xmark fa-beat'
+window.data = {
+	route: {
+		outstationattendancelocation: '{{ route('outstationattendancelocation') }}',
+		outstationattendancestaff: '{{ route('outstationattendancestaff') }}',
 	},
-	format:'YYYY-MM-DD',
-	useCurrent: true,
-})
-.on('dp.change dp.update', function(e) {
-	// console.log(e);
-
-	//enable select 2 for backup
-	$('#loc').select2({
-		placeholder: 'Please Choose',
-		width: '100%',
-		ajax: {
-			url: '{{ route('outstationattendancelocation') }}',
-			// data: { '_token': '{!! csrf_token() !!}' },
-			type: 'POST',
-			dataType: 'json',
-			data: function (params) {
-				var query = {
-					_token: '{!! csrf_token() !!}',
-					date_attend: $('#date').val(),
-					search: params.term,
-					type: 'public'
-				}
-				return query;
-			}
-		},
-		allowClear: true,
-		closeOnSelect: true,
-	});
-
-	// get staff
-	$('#loc').on('change, select2:select', function (e) {
-		// console.log($('#loc').val());
-
-		$('#staff').select2({
-			placeholder: 'Please Choose',
-			width: '100%',
-			ajax: {
-				url: '{{ route('outstationattendancestaff') }}',
-				// data: { '_token': '{!! csrf_token() !!}' },
-				type: 'POST',
-				dataType: 'json',
-				data: function (params) {
-					var query = {
-						_token: '{!! csrf_token() !!}',
-						outstation_id: $('#loc').val(),
-						date_attend: $('#date').val(),
-						search: params.term,
-					}
-					return query;
-				}
-			},
-			allowClear: true,
-			closeOnSelect: true,
-		});
-	});
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-$('#in, #out').datetimepicker({
-	icons: {
-		time: "fas fas-regular fa-clock fa-beat",
-		date: "fas fas-regular fa-calendar fa-beat",
-		up: "fa-regular fa-circle-up fa-beat",
-		down: "fa-regular fa-circle-down fa-beat",
-		previous: 'fas fas-regular fa-arrow-left fa-beat',
-		next: 'fas fas-regular fa-arrow-right fa-beat',
-		today: 'fas fas-regular fa-calenday-day fa-beat',
-		clear: 'fas fas-regular fa-broom-wide fa-beat',
-		close: 'fas fas-regular fa-rectangle-xmark fa-beat'
+	url: {
 	},
-	format: 'h:mm A',
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// bootstrap validator
-
-$('#form').bootstrapValidator({
-	fields: {
-		'staff_id[]': {
-			validators: {
-				notEmpty: {
-					message: 'Please choose '
-				},
-			}
-		},
-		'date_attend': {
-			validators: {
-				notEmpty: {
-					message: 'Please insert date. '
-				},
-				date: {
-					format: 'YYYY-MM-DD',
-					message: 'Please insert date. '
-				},
-			}
-		},
-		'outstation_id': {
-			validators: {
-				notEmpty: {
-					message: 'Please choose. '
-				},
-			}
-		},
-	}
-});
+	old: {
+	},
+	errors: @json($errors->toArray()),
+};
 @endsection

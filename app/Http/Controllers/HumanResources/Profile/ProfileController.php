@@ -17,6 +17,9 @@ use App\Models\Staff;
 use App\Models\HumanResources\HRAttendance;
 use App\Models\HumanResources\DepartmentPivot;
 
+// load services
+use App\Services\HumanResources\StaffProfileService;
+
 // load validation
 use App\Http\Requests\HumanResources\Profile\ProfileRequestUpdate;
 
@@ -80,8 +83,26 @@ class ProfileController extends Controller
 			->get();
 
 		$wh_group = $profile->belongstomanydepartment()->wherePivot('main', 1)->first();
+		$wh_group_id = $wh_group->wh_group_id;
+		$dept = $wh_group;
 
-		return view('humanresources.profile.show', ['profile' => $profile, 'attendance' => $attendance, 'wh_group' => $wh_group->wh_group_id, 'year' => $year, 'month' => $month]);
+		$service = new StaffProfileService();
+
+		return view('humanresources.profile.show', [
+			'profile' => $profile,
+			'attendance' => $attendance,
+			'wh_group' => $wh_group_id,
+			'dept' => $dept,
+			'year' => $year,
+			'month' => $month,
+		] + $service->leaveEntitlements($profile)
+			+ $service->familyAndAuth($profile)
+			+ $service->attendanceYears($profile)
+			+ $service->attendanceDecor($attendance, $wh_group_id)
+			+ $service->leaveTables($profile)
+			+ $service->replacementTable($profile)
+			+ $service->unpaidLeaves($profile)
+			+ $service->leaveTypeMap());
 	}
 
 	/**

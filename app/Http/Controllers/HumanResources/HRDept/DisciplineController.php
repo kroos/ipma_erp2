@@ -22,6 +22,9 @@ use Illuminate\Pagination\Paginator;
 use App\Http\Requests\HumanResources\Disciplinary\DisciplinaryRequestStore;
 use App\Http\Requests\HumanResources\Disciplinary\DisciplinaryRequestUpdate;
 
+// load service
+use App\Services\HumanResources\DisciplineService;
+
 use Session;
 
 use Carbon\Carbon;
@@ -53,7 +56,7 @@ class DisciplineController extends Controller
 	 */
 	public function create(): View
 	{
-		return view('humanresources.hrdept.discipline.create');
+		return view('humanresources.hrdept.discipline.create', app(DisciplineService::class)->formOptions());
 	}
 
 
@@ -116,7 +119,7 @@ class DisciplineController extends Controller
 	 */
 	public function edit(HRDisciplinary $discipline): View
 	{
-		return view('humanresources.hrdept.discipline.edit', ['discipline' => $discipline]);
+		return view('humanresources.hrdept.discipline.edit', ['discipline' => $discipline] + app(DisciplineService::class)->formOptions());
 	}
 
 

@@ -39,7 +39,8 @@ class OutstationCustomerController extends Controller
    */
   public function index(): View
   {
-    return view('humanresources.hrdept.outstation.outstationcustomer.index');
+    $outstationcustomer = Customer::orderBy('customer', 'ASC')->get();
+    return view('humanresources.hrdept.outstation.outstationcustomer.index', ['outstationcustomer' => $outstationcustomer]);
   }
 
   /**
@@ -72,9 +73,9 @@ class OutstationCustomerController extends Controller
   /**
    * Display the specified resource.
    */
-  public function show(): View
+  public function show(Customer $outstationcustomer): View
   {
-    //
+    return view('humanresources.hrdept.outstation.outstationcustomer.show', ['outstationcustomer' => $outstationcustomer]);
   }
 
   /**
@@ -110,10 +111,7 @@ class OutstationCustomerController extends Controller
    */
   public function destroy(Customer $outstationcustomer): JsonResponse
   {
-    // DELETE FROM TABLE ATTENDANCE
-    Customer::destroy([
-      'id' => $outstationcustomer['id']
-    ]);
+    $outstationcustomer->delete();
 
     // RETURN MESSAGE
     return response()->json([

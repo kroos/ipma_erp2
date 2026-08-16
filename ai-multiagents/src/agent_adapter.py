@@ -51,50 +51,171 @@ JSON_RETRY_HINT = (
 LOG_DIR = config_loader.SYSTEM_DIR / "logs"
 
 
+def _loads_or_repair(text: str) -> dict | None:
+    """json.loads, then a light repair pass for common LLM JSON defects
+    (trailing commas, truncated closing brackets). Returns a dict or None.
+    """
+    try:
+        parsed = json.loads(text)
+        if isinstance(parsed, dict):
+            return parsed
+    except ValueError:
+        pass
+    repaired = _repair_json(text)
+    if repaired is None:
+        return None
+    try:
+        parsed = json.loads(repaired)
+    except ValueError:
+        return None
+    return parsed if isinstance(parsed, dict) else None
+
+
+def _repair_json(text: str) -> str | None:
+    """Repair common LLM JSON defects (string-aware): strip trailing commas
+    before `}`/`]`, append the missing closing brackets of a truncated
+    tail. Returns repaired text that parses, else None. The string walking
+    skips `"..."` so braces inside string values (e.g. PHP code in doc
+    content) never confuse the balance.
+    """
+    # 1) strip trailing commas (string-aware)
+    out: list[str] = []
+    in_str = esc = False
+    i, n = 0, len(text)
+    while i < n:
+        ch = text[i]
+        if in_str:
+            out.append(ch)
+            if esc:
+                esc = False
+            elif ch == "\\":
+                esc = True
+            elif ch == '"':
+                in_str = False
+            i += 1
+            continue
+        if ch == '"':
+            in_str = True
+            out.append(ch)
+            i += 1
+            continue
+        if ch == ",":
+            j = i + 1
+            while j < n and text[j] in " \t\r\n":
+                j += 1
+            if j < n and text[j] in "}]":
+                i += 1  # drop the trailing comma
+                continue
+        out.append(ch)
+        i += 1
+    stripped = "".join(out)
+    try:
+        json.loads(stripped)
+        return stripped
+    except ValueError:
+        pass
+    # 2) truncated tail: append missing closing brackets (string-aware)
+    stack: list[str] = []
+    in_str = esc = False
+    for ch in stripped:
+        if in_str:
+            if esc:
+                esc = False
+            elif ch == "\\":
+                esc = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+        elif ch == "{":
+            stack.append("}")
+        elif ch == "[":
+            stack.append("]")
+        elif ch == "}":
+            if stack and stack[-1] == "}":
+                stack.pop()
+        elif ch == "]":
+            if stack and stack[-1] == "]":
+                stack.pop()
+    if stack:
+        repaired = stripped + "".join(reversed(stack))
+        try:
+            json.loads(repaired)
+            return repaired
+        except ValueError:
+            pass
+    return None
+
+
+def _balanced_span(text: str, start: int) -> tuple[int, int] | None:
+    """Return (open, close) indexes of the balanced `{...}` object starting
+    at `start` (which must be `{`), skipping braces inside JSON strings.
+    Returns None when the object never closes (truncated output)."""
+    depth = 0
+    in_str = esc = False
+    i, n = start, len(text)
+    while i < n:
+        ch = text[i]
+        if in_str:
+            if esc:
+                esc = False
+            elif ch == "\\":
+                esc = True
+            elif ch == '"':
+                in_str = False
+        else:
+            if ch == '"':
+                in_str = True
+            elif ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    return start, i + 1
+        i += 1
+    return None
+
+
 def extract_json_block(output: str) -> dict | None:
     """Pull a contract JSON object from free text (docs/06 Phase 6).
 
     Tries, in order: the documented `---` delimiters, a ```json code fence
     (common real-LLM output), then a scan of every balanced `{...}` object
     preferring one that carries a contract key (report/docs/fix/tasks/
-    clarifying_questions) and falling back to the last object found.
+    clarifying_questions) and falling back to the last object found. Each
+    candidate also gets a light repair pass (trailing commas, truncated
+    closers), and the scan is string-aware so braces inside string values
+    (e.g. PHP code in doc content) don't break the balance.
     """
     if not output:
         return None
     for pattern in (JSON_BLOCK_RE, JSON_FENCE_RE):
         match = pattern.search(output)
         if match:
-            try:
-                return json.loads(match.group(1))
-            except ValueError:
-                pass
+            parsed = _loads_or_repair(match.group(1))
+            if parsed is not None:
+                return parsed
     # fallback: scan every balanced object; an inline `{"status": "ok"}`
     # in prose must not shadow the real payload (M7 E2E finding)
     candidates: list[dict] = []
-    start = 0
+    pos = 0
     while True:
-        start = output.find("{", start)
+        start = output.find("{", pos)
         if start == -1:
             break
-        depth, end = 0, None
-        for i in range(start, len(output)):
-            ch = output[i]
-            if ch == "{":
-                depth += 1
-            elif ch == "}":
-                depth -= 1
-                if depth == 0:
-                    end = i + 1
-                    break
-        if end is None:
+        span = _balanced_span(output, start)
+        if span is None:
+            # unbalanced from here: the tail may be a truncated object the
+            # repair pass can close (missing `]` / `}`)
+            parsed = _loads_or_repair(output[start:])
+            if parsed is not None:
+                candidates.append(parsed)
             break
-        try:
-            obj = json.loads(output[start:end])
-            if isinstance(obj, dict):
-                candidates.append(obj)
-        except ValueError:
-            pass
-        start = end
+        parsed = _loads_or_repair(output[start:span[1]])
+        if parsed is not None:
+            candidates.append(parsed)
+        pos = span[1]
     if not candidates:
         return None
     for obj in candidates:
@@ -138,6 +259,18 @@ class AgentAdapter:
         self._prepare_mcp()
 
     # ---- MCP tool layer -------------------------------------------------
+
+    def _resolve_config_env(self) -> dict[str, str]:
+        """Per-agent `env` config block, with ${VAR} / {project_root}
+        placeholders resolved (mirrors _resolve_mcp_def).
+        """
+        raw = self.config.get("env") or {}
+        out: dict[str, str] = {}
+        for key, value in raw.items():
+            out[str(key)] = str(
+                self._resolve_env(value).replace("{project_root}", str(self.project_root))
+            )
+        return out
 
     @staticmethod
     def _resolve_env(text) -> str:
@@ -410,7 +543,13 @@ class AgentAdapter:
         return Path(command[0]).name.lower() in ("cmd.exe", "cmd", comspec)
 
     def _spawn(self, command: list[str], stdin_text: str | None):
-        env = {**os.environ, **self.mcp_env} if self.mcp_env else None
+        # subprocess env = parent env + per-agent `env` overrides (config
+        # wins — e.g. pinning CLAUDE_CODE_USE_POWERSHELL_TOOL=0 so a
+        # machine-wide value cannot silently change the CLI's tool schema)
+        # + MCP delivery vars (mcp_env wins over config env).
+        env = {**os.environ, **self._resolve_config_env(), **self.mcp_env}
+        if not env:
+            env = None
         try:
             proc = subprocess.run(
                 command,

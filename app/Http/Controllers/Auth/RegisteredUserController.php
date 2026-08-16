@@ -32,22 +32,17 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:logins,username'],
             // 'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'password' => ['required', 'confirmed'],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            // 'password' => Hash::make($request->password),
-            'password' => $request->password
-        ]);
-
-        $login = $user->hasmanylogin()->create([
+        // M3: the Login model's 'hashed' cast hashes the password on write —
+        // never store a plaintext password.
+        $login = Login::create([
             'username' => $request->email,
             'password' => $request->password,
-            'status' => 1,
+            'active' => 1,
         ]);
 
         // event(new Registered($user));

@@ -17,8 +17,7 @@ class RedirectIfNotSystemAdmin
 	 */
 	public function handle(Request $request, Closure $next): Response
 	{
-		// dd($request->user()->isAdmin());
-		if ( !$request->user()->isAdmin() ) {
+		if (!$request->user() || !$request->user()->can('admin')) {
 			return abort('403');
 		}
 		return $next($request);

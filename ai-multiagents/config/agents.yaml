@@ -89,6 +89,15 @@ agents:
     mcp: ["21st", "playwright", "filesystem", "figma", "context7"]
     mcp_delivery: flag
     mcp_flag: ["--mcp-config", "{mcp_path}"]
+    # Per-agent env overrides (merged over the parent env by the adapter).
+    # finding-8 fix: this box exports CLAUDE_CODE_USE_POWERSHELL_TOOL=1 at
+    # Machine+User scope, which makes openclaude expose BOTH a `Bash` and a
+    # `PowerShell` tool on Windows; the bug-fixer brain's Bash calls then
+    # failed with `not found` (guard category NotFound) 3x and openclaude
+    # aborted the query. Pinning it OFF keeps the documented single Git Bash
+    # tool schema (deterministic shell, no schema drift).
+    env:
+      CLAUDE_CODE_USE_POWERSHELL_TOOL: "0"
 
   # freebuff — INTERACTIVE-ONLY (v0.0.146): no -p/--print, no prompt
   # positional, no stdin one-shot. It launches a TUI event loop, so the

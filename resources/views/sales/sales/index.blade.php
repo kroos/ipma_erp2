@@ -29,12 +29,12 @@ use \Carbon\Carbon;
 						<tr>
 							<td>{{ $sale->belongstosalesby->sales_by.'-'.str_pad( $sale->no, 3, "0", STR_PAD_LEFT ).'/'.$sale->year }}</td>
 							<td>{{ Carbon::parse($sale->date_order)->format('j M Y') }}</td>
-							<td {!! ($sale->belongstocustomer?->customer)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.$sale->belongstocustomer?->customer.'"':NULL !!}>
+							<td @if($sale->belongstocustomer?->customer) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $sale->belongstocustomer?->customer }}" @endif>
 								{{ Str::limit($sale->belongstocustomer?->customer, 10, ' >') }}
 							</td>
 							<td>{{ Carbon::parse($sale->delivery_at)->format('j M Y') }}</td>
-							<td {!! ($sale->special_request)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.nl2br($sale->special_request).'"':NULL !!}>
-								{!! Str::limit(nl2br($sale->special_request), 10, ' >') !!}
+							<td @if($sale->special_request) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $sale->special_request }}" @endif>
+								{{ Str::limit($sale->special_request, 10, ' >') }}
 							</td>
 							<td>{!! ($sale->urgency==1)?'<i class="fa-regular fa-circle-check fa-beat fa-1x"></i>':'<i class="fa-regular fa-circle-xmark fa-beat fa-1x"></i>' !!}</td>
 							<td>
@@ -55,9 +55,9 @@ use \Carbon\Carbon;
 										Carbon::parse($sale->confirm_date)->format('j F Y')
 								!!}
 							</td>
-							<td {!! ($sale->amend)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.nl2br($sale->amend).'"':NULL !!}>
+							<td @if($sale->amend) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $sale->amend }}" @endif>
 								<p class="mb-2"><button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#amend_{{$sale->id}}"><i class="fa-solid fa-hammer fa-beat"></i></button></p>
-								{!! ($sale->amend)?Str::limit($sale->amend, 7, '>>'):null !!}
+								{{ $sale->amend ? Str::limit($sale->amend, 7, '>>') : null }}
 								<div class="modal modal-lg fade" id="amend_{{ $sale->id}}" tabindex="-1" aria-labelledby="Amend_{{ $sale->belongstosalesby->sales_by.'-'.str_pad( $sale->no, 3, 0, STR_PAD_LEFT ).'/'.$sale->year }}" aria-hidden="true">
 									<div class="modal-dialog modal-dialog-centered">
 										<div class="modal-content">
@@ -112,11 +112,10 @@ use \Carbon\Carbon;
 @section('js')
 window.data = {
 	route: {
-	},
-	url: {
-		saleapproved: '{{ url('saleapproved') }}',
-		salesend: '{{ url('salesend') }}',
-	},
+	},		url: {
+			saleapproved: '{{ url('api/saleapproved') }}',
+			salesend: '{{ url('api/salesend') }}',
+		},
 	old: {
 	},
 };

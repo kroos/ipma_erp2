@@ -116,4 +116,15 @@ return [
 
 	'password_timeout' => 10800,
 
+/*
+ * Admin authorization markers.
+ *
+ * 'authorise_id' => 1 corresponds to the authorise_id column on the staffs table.
+ * 'login_ids' => [117, 72] are legacy hardcoded login IDs.
+ * The intended migration path is a roles/permissions table — not built here.
+ */
+'admins' => [
+    'authorise_id' => 1,
+    'login_ids' => [117, 72],
+],
 ];

@@ -27,6 +27,9 @@ use App\Models\HumanResources\HRLeaveApprovalHR;
 
 use Illuminate\Database\Eloquent\Builder;
 
+// load service
+use App\Services\HumanResources\LeaveApprovalService;
+
 // load validator
 use Illuminate\Support\Facades\Validator;
 
@@ -55,30 +58,97 @@ class LeaveController extends Controller
 	 */
 	public function index(): View
 	{
-		return view('humanresources.hrdept.leave.index');
+		$svc = new LeaveApprovalService();
+
+		$with = ['belongstostaff', 'belongstooptleavetype', 'belongstooptleavestatus', 'hasmanyleaveamend'];
+
+		$upleave = $svc->departmentLeaves(
+			$this->baseLeaveQuery($with)
+				->whereDate('date_time_start', '>', now())
+				->orderBy('date_time_start', 'DESC')
+				->get(),
+			'up'
+		);
+
+		$toleave = $svc->departmentLeaves(
+			$this->baseLeaveQuery($with)
+				->where(function (Builder $query) {
+					$query->whereDate('date_time_start', '<=', now())
+					->whereDate('date_time_end', '>=', now());
+				})
+				->orderBy('date_time_start', 'DESC')
+				->get(),
+			'to'
+		);
+
+		$paleave = $svc->departmentLeaves(
+			$this->baseLeaveQuery($with)
+				->where(function (Builder $query) {
+					$query->whereDate('date_time_end', '<', now())
+					->whereDate('date_time_start', '>=', now()->startOfYear());
+				})
+				->orderBy('date_time_end', 'DESC')
+				->get(),
+			'pa'
+		);
+
+		return view('humanresources.hrdept.leave.index', array_merge(compact('upleave', 'toleave', 'paleave'), $svc->context()));
 	}
 
 	public function reject(): View
 	{
-		$reject = HRLeave::where('leave_status_id', 4)
+		$with = [
+			'belongstostaff',
+			'belongstooptleavetype',
+			'belongstooptleavestatus',
+			'hasmanyleaveamend',
+			'hasmanyleaveapprovalbackup.belongstoleavestatus',
+			'hasmanyleaveapprovalsupervisor.belongstoleavestatus',
+			'hasmanyleaveapprovalhod.belongstoleavestatus',
+			'hasmanyleaveapprovaldir.belongstoleavestatus',
+			'hasmanyleaveapprovalhr.belongstoleavestatus',
+		];
+
+		$reject = HRLeave::with($with)
+							->where('leave_status_id', 4)
 							->where(function (Builder $query) {
 								$query->whereDate('date_time_start', '>=', now()->startOfYear())
 								->whereDate('date_time_end', '<=', now()->endOfYear());
 							})
 							->get();
+
+		$svc = new LeaveApprovalService();
+		$reject = $svc->departmentLeaves($reject, 'up');
 
 		return view('humanresources.hrdept.leave.reject', ['reject' => $reject]);
 	}
 
 	public function cancel(): View
 	{
-		$cancel = HRLeave::where('leave_status_id', 3)
+		$with = ['belongstostaff', 'belongstooptleavetype', 'belongstooptleavestatus', 'hasmanyleaveamend'];
+
+		$cancel = HRLeave::with($with)
+							->where('leave_status_id', 3)
 							->where(function (Builder $query) {
 								$query->whereDate('date_time_start', '>=', now()->startOfYear())
 								->whereDate('date_time_end', '<=', now()->endOfYear());
 							})
 							->get();
+
+		$svc = new LeaveApprovalService();
+		$cancel = $svc->departmentLeaves($cancel, 'up');
+
 		return view('humanresources.hrdept.leave.cancel', ['cancel' => $cancel]);
+	}
+
+	/**
+	 * Base query for the dept leave list (pending / approved / waived statuses).
+	 */
+	private function baseLeaveQuery(array $with): \Illuminate\Database\Eloquent\Builder
+	{
+		return HRLeave::with($with)->where(function (Builder $query) {
+			$query->whereIn('leave_status_id', [5, 6])->orWhereNull('leave_status_id');
+		});
 	}
 
 	/**
@@ -137,7 +207,7 @@ class LeaveController extends Controller
 				'half_type_id' => 'required_if:leave_cat,2',
 				'staff_id' => 'sometimes|required',
 				'amend_note' => 'required',
-				'document' => 'nullable|file|max:5120|mimes:jpeg,jpg,png,bmp,pdf,doc,docs,csv,xls,xlsx',
+				'document' => 'nullable|file|max:5120|mimetypes:image/jpeg,image/png,image/bmp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 				'documentsupport' => 'required_if:document,null',
 				'id' => 'sometimes|required_if:leave_type_id,10|required_if:leave_type_id,4',
 				'time_start' => 'required_if:leave_type_id,9',
@@ -706,9 +776,9 @@ class LeaveController extends Controller
 							$data += ['date_time_end' => $request->date_time_end.' '.$time[2]];
 							$data += ['period_day' => 0.5];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -724,9 +794,9 @@ class LeaveController extends Controller
 							$data += ['reason' => ucwords(Str::lower($request->reason))];
 							$data += ['period_day' => 1];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -744,9 +814,9 @@ class LeaveController extends Controller
 							$data += ['reason' => ucwords(Str::lower($request->reason))];
 							$data += ['period_day' => $totalday];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -790,9 +860,9 @@ class LeaveController extends Controller
 							$data += ['date_time_end' => $request->date_time_end.' '.$time[2]];
 							$data += ['period_day' => 0.5];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -809,9 +879,9 @@ class LeaveController extends Controller
 							$data += ['reason' => ucwords(Str::lower($request->reason))];
 							$data += ['period_day' => 1];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -830,9 +900,9 @@ class LeaveController extends Controller
 							$data += ['reason' => ucwords(Str::lower($request->reason))];
 							$data += ['period_day' => $totalday];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -871,9 +941,9 @@ class LeaveController extends Controller
 							$data += ['date_time_end' => $request->date_time_end.' '.$time[2]];
 							$data += ['period_day' => 0.5];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -890,9 +960,9 @@ class LeaveController extends Controller
 							$data += ['reason' => ucwords(Str::lower($request->reason))];
 							$data += ['period_day' => 1];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -910,9 +980,9 @@ class LeaveController extends Controller
 							$data += ['reason' => ucwords(Str::lower($request->reason))];
 							$data += ['period_day' => $totalday];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -954,9 +1024,9 @@ class LeaveController extends Controller
 							$data += ['date_time_end' => $request->date_time_end.' '.$time[2]];
 							$data += ['period_day' => 0.5];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -973,9 +1043,9 @@ class LeaveController extends Controller
 							$data += ['reason' => ucwords(Str::lower($request->reason))];
 							$data += ['period_day' => 1];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -994,9 +1064,9 @@ class LeaveController extends Controller
 							$data += ['reason' => ucwords(Str::lower($request->reason))];
 							$data += ['period_day' => $totalday];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -1028,9 +1098,9 @@ class LeaveController extends Controller
 					$data += ['reason' => ucwords(Str::lower($request->reason))];
 					$data += ['period_day' => $totalday];
 					if ($request->file('document')) {
-						$file = $request->file('document')->getClientOriginalName();
+						$file = $request->file('document')->guessExtension();
 						$currentDate = Carbon::now()->format('Y-m-d His');
-						$fileName = $currentDate . '_' . $file;
+						$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 						$request->document->storeAs('public/leaves', $fileName);
 						$data += ['softcopy' => $fileName];
 					}
@@ -1057,9 +1127,9 @@ class LeaveController extends Controller
 					$data += ['reason' => ucwords(Str::lower($request->reason))];
 					$data += ['period_day' => $totalday];
 					if ($request->file('document')) {
-						$file = $request->file('document')->getClientOriginalName();
+						$file = $request->file('document')->guessExtension();
 						$currentDate = Carbon::now()->format('Y-m-d His');
-						$fileName = $currentDate . '_' . $file;
+						$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 						$request->document->storeAs('public/leaves', $fileName);
 						$data += ['softcopy' => $fileName];
 					}
@@ -1099,9 +1169,9 @@ class LeaveController extends Controller
 								$data += ['date_time_end' => $request->date_time_end.' '.$time[2]];
 								$data += ['period_day' => 0.5];
 								if ($request->file('document')) {
-									$file = $request->file('document')->getClientOriginalName();
+									$file = $request->file('document')->guessExtension();
 									$currentDate = Carbon::now()->format('Y-m-d His');
-									$fileName = $currentDate . '_' . $file;
+									$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 									$request->document->storeAs('public/leaves', $fileName);
 									$data += ['softcopy' => $fileName];
 								}
@@ -1117,9 +1187,9 @@ class LeaveController extends Controller
 								$data += ['reason' => ucwords(Str::lower($request->reason))];
 								$data += ['period_day' => 1];
 								if ($request->file('document')) {
-									$file = $request->file('document')->getClientOriginalName();
+									$file = $request->file('document')->guessExtension();
 									$currentDate = Carbon::now()->format('Y-m-d His');
-									$fileName = $currentDate . '_' . $file;
+									$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 									$request->document->storeAs('public/leaves', $fileName);
 									$data += ['softcopy' => $fileName];
 								}
@@ -1137,9 +1207,9 @@ class LeaveController extends Controller
 								$data += ['reason' => ucwords(Str::lower($request->reason))];
 								$data += ['period_day' => $totalday];
 								if ($request->file('document')) {
-									$file = $request->file('document')->getClientOriginalName();
+									$file = $request->file('document')->guessExtension();
 									$currentDate = Carbon::now()->format('Y-m-d His');
-									$fileName = $currentDate . '_' . $file;
+									$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 									$request->document->storeAs('public/leaves', $fileName);
 									$data += ['softcopy' => $fileName];
 								}
@@ -1168,9 +1238,9 @@ class LeaveController extends Controller
 								$data += ['date_time_end' => $request->date_time_end.' '.$time[2]];
 								$data += ['period_day' => 0.5];
 								if ($request->file('document')) {
-									$file = $request->file('document')->getClientOriginalName();
+									$file = $request->file('document')->guessExtension();
 									$currentDate = Carbon::now()->format('Y-m-d His');
-									$fileName = $currentDate . '_' . $file;
+									$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 									$request->document->storeAs('public/leaves', $fileName);
 									$data += ['softcopy' => $fileName];
 								}
@@ -1187,9 +1257,9 @@ class LeaveController extends Controller
 								$data += ['reason' => ucwords(Str::lower($request->reason))];
 								$data += ['period_day' => 1];
 								if ($request->file('document')) {
-									$file = $request->file('document')->getClientOriginalName();
+									$file = $request->file('document')->guessExtension();
 									$currentDate = Carbon::now()->format('Y-m-d His');
-									$fileName = $currentDate . '_' . $file;
+									$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 									$request->document->storeAs('public/leaves', $fileName);
 									$data += ['softcopy' => $fileName];
 								}
@@ -1208,9 +1278,9 @@ class LeaveController extends Controller
 								$data += ['reason' => ucwords(Str::lower($request->reason))];
 								$data += ['period_day' => $totalday];
 								if ($request->file('document')) {
-									$file = $request->file('document')->getClientOriginalName();
+									$file = $request->file('document')->guessExtension();
 									$currentDate = Carbon::now()->format('Y-m-d His');
-									$fileName = $currentDate . '_' . $file;
+									$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 									$request->document->storeAs('public/leaves', $fileName);
 									$data += ['softcopy' => $fileName];
 								}
@@ -1250,9 +1320,9 @@ class LeaveController extends Controller
 							$data += ['date_time_end' => $request->date_time_end.' '.$time[2]];
 							$data += ['period_day' => 0.5];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -1269,9 +1339,9 @@ class LeaveController extends Controller
 							$data += ['reason' => ucwords(Str::lower($request->reason))];
 							$data += ['period_day' => 1];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -1290,9 +1360,9 @@ class LeaveController extends Controller
 							$data += ['reason' => ucwords(Str::lower($request->reason))];
 							$data += ['period_day' => $totalday];
 							if ($request->file('document')) {
-								$file = $request->file('document')->getClientOriginalName();
+								$file = $request->file('document')->guessExtension();
 								$currentDate = Carbon::now()->format('Y-m-d His');
-								$fileName = $currentDate . '_' . $file;
+								$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 								$request->document->storeAs('public/leaves', $fileName);
 								$data += ['softcopy' => $fileName];
 							}
@@ -1323,9 +1393,9 @@ class LeaveController extends Controller
 						$data += ['date_time_end' => $request->date_time_end.' '.$time[2]];
 						$data += ['period_day' => 0.5];
 						if ($request->file('document')) {
-							$file = $request->file('document')->getClientOriginalName();
+							$file = $request->file('document')->guessExtension();
 							$currentDate = Carbon::now()->format('Y-m-d His');
-							$fileName = $currentDate . '_' . $file;
+							$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 							$request->document->storeAs('public/leaves', $fileName);
 							$data += ['softcopy' => $fileName];
 						}
@@ -1335,9 +1405,9 @@ class LeaveController extends Controller
 						$data += ['reason' => ucwords(Str::lower($request->reason))];
 						$data += ['period_day' => 1];
 						if ($request->file('document')) {
-							$file = $request->file('document')->getClientOriginalName();
+							$file = $request->file('document')->guessExtension();
 							$currentDate = Carbon::now()->format('Y-m-d His');
-							$fileName = $currentDate . '_' . $file;
+							$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 							$request->document->storeAs('public/leaves', $fileName);
 							$data += ['softcopy' => $fileName];
 						}
@@ -1349,9 +1419,9 @@ class LeaveController extends Controller
 						$data += ['reason' => ucwords(Str::lower($request->reason))];
 						$data += ['period_day' => $totalday];
 						if ($request->file('document')) {
-							$file = $request->file('document')->getClientOriginalName();
+							$file = $request->file('document')->guessExtension();
 							$currentDate = Carbon::now()->format('Y-m-d His');
-							$fileName = $currentDate . '_' . $file;
+							$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 							$request->document->storeAs('public/leaves', $fileName);
 							$data += ['softcopy' => $fileName];
 						}
@@ -1382,9 +1452,9 @@ class LeaveController extends Controller
 						$data += ['date_time_end' => $request->date_time_end.' '.$time[2]];
 						$data += ['period_day' => 0.5];
 						if ($request->file('document')) {
-							$file = $request->file('document')->getClientOriginalName();
+							$file = $request->file('document')->guessExtension();
 							$currentDate = Carbon::now()->format('Y-m-d His');
-							$fileName = $currentDate . '_' . $file;
+							$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 							$request->document->storeAs('public/leaves', $fileName);
 							$data += ['softcopy' => $fileName];
 						}
@@ -1394,9 +1464,9 @@ class LeaveController extends Controller
 						$data += ['reason' => ucwords(Str::lower($request->reason))];
 						$data += ['period_day' => 1];
 						if ($request->file('document')) {
-							$file = $request->file('document')->getClientOriginalName();
+							$file = $request->file('document')->guessExtension();
 							$currentDate = Carbon::now()->format('Y-m-d His');
-							$fileName = $currentDate . '_' . $file;
+							$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 							$request->document->storeAs('public/leaves', $fileName);
 							$data += ['softcopy' => $fileName];
 						}
@@ -1408,9 +1478,9 @@ class LeaveController extends Controller
 						$data += ['reason' => ucwords(Str::lower($request->reason))];
 						$data += ['period_day' => $totalday];
 						if ($request->file('document')) {
-							$file = $request->file('document')->getClientOriginalName();
+							$file = $request->file('document')->guessExtension();
 							$currentDate = Carbon::now()->format('Y-m-d His');
-							$fileName = $currentDate . '_' . $file;
+							$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 							$request->document->storeAs('public/leaves', $fileName);
 							$data += ['softcopy' => $fileName];
 						}
@@ -1451,9 +1521,9 @@ class LeaveController extends Controller
 				$data += ['date_time_end' => $te];
 				$data += ['period_time' => $t];
 				if ($request->file('document')) {
-					$file = $request->file('document')->getClientOriginalName();
+					$file = $request->file('document')->guessExtension();
 					$currentDate = Carbon::now()->format('Y-m-d His');
-					$fileName = $currentDate . '_' . $file;
+					$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 					$request->document->storeAs('public/leaves', $fileName);
 					$data += ['softcopy' => $fileName];
 				}
@@ -1493,9 +1563,9 @@ class LeaveController extends Controller
 				$data += ['leave_cat' => NULL];
 				$data += ['half_type_id' => NULL];
 				if ($request->file('document')) {
-					$file = $request->file('document')->getClientOriginalName();
+					$file = $request->file('document')->guessExtension();
 					$currentDate = Carbon::now()->format('Y-m-d His');
-					$fileName = $currentDate . '_' . $file;
+					$fileName = $currentDate . '_' . Str::slug($user->name) . '.' . $file;
 					$request->document->storeAs('public/leaves', $fileName);
 					$data += ['softcopy' => $fileName];
 				}

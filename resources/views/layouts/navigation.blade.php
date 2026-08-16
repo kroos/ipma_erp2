@@ -1,23 +1,18 @@
-		<!-- <header class="border-bottom lh-1 py-3"> -->
-			<!-- navigator -->
-			<!-- <nav class="navbar navbar-expand-lg bg-body-tertiary"> -->
-			<nav class="navbar navbar-expand-lg rounded m-0 mb-1 bg-body-tertiary">
-				<div class="container-fluid">
+		<nav class="navbar navbar-expand-lg ipma-navbar">
+			<div class="container-fluid">
 
-					<img src="{{ asset('images/logo.png') }}" class="img-fluid rounded" alt="Home" width="5%">
+				<a href="{{ url('/') }}" class="navbar-brand d-flex align-items-center gap-2">
+					<img src="{{ asset('images/logo.png') }}" class="img-fluid rounded" alt="Home" width="36" height="36">
+					<span class="d-none d-md-inline">{!! config('app.name') !!}</span>
+				</a>
 
 					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor04" aria-controls="navbarColor04" aria-expanded="false" aria-label="Toggle navigation">
 						<span class="navbar-toggler-icon"></span>
 					</button>
 					<div class="collapse navbar-collapse" id="navbarColor04">
-						<ul class="navbar-nav mx-auto">
+						<ul class="navbar-nav ms-auto">
 							<li class="nav-item">
-
-								<a class="nav-link active" href="{{ url('/') }}">
-									{!! config('app.name') !!}
-									<span class="visually-hidden">(current)</span>
-								</a>
-
+								<a class="nav-link" href="{{ url('/dashboard') }}">Dashboard</a>
 							</li>
 						</ul>
 						@if (Route::has('login'))

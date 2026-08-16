@@ -47,15 +47,12 @@
 <?php
 use \Carbon\Carbon;
 
-use App\Models\HumanResources\HRLeave;
-use App\Models\HumanResources\OptTcms;
-use App\Models\HumanResources\HROutstation;
-use App\Models\HumanResources\HRAttendance;
+
 ?>
 
 <span style="font-size:18px;">DAILY ATTENDANCE</span>
 
-@if ($dailyreport_absent->isNotEmpty() || $dailyreport_late->isNotEmpty() || $dailyreport_outstation->isNotEmpty())
+@if ($dailyreport_absent->isNotEmpty() || $lateRows->isNotEmpty() || $dailyreport_outstation->isNotEmpty())
 <table class="table">
 	<!-- ABSENT -->
 	@if ($dailyreport_absent->isNotEmpty())
@@ -99,31 +96,6 @@ use App\Models\HumanResources\HRAttendance;
 	</tr>
 
 	@foreach ($dailyreport_absent as $absent)
-	<?php
-
-	if ($absent->leave_id != NULL) {
-		$leave = HRLeave::join('option_leave_types', 'hr_leaves.leave_type_id', '=', 'option_leave_types.id')
-		->where('hr_leaves.id', '=', $absent->leave_id)
-		->select('hr_leaves.id as leave_id', 'hr_leaves.leave_no', 'hr_leaves.leave_year', 'option_leave_types.leave_type_code', 'hr_leaves.reason')
-		->first();
-
-		$status = $leave->leave_type_code;
-		// $remark = $leave->reason;
-		$remark = $absent->remarks;
-		$leave_number = 'HR9-' . str_pad($leave->leave_no, 5, "0", STR_PAD_LEFT) . '/' . $leave->leave_year;
-	} else {
-
-		if ($absent->attendance_type_id != NULL) {
-			$status_code = OptTcms::where('id', '=', $absent->attendance_type_id)->first();
-			$status = $status_code->leave;
-		} else {
-			$status = NULL;
-		}
-
-		$remark = $absent->remarks;
-		$leave_number = NULL;
-	}
-	?>
 
 	<tr>
 		<td class="text-center">
@@ -133,7 +105,7 @@ use App\Models\HumanResources\HRAttendance;
 			{{ $absent->attend_date }}
 		</td>
 		<td class="text-center">
-			{{ $status }}
+			{{ $absent->status }}
 		</td>
 		<td class="text-center">
 			{{ $absent->code }}
@@ -156,12 +128,12 @@ use App\Models\HumanResources\HRAttendance;
 		</td>
 		<td colspan="2">
 			<div class="REMARK">
-				&nbsp;{{ $remark }}
+				&nbsp;{{ $absent->remark }}
 			</div>
 		</td>
 		<td class="text-center">
-			@if ($leave_number != NULL)
-			{{ $leave_number }}
+			@if ($absent->leave_number != NULL)
+			{{ $absent->leave_number }}
 			@endif
 		</td>
 	</tr>
@@ -170,7 +142,7 @@ use App\Models\HumanResources\HRAttendance;
 
 
 	<!-- LATE -->
-	@if (!empty($dailyreport_late))
+	@if ($lateRows->isNotEmpty())
 	<?php $no = 1; ?>
 	<tr class="top-row">
 		<td colspan="11">
@@ -213,89 +185,52 @@ use App\Models\HumanResources\HRAttendance;
 		</td>
 	</tr>
 
-	@foreach ($dailyreport_late as $late)
-	<?php
-	$staff_late = HRAttendance::join('staffs', 'staffs.id', '=', 'hr_attendances.staff_id')
-	->join('logins', 'hr_attendances.staff_id', '=', 'logins.staff_id')
-	->join('pivot_staff_pivotdepts', 'staffs.id', '=', 'pivot_staff_pivotdepts.staff_id')
-	->join('pivot_dept_cate_branches', 'pivot_staff_pivotdepts.pivot_dept_id', '=',  'pivot_dept_cate_branches.id')
-	->join('option_branches', 'pivot_dept_cate_branches.branch_id', '=', 'option_branches.id')
-	->leftjoin('option_restday_groups', 'staffs.restday_group_id', '=', 'option_restday_groups.id')
-	->where('hr_attendances.attend_date', '=', $selected_date)
-	->where('staffs.id', $late)
-	->where('pivot_staff_pivotdepts.main', 1)
-	->select('hr_attendances.attend_date', 'option_branches.code', 'pivot_dept_cate_branches.department', 'option_restday_groups.group', 'logins.username', 'staffs.name', 'hr_attendances.leave_id', 'hr_attendances.remarks', 'hr_attendances.in', 'pivot_dept_cate_branches.wh_group_id')
-	->first();
-
-	$in = Carbon::parse($staff_late->in)->format('h:i a');
-
-	if ($staff_late->leave_id != NULL) {
-		$leave = HRLeave::join('option_leave_types', 'hr_leaves.leave_type_id', '=', 'option_leave_types.id')
-		->where('hr_leaves.id', '=', $staff_late->leave_id)
-		->select('hr_leaves.id as leave_id', 'hr_leaves.leave_no', 'hr_leaves.leave_year', 'option_leave_types.leave_type_code', 'hr_leaves.reason')
-		->first();
-
-		$status = $leave->leave_type_code;
-		$remark = $leave->reason;
-		$leave_number = 'HR9-' . str_pad($leave->leave_no, 5, "0", STR_PAD_LEFT) . '/' . $leave->leave_year;
-	} else {
-
-		if ($staff_late->attendance_type_id != NULL) {
-			$status_code = OptTcms::where('id', '=', $staff_late->attendance_type_id)->first();
-			$status = $status_code->leave;
-		} else {
-			$status = NULL;
-		}
-
-		$remark = $staff_late->remarks;
-		$leave_number = NULL;
-	}
-	?>
+	@foreach ($lateRows as $late)
 
 	<tr>
 		<td class="text-center">
 			{{ $no++ }}
 		</td>
 		<td class="text-center">
-			{{ $staff_late->attend_date }}
+			{{ $late->attend_date }}
 		</td>
 		<td class="text-center">
 			LATE
 		</td>
 		<td class="text-center">
-			{{ $staff_late->code }}
+			{{ $late->code }}
 		</td>
 		<td>
 			<div class="DEPARTMENT">
-				&nbsp;{{ $staff_late->department }}
+				&nbsp;{{ $late->department }}
 			</div>
 		</td>
 		<td class="text-center">
-			{{ $staff_late->group }}
+			{{ $late->group }}
 		</td>
 		<td class="text-center">
-			{{ $staff_late->username }}
+			{{ $late->username }}
 		</td>
 		<td>
 			<div class="NAME">
-				&nbsp;{{ $staff_late->name }}
+				&nbsp;{{ $late->name }}
 			</div>
 		</td>
 		<td>
 			<div class="REMARK">
-				&nbsp;{{ $remark }}
+				&nbsp;{{ $late->remark }}
 			</div>
 		</td>
 		<td class="text-center">
-			<span class="text-danger">{{ $in }}</span>
+			<span class="text-danger">{{ $late->in }}</span>
 		</td>
 		<td class="text-center">
-			@if ($leave_number != NULL)
-			{{ $leave_number }}
+			@if ($late->leave_number != NULL)
+			{{ $late->leave_number }}
 			@endif
 		</td>
 	</tr>
-	@endforeach
+@endforeach
 	@endif
 
 
@@ -341,37 +276,6 @@ use App\Models\HumanResources\HRAttendance;
 	</tr>
 
 	@foreach ($dailyreport_outstation as $outstation)
-	<?php
-
-	if ($outstation->outstation_id != NULL) {
-		$out = HROutstation::leftjoin('customers', 'hr_outstations.customer_id', '=', 'customers.id')
-		->where('hr_outstations.id', '=', $outstation->outstation_id)
-		->where('hr_outstations.active', '=', 1)
-		->select('customers.customer', 'hr_outstations.remarks', 'hr_outstations.customer_id')
-		->first();
-
-		$status = 'OUTSTATION';
-
-		if ($out->customer_id != NULL) {
-			$remark = $out->customer;
-		} else {
-			$remark = $out->remarks;
-		}
-
-		$contact = NULL;
-	} else {
-
-		if ($outstation->attendance_type_id != NULL) {
-			$status_code = OptTcms::where('id', '=', $outstation->attendance_type_id)->first();
-			$status = $status_code->leave;
-		} else {
-			$status = NULL;
-		}
-
-		$remark = $outstation->remarks;
-		$contact = NULL;
-	}
-	?>
 
 	<tr>
 		<td class="text-center">
@@ -381,7 +285,7 @@ use App\Models\HumanResources\HRAttendance;
 			{{ $outstation->attend_date }}
 		</td>
 		<td class="text-center">
-			{{ $status }}
+			{{ $outstation->status }}
 		</td>
 		<td class="text-center">
 			{{ $outstation->code }}
@@ -404,14 +308,14 @@ use App\Models\HumanResources\HRAttendance;
 		</td>
 		<td colspan="2">
 			<div class="REMARK">
-				&nbsp;{{ $remark }}
+				&nbsp;{{ $outstation->remark }}
 			</div>
 		</td>
 		<td class="text-center">
-			{{ $contact }}
+			{{ $outstation->contact }}
 		</td>
 	</tr>
-	@endforeach
+@endforeach
 	@endif
 
 </table>

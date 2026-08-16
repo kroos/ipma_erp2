@@ -1,18 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<style>
-  /* div {
-    border: 1px solid black;
-  } */
-</style>
-
 <?php
-
-use App\Models\Staff;
-use App\Models\HumanResources\OptDisciplinaryAction;
-use App\Models\HumanResources\OptViolation;
-use App\Models\HumanResources\OptInfractions;
 
 $staff = $discipline->belongstostaff->name;
 $supervisor = $discipline->belongstosupervisor->name;
@@ -21,7 +10,7 @@ $violation = $discipline->belongstooptviolation()->select('violation', 'remarks'
 $infraction = $discipline->belongstooptinfractions()->select('infraction', 'remarks')->first();
 ?>
 
-<div class="container">
+<div class="page-humanresources-hrdept-discipline-show container">
   @include('humanresources.hrdept.navhr')
   <h4>Show Discipline</h4>
 

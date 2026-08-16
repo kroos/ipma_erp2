@@ -1,66 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<script>
-// Check if session storage is supported by the browser
-if (typeof(Storage) !== 'undefined') {
-	// Store the current scroll position in session storage on page unload
-	window.addEventListener('beforeunload', function() {
-		sessionStorage.setItem('scrollPosition', window.scrollY);
-	});
-
-	// Restore the scroll position on page load
-	window.addEventListener('load', function() {
-		var scrollPosition = sessionStorage.getItem('scrollPosition');
-		if (scrollPosition !== null) {
-			window.scrollTo(0, scrollPosition);
-			sessionStorage.removeItem('scrollPosition');
-		}
-	});
-}
-</script>
-
 <?php
-// load facade
-use Illuminate\Database\Eloquent\Builder;
+// \Carbon\Carbon used bare (Carbon::) in the attendance table below
 use \Carbon\Carbon;
-
-use App\Models\HumanResources\HRLeave;
-use App\Models\HumanResources\OptLeaveType;
-
-// entitlement
-$annl = $profile->hasmanyleaveannual()?->where('year', now()->format('Y'))->first();
-$mcel = $profile->hasmanyleavemc()?->where('year', now()->format('Y'))->first();
-$matl = $profile->hasmanyleavematernity()?->where('year', now()->format('Y'))->first();
-$replt = $profile->hasmanyleavereplacement()?->selectRaw('SUM(leave_total) as total')->where(function(Builder $query){$query->whereDate('date_start', '>=', now()->startOfYear())->whereDate('date_end', '<=', now()->endOfYear());})->get();
-$replb = $profile->hasmanyleavereplacement()?->selectRaw('SUM(leave_balance) as total')->where(function(Builder $query){$query->whereDate('date_start', '>=', now()->startOfYear())->whereDate('date_end', '<=', now()->endOfYear());})->get();
-$upal = $profile->hasmanyleave()?->selectRaw('SUM(period_day) as total')
-								->where(function(Builder $query){
-									$query->whereDate('date_time_start', '>=', now()->startOfYear())
-										->whereDate('date_time_end', '<=', now()->endOfYear());
-									})
-								->where(function(Builder $query) {
-									$query->whereIn('leave_status_id', [5,6])
-										->orWhereNull('leave_status_id');
-								})
-								->whereIn('leave_type_id', [3, 6])
-								->get();
-$mcupl = $profile->hasmanyleave()?->selectRaw('SUM(period_day) as total')
-								->where(function(Builder $query){
-									$query->whereDate('date_time_start', '>=', now()->startOfYear())
-										->whereDate('date_time_end', '<=', now()->endOfYear());
-									})
-								->where(function(Builder $query) {
-									$query->whereIn('leave_status_id', [5,6])
-										->orWhereNull('leave_status_id');
-								})
-								->where('leave_type_id', 11)
-								->get();
-$mcupl = $profile->hasmanyleave()?->get();
-
-$emergencies = $profile->hasmanyemergency()->get();
-$spouses = $profile->hasmanyspouse()->get();
-$childrens = $profile->hasmanychildren()->get();
 ?>
 
 <div class="container row align-items-start justify-content-center">
@@ -68,7 +11,7 @@ $childrens = $profile->hasmanychildren()->get();
 	<div class="col-sm-2 row">
 		<div class="d-flex flex-column align-items-center">
 			<img class="rounded-5" width="180px" src="{{ asset('storage/user_profile/' . $profile->image) }}">
-			<span style="font-size: 18px;"><b>ID: {{ $profile->hasmanylogin()->where('active', 1)->first()->username }}</b></span>
+			<span style="font-size: 18px;"><b>ID: {{ $login?->username }}</b></span>
 		</div>
 	</div>
 
@@ -89,14 +32,14 @@ $childrens = $profile->hasmanychildren()->get();
 					<address>{{ $profile->address }}</address>
 				</dd>
 				<dt class="col-sm-5">Department</dt>
-				<dd class="col-sm-7">{{ $profile->belongstomanydepartment()?->wherePivot('main', 1)->first()?->department }}</dd>
+				<dd class="col-sm-7">{{ $dept?->department }}</dd>
 			</dl>
 		</div>
 
 		<div class="col-sm-6">
 			<dl class="row">
 				<dt class="col-sm-5">Category</dt>
-				<dd class="col-sm-7">{{ $profile->belongstomanydepartment()?->wherePivot('main', 1)->first()?->belongstocategory->category }}</dd>
+				<dd class="col-sm-7">{{ $dept?->belongstocategory?->category }}</dd>
 				<dt class="col-sm-5">Saturday Group</dt>
 				<dd class="col-sm-7">{{ $profile->belongstorestdaygroup?->group }}</dd>
 				<dt class="col-sm-5">Date Of Birth</dt>
@@ -235,18 +178,7 @@ $childrens = $profile->hasmanychildren()->get();
 	<div id="calendar" class="col-sm-12"></div>
 
 	<?php
-	use App\Models\Staff;
-	use App\Models\HumanResources\HRAttendance;
-
-	$group_year = HRAttendance::join('staffs', 'hr_attendances.staff_id', '=', 'staffs.id')
-		->select(DB::raw('YEAR(hr_attendances.attend_date) AS year'))
-		->where('hr_attendances.staff_id', $profile->id)
-		->groupBy('year')
-		->orderBy('year', 'desc')
-		->pluck('year', 'year')
-		->toArray();
-
-	$group_month = ['01'=>'01', '02'=>'02', '03'=>'03', '04'=>'04', '05'=>'05', '06'=>'06', '07'=>'07', '08'=>'08', '09'=>'09', '10'=>'10', '11'=>'11', '12'=>'12'];
+	// $group_year + $group_month now provided by StaffProfileService
 	?>
 
 	<p>&nbsp;</p>
@@ -318,34 +250,11 @@ $childrens = $profile->hasmanychildren()->get();
 				$leave_form = NULL;
 				$leave_type = NULL;
 
-				$date_name = Carbon::parse($attend->attend_date)->format('l');
-
-				if ($wh_group == '0' && $date_name == 'Friday') {
-					$company_hour = \App\Models\HumanResources\OptWorkingHour::where('option_working_hours.group', '=', $wh_group)
-						->where('option_working_hours.effective_date_start', '<=', $attend->attend_date)
-						->where('option_working_hours.effective_date_end', '>=', $attend->attend_date)
-						->where('option_working_hours.category', '=', 3)
-						->select('time_start_am', 'time_end_am', 'time_start_pm', 'time_end_pm')
-						->first();
-				} elseif ($wh_group == '0') {
-					$company_hour = \App\Models\HumanResources\OptWorkingHour::where('option_working_hours.group', '=', $wh_group)
-						->where('option_working_hours.effective_date_start', '<=', $attend->attend_date)
-						->where('option_working_hours.effective_date_end', '>=', $attend->attend_date)
-						->where('option_working_hours.category', '!=', 3)
-						->select('time_start_am', 'time_end_am', 'time_start_pm', 'time_end_pm')
-						->first();
-				} else {
-					$company_hour = \App\Models\HumanResources\OptWorkingHour::where('option_working_hours.group', '=', $wh_group)
-						->where('option_working_hours.effective_date_start', '<=', $attend->attend_date)
-						->where('option_working_hours.effective_date_end', '>=', $attend->attend_date)
-						->where('option_working_hours.category', '=', 8)
-						->select('time_start_am', 'time_end_am', 'time_start_pm', 'time_end_pm')
-						->first();
-				}
-
-				$daytype = $attend->belongstodaytype()->first();
-				$outstation = $attend->belongstooutstation?->belongstocustomer?->customer;
-				$overtime = $attend->belongstoovertime?->belongstoovertimerange?->total_time;
+				// working hour, daytype, outstation, overtime pre-computed by StaffProfileService
+				$company_hour = $companyHours[$attend->id] ?? null;
+				$daytype = $daytypes[$attend->id] ?? null;
+				$outstation = $outstations[$attend->id] ?? null;
+				$overtime = $overtimes[$attend->id] ?? null;
 
 				if ($attend->in != NULL && $attend->in != '00:00:00') {
 					$in = Carbon::parse($attend->in)->format('h:i a');
@@ -392,14 +301,13 @@ $childrens = $profile->hasmanychildren()->get();
 				}
 
 				if ($attend->leave_id != NULL && $attend->leave_id != '') {
-					$leave_temp1 = $attend->belongstoleave()->first();
-					$leave_temp2 = $attend->belongstoleave->belongstooptleavetype()->first();
+					$leaveInfo = $leaveInfos[$attend->id] ?? null;
 
-					$leave_id = $leave_temp1->id;
+					$leave_id = $leaveInfo['id'] ?? null;
 
-					$leave_form = "HR9-" . str_pad($leave_temp1->leave_no, 5, '0', STR_PAD_LEFT) . "/" . $leave_temp1->leave_year;
+					$leave_form = $leaveInfo['form'] ?? null;
 
-					$leave_type = $leave_temp2->leave_type_code;
+					$leave_type = $leaveInfo['type'] ?? null;
 				}
 				?>
 
@@ -452,7 +360,7 @@ $childrens = $profile->hasmanychildren()->get();
 
 	<p>&nbsp;</p>
 	<h4>Annual Leave Entitlement</h4>
-	@if($profile->hasmanyleaveannual()?->get()->count())
+	@if($annualLeaves->count())
 	<div class="table-responsive">
 		<table id="al" class="table table-sm table-hover" style="font-size:12px;">
 			<thead>
@@ -466,7 +374,7 @@ $childrens = $profile->hasmanychildren()->get();
 				</tr>
 			</thead>
 			<tbody>
-				@foreach($profile->hasmanyleaveannual()->orderBy('year', 'DESC')->get() as $al)
+				@foreach($annualLeaves as $al)
 				<tr>
 					<td class="text-center align-middle">{{ $al->year }}</td>
 					<td class="text-center align-middle">{{ $al->annual_leave }}</td>
@@ -474,15 +382,7 @@ $childrens = $profile->hasmanychildren()->get();
 					<td class="text-center align-middle">{{ $al->annual_leave_utilize }}</td>
 					<td class="text-center align-middle">{{ $al->annual_leave_balance }}</td>
 					<td class="table-responsive">
-						<?php
-						$leaves = HRLeave::where(function(Builder $query) {
-												$query->whereIn('leave_status_id', [5, 6])->orWhereNull('leave_status_id');
-											})
-											->where('staff_id', $profile->id)
-											->whereIn('leave_type_id', [1, 5])
-											->whereYear('date_time_start', $al->year)
-											->get();
-						?>
+						<?php $leaves = $annualMap[$al->year] ?? collect(); ?>
 						@if($leaves->count())
 						<table class="table table-hover table-sm">
 							<thead>
@@ -524,7 +424,7 @@ $childrens = $profile->hasmanychildren()->get();
 	<p>&nbsp;</p>
 	<h4>Medical Certificate Leave</h4>
 	<div class="table-responsive">
-	@if($profile->hasmanyleavemc()?->get()->count())
+	@if($mcLeaves->count())
 		<table id="mc" class="table table-sm table-hover" style="font-size:12px;">
 			<thead>
 				<tr>
@@ -536,8 +436,7 @@ $childrens = $profile->hasmanychildren()->get();
 					<th class="text-center align-middle">Leave</th>
 				</tr>
 			</thead>
-			<tbody>
-				@foreach($profile->hasmanyleavemc()->orderBy('year', 'DESC')->get() as $al)
+			<tbody>				@foreach($mcLeaves as $al)
 				<tr>
 					<td class="text-center align-middle">{{ $al->year }}</td>
 					<td class="text-center align-middle">{{ $al->mc_leave }}</td>
@@ -545,15 +444,7 @@ $childrens = $profile->hasmanychildren()->get();
 					<td class="text-center align-middle">{{ $al->mc_leave_utilize }}</td>
 					<td class="text-center align-middle">{{ $al->mc_leave_balance }}</td>
 					<td class="text-center align-middle">
-						<?php
-						$leaves = HRLeave::where(function(Builder $query) {
-												$query->whereIn('leave_status_id', [5, 6])->orWhereNull('leave_status_id');
-											})
-											->where('staff_id', $profile->id)
-											->whereYear('date_time_start', $al->year)
-											->where('leave_type_id', 2)
-											->get();
-						?>
+						<?php $leaves = $mcMap[$al->year] ?? collect(); ?>
 						@if($leaves->count())
 							<table class="table table-hover table-sm">
 								<thead>
@@ -596,7 +487,7 @@ $childrens = $profile->hasmanychildren()->get();
 	<p>&nbsp;</p>
 	<h4>Maternity Leave</h4>
 	<div class="table-responsive">
-		@if($profile->hasmanyleavematernity()?->get()->count())
+		@if($maternityLeaves->count())
 		<table id="ml" class="table table-sm table-hover" style="font-size:12px;">
 			<thead>
 				<tr>
@@ -609,7 +500,7 @@ $childrens = $profile->hasmanychildren()->get();
 				</tr>
 			</thead>
 			<tbody>
-				@foreach($profile->hasmanyleavematernity()->orderBy('year', 'DESC')->get() as $al)
+				@foreach($maternityLeaves as $al)
 				<tr>
 					<td class="text-center align-middle">{{ $al->year }}</td>
 					<td class="text-center align-middle">{{ $al->maternity_leave }}</td>
@@ -617,14 +508,7 @@ $childrens = $profile->hasmanychildren()->get();
 					<td class="text-center align-middle">{{ $al->maternity_leave_utilize }}</td>
 					<td class="text-center align-middle">{{ $al->maternity_leave_balance }}</td>
 					<td class="text-center align-middle">
-						<?php
-						$leaves = HRLeave::where(function(Builder $query) {
-										$query->whereIn('leave_status_id', [5, 6])->orWhereNull('leave_status_id');
-									})
-									->where('staff_id', $profile->id)
-									->where('leave_type_id', 7)
-									->get();
-						?>
+						<?php $leaves = $maternity; ?>
 						@if($leaves->count())
 							<table class="table table-hover table-sm">
 								<thead>
@@ -667,7 +551,7 @@ $childrens = $profile->hasmanychildren()->get();
 		<p>&nbsp;</p>
 	<h4 class="align-items-center">Replacement Leave</h4>
 	<div class="table-responsive">
-		@if($profile->hasmanyleavereplacement()?->get()->count())
+		@if($replacementLeaves->count())
 		<table id="rpl" class="table table-sm table-hover" style="font-size:12px;" id="replacementleave">
 			<thead>
 				<tr>
@@ -682,7 +566,7 @@ $childrens = $profile->hasmanychildren()->get();
 				</tr>
 			</thead>
 			<tbody>
-				@foreach($profile->hasmanyleavereplacement()->orderBy('date_start', 'DESC')->get() as $al)
+				@foreach($replacementLeaves as $al)
 				<tr>
 					<td>{{ \Carbon\Carbon::parse($al->date_start)->format('j M Y') }}</td>
 					<td>{{ \Carbon\Carbon::parse($al->date_end)->format('j M Y') }}</td>
@@ -692,12 +576,7 @@ $childrens = $profile->hasmanychildren()->get();
 					<td>{{ $al->leave_utilize }}</td>
 					<td>{{ $al->leave_balance }}</td>
 					<td class="table-responsive">
-						<?php
-						$leaves = $al->belongstomanyleave()->where(function(Builder $query) {
-										$query->whereIn('leave_status_id', [5, 6])->orWhereNull('leave_status_id');
-									})
-									->get();
-						?>
+						<?php $leaves = $replacementMap[$al->id] ?? collect(); ?>
 						@if($leaves->count())
 							<table class="table table-hover table-sm">
 								<thead>
@@ -742,15 +621,7 @@ $childrens = $profile->hasmanychildren()->get();
 	<p>&nbsp;</p>
 	<h4>Unpaid Leave</h4>
 	<div class="table-responsive">
-	<?php
-	$leavesupls = HRLeave::where(function(Builder $query) {
-							$query->whereIn('leave_status_id', [5, 6])->orWhereNull('leave_status_id');
-						})
-						->where('staff_id', $profile->id)
-						->whereIn('leave_type_id', [3, 6, 12])
-						->get();
-	$dur = 0;
-	?>
+	<?php $dur = 0; ?>
 	@if($leavesupls->count())
 		<table id="upl" class="table table-sm table-hover" style="font-size:12px;">
 			<thead>
@@ -768,7 +639,7 @@ $childrens = $profile->hasmanychildren()->get();
 					<td class="text-center align-middle">
 						<a href="{{ route('leave.show', $leavesupl->id) }}" target="_blank">HR9-{{ str_pad( $leavesupl->leave_no, 5, "0", STR_PAD_LEFT ) }}/{{ $leavesupl->leave_year }}</a>
 					</td>
-					<td class="text-center align-middle">{{ OptLeaveType::find($leavesupl->leave_type_id)->leave_type_code }}</td>
+					<td class="text-center align-middle">{{ $leaveTypeMap[$leavesupl->leave_type_id] ?? '' }}</td>
 					<td class="text-center align-middle">{{ \Carbon\Carbon::parse($leavesupl->date_time_start)->format('j M Y') }}</td>
 					<td class="text-center align-middle">{{ \Carbon\Carbon::parse($leavesupl->date_time_end)->format('j M Y') }}</td>
 					<td class="text-center align-middle">
@@ -791,15 +662,7 @@ $childrens = $profile->hasmanychildren()->get();
 	<p>&nbsp;</p>
 	<h4>Medical Certificate Unpaid Leave</h4>
 	<div class="table-responsive">
-	<?php
-	$leavesmcs = HRLeave::where(function(Builder $query) {
-							$query->whereIn('leave_status_id', [5, 6])->orWhereNull('leave_status_id');
-						})
-						->where('staff_id', $profile->id)
-						->where('leave_type_id', 11)
-						->get();
-	$durm = 0;
-	?>
+	<?php $durm = 0; ?>
 	@if($leavesmcs->count())
 		<table id="mcupl" class="table table-sm table-hover" style="font-size:12px;">
 			<thead>
@@ -817,7 +680,7 @@ $childrens = $profile->hasmanychildren()->get();
 					<td class="text-center align-middle">
 						<a href="{{ route('leave.show', $leavesmc->id) }}" target="_blank">HR9-{{ str_pad( $leavesmc->leave_no, 5, "0", STR_PAD_LEFT ) }}/{{ $leavesmc->leave_year }}</a>
 					</td>
-					<td class="text-center align-middle">{{ OptLeaveType::find($leavesmc->leave_type_id)->leave_type_code }}</td>
+					<td class="text-center align-middle">{{ $leaveTypeMap[$leavesmc->leave_type_id] ?? '' }}</td>
 					<td class="text-center align-middle">{{ \Carbon\Carbon::parse($leavesmc->date_time_start)->format('j M Y') }}</td>
 					<td class="text-center align-middle">{{ \Carbon\Carbon::parse($leavesmc->date_time_end)->format('j M Y') }}</td>
 					<td class="text-center align-middle">
@@ -840,188 +703,17 @@ $childrens = $profile->hasmanychildren()->get();
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-$('.form-select').select2({
-placeholder: '',
-width: '100%',
-allowClear: false,
-closeOnSelect: true,
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// tooltip
-$(document).ready(function(){
-	$('[data-bs-toggle="tooltip"]').tooltip();
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// datatables
-$.fn.dataTable.moment( 'D MMM YYYY' );
-$.fn.dataTable.moment( 'YYYY' );
-$.fn.dataTable.moment( 'h:mm a' );
-$('#attendance').DataTable({
-	"searching": false,
-	"info": false,
-	"paging": false,
-	"lengthMenu": [ [30, 60, 100, -1], [30, 60, 100, "All"] ],
-	"columnDefs": [
-		{ type: 'date', 'targets': [0] },
-		{ type: 'time', 'targets': [2] },
-		{ type: 'time', 'targets': [3] },
-		{ type: 'time', 'targets': [4] },
-		{ type: 'time', 'targets': [5] },
-		{ type: 'time', 'targets': [6] },
-	],
-	"order": [[ 0, 'desc' ]], // sorting the 6th column descending
-	"responsive": true
-})
-.on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
-	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip();
-	});
-});
-
-$('#al, #mc, #ml').DataTable({
-	"paging": true,
-	"lengthMenu": [ [30, 60, 100, -1], [30, 60, 100, "All"] ],
-	// "columnDefs": [
-	// 	{ type: 'date', 'targets': [0] },
-	// 	{ type: 'time', 'targets': [2] },
-	// 	{ type: 'time', 'targets': [3] },
-	// 	{ type: 'time', 'targets': [4] },
-	// 	{ type: 'time', 'targets': [5] },
-	// 	{ type: 'time', 'targets': [6] },
-	// ],
-	"order": [[ 0, 'desc' ]], // sorting the 6th column descending
-	responsive: true
-})
-.on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
-	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip();
-	});
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// fullcalendar cant use jquery
-var calendarEl = document.getElementById('calendar');
-var calendar = new Calendar(calendarEl, {
-	aspectRatio: 1.0,
-	height: 2000,
-	plugins: [
-		timeGridPlugin,
-		dayGridPlugin,
-		multiMonthPlugin,
-		momentPlugin,
-		bootstrap5Plugin
-	],
-	initialView: 'multiMonthYear',
-	// initialView: 'dayGridMonth',
-	// multiMonthMaxColumns: 1,					// force a single column
-	headerToolbar: {
-		left: 'prev,next today',
-		center: 'title',
-		right: 'multiMonthYear,dayGridMonth,timeGridWeek'
+window.data = {
+	route: {
+		staffattendance: '{{ route('staffattendance') }}',
+		staffpercentage: '{{ route('staffpercentage') }}',
 	},
-	weekNumbers: true,
-	themeSystem: 'bootstrap',
-	events: {
-		url: '{{ route('staffattendance') }}',
-		method: 'POST',
-		extraParams: {
-			_token: '{!! csrf_token() !!}',
-			staff_id: '{{ $profile->id }}',
-		},
+	url: {
 	},
-	// failure: function() {
-	// 	alert('There was an error while fetching leaves!');
-	// },
-	eventDidMount: function(info) {
-		$(info.el).tooltip({
-		// var tooltip = new Tooltip(info.el, {
-			title: info.event.extendedProps.description,
-			placement: 'top',
-			trigger: 'hover',
-			container: 'body'
-		});
+	old: {
+		staffId: '{{ $profile->id }}',
 	},
-	eventTimeFormat: { // like '14:30:00'
-		hour: '2-digit',
-		minute: '2-digit',
-		second: '2-digit',
-		hour12: true
-	}
-});
-calendar.render();
-@endsection
-
-@section('nonjquery')
-var xmlhttp = new XMLHttpRequest();
-// xmlhttp.open(method, URL, [async, user, password])
-xmlhttp.open("POST", '{!! route('staffpercentage', ['id' => $profile->id, '_token' => csrf_token()]) !!}', true);
-// xmlhttp.responseType = 'json';
-// xmlhttp.onreadystatechange = myfunction;
-xmlhttp.send();
-xmlhttp.onload = function() {
-// alert(`Loaded: ${data.status} ${data.response}`);
-// return data.status;
-	const data = JSON.parse(xmlhttp.responseText);
-//	console.log(data);
-
-	new Chart(document.getElementById('myChart'), {
-		type: 'line',
-		data: {
-			labels: data.map(row => row.month),
-			datasets: [
-						{
-							type: 'line',
-							label: 'Attendance Percentage By Month(%)',
-							data: data.map(row => row.percentage),
-							tension: 0.3,
-						},
-						{
-							type: 'bar',
-							label: 'Leaves By Month',
-							data: data.map(row => row.leaves)
-						},
-						{
-							type: 'bar',
-							label: 'Absents By Month',
-							data: data.map(row => row.absents)
-						},
-						{
-							type: 'bar',
-							label: 'Working Days By Month (Person Available)',
-							data: data.map(row => row.working_days)
-						},
-						{
-							type: 'bar',
-							label: 'Work Days By Month',
-							data: data.map(row => row.workdays)
-						},
-			]
-		},
-		options: {
-			responsive: true,
-			scales: {
-				y: {
-					beginAtZero: true
-				}
-			},
-			interaction: {
-				intersect: false,
-				mode: 'index',
-			},
-		},
-		plugins: {
-			legend: {
-				position: 'top',
-			},
-			title: {
-				display: true,
-				text: 'Attendance Statistic'
-			},
-		},
-	});
+	errors: @json($errors->toArray()),
 };
-
 @endsection
+

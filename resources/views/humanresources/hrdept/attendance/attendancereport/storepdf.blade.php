@@ -40,22 +40,10 @@ ini_set('memory_limit', '1024M');
 
 // use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
-use App\Helpers\UnavailableDateTime;
-use App\Helpers\TimeCalculator;
 
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 
-use App\Models\Staff;
-use App\Models\Login;
-use App\Models\Customer;
-use App\Models\HumanResources\HRAttendance;
-use App\Models\HumanResources\HRHolidayCalendar;
-use App\Models\HumanResources\HRLeave;
-use App\Models\HumanResources\OptDayType;
-use App\Models\HumanResources\OptTcms;
-use App\Models\HumanResources\HROvertime;
-use App\Models\HumanResources\HROutstation;
 ?>
 
 <body>
@@ -65,7 +53,7 @@ use App\Models\HumanResources\HROutstation;
 		$p = [];
 		foreach ($sa as $v) {
 			$n = 0;
-			$ha = HRAttendance::where('staff_id', $v->staff_id)
+			$ha = \App\Models\HumanResources\HRAttendance::where('staff_id', $v->staff_id)
 			->where(function (Builder $query) use ($request) {
 				$query->whereDate('attend_date', '>=', $request->from)
 				->whereDate('attend_date', '<=', $request->to);
@@ -80,19 +68,19 @@ use App\Models\HumanResources\HROutstation;
 							Staff ID / Name:
 						</td>
 						<td>
-							{{ Login::where([['staff_id', $v->staff_id], ['active', 1]])->first()?->username }} {{ Staff::find($v->staff_id)->name }}
+							{{ \App\Models\Login::where([['staff_id', $v->staff_id], ['active', 1]])->first()?->username }} {{ \App\Models\Staff::find($v->staff_id)->name }}
 						</td>
 						<td width="70px;">
 							Department:
 						</td>
 						<td width="280px;">
-							{{ Staff::find($v->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->department }}
+							{{ \App\Models\Staff::find($v->staff_id)->belongstomanydepartment()->wherePivot('main', 1)->first()->department }}
 						</td>
 						<td width="40px;">
 							Group:
 						</td>
 						<td width="100px;">
-							{{ Staff::find($v->staff_id)->belongstorestdaygroup?->group }}
+							{{ \App\Models\Staff::find($v->staff_id)->belongstorestdaygroup?->group }}
 						</td>
 					</tr>
 				</table>
@@ -143,11 +131,11 @@ use App\Models\HumanResources\HROutstation;
 
 						/////////////////////////////
 						// to determine working hour of each user
-						$wh = UnavailableDateTime::workinghourtime($v1->attend_date, $v->belongstostaff->id)->first();
+						$wh = \App\Helpers\UnavailableDateTime::workinghourtime($v1->attend_date, $v->belongstostaff->id)->first();
 
 						// looking for leave of each staff
 						// $l = $v->belongstostaff->hasmanyleave()
-						$l = HRLeave::where('staff_id', $v->staff_id)
+						$l = \App\Models\HumanResources\HRLeave::where('staff_id', $v->staff_id)
 						->where(function (Builder $query) {
 							$query->whereIn('leave_status_id', [5, 6])->orWhereNull('leave_status_id');
 						})
@@ -157,9 +145,9 @@ use App\Models\HumanResources\HROutstation;
 						})
 						->first();
 
-						$o = HROvertime::where([['staff_id', $v->staff_id], ['ot_date', $v1->attend_date], ['active', 1]])->first();
+						$o = \App\Models\HumanResources\HROvertime::where([['staff_id', $v->staff_id], ['ot_date', $v1->attend_date], ['active', 1]])->first();
 
-						$os = HROutstation::where('staff_id', $v->staff_id)
+						$os = \App\Models\HumanResources\HROutstation::where('staff_id', $v->staff_id)
 						->where('active', 1)
 						->where(function (Builder $query) use ($v1) {
 							$query->whereDate('date_from', '<=', $v1->attend_date)
@@ -176,30 +164,30 @@ use App\Models\HumanResources\HROutstation;
 						$sun = Carbon::parse($v1->attend_date)->dayOfWeek == 0;    // sunday
 						$sat = Carbon::parse($v1->attend_date)->dayOfWeek == 6;    // saturday
 
-						$hdate = HRHolidayCalendar::where(function (Builder $query) use ($v1) {
+						$hdate = \App\Models\HumanResources\HRHolidayCalendar::where(function (Builder $query) use ($v1) {
 							$query->whereDate('date_start', '<=', $v1->attend_date)
 							->whereDate('date_end', '>=', $v1->attend_date);
 						})
 						->get();
 
 						if ($hdate->isNotEmpty()) {                      // date holiday
-							$dayt = OptDayType::find(3)->daytype;              // show what day: HOLIDAY
+							$dayt = \App\Models\HumanResources\OptDayType::find(3)->daytype;              // show what day: HOLIDAY
 							$dtype = false;
 						} elseif ($hdate->isEmpty()) {                    // date not holiday
 							if (Carbon::parse($v1->attend_date)->dayOfWeek == 0) {      // sunday
-								$dayt = OptDayType::find(2)->daytype;
+								$dayt = \App\Models\HumanResources\OptDayType::find(2)->daytype;
 								$dtype = false;
 							} elseif (Carbon::parse($v1->attend_date)->dayOfWeek == 6) {    // saturday
 								$sat = $v->belongstostaff->belongstorestdaygroup?->hasmanyrestdaycalendar()->whereDate('saturday_date', $v1->attend_date)->first();
 								if ($sat) {                          // determine if user belongs to sat group restday
-									$dayt = OptDayType::find(2)->daytype;          // show what day: RESTDAY
+									$dayt = \App\Models\HumanResources\OptDayType::find(2)->daytype;          // show what day: RESTDAY
 									$dtype = false;
 								} else {
-									$dayt = OptDayType::find(1)->daytype;          // show what day: WORKDAY
+									$dayt = \App\Models\HumanResources\OptDayType::find(1)->daytype;          // show what day: WORKDAY
 									$dtype = true;
 								}
 							} else {                            // all other day is working day
-								$dayt = OptDayType::find(1)->daytype;            // show what day: WORKDAY
+								$dayt = \App\Models\HumanResources\OptDayType::find(1)->daytype;            // show what day: WORKDAY
 								$dtype = true;
 							}
 						}
@@ -215,13 +203,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | leave | no in | no break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | working | leave | no in | no break | resume
@@ -229,13 +217,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | leave | no in | no break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -245,13 +233,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | leave | no in | break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | working | leave | no in | break | resume
@@ -259,13 +247,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | leave | no in | break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -277,13 +265,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | leave | in | no break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | working | leave | in | no break | resume
@@ -291,13 +279,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | leave | in | no break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -307,13 +295,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | leave | in | break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | working | leave | in | break | resume
@@ -321,13 +309,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | leave | in | break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -341,13 +329,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | no leave | no in | no break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | working | no leave | no in | no break | resume
@@ -355,13 +343,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | no leave | no in | no break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -371,13 +359,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // pls check
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | no leave | no in | break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // pls check
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | working | no leave | no in | break | resume
@@ -385,7 +373,7 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // pls check
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | no leave | no in | break | resume | out
 													if (is_null($v1->attendance_type_id)) {
@@ -395,7 +383,7 @@ use App\Models\HumanResources\HROutstation;
 															$ll = null;          // pls check
 														}
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -408,20 +396,20 @@ use App\Models\HumanResources\HROutstation;
 														if (is_null($v1->attendance_type_id)) {
 															$ll = null;          // outstation
 														} else {
-															$ll = OptTcms::find($v1->attendance_type_id)->leave;
+															$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 														}
 													} else {
 														if (is_null($v1->attendance_type_id)) {
 															$ll = null;          // outstation
 														} else {
-															$ll = OptTcms::find($v1->attendance_type_id)->leave;
+															$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 														}
 													}
 												} else {                                          // outstation | working | no leave | in | no break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | working | no leave | in | no break | resume
@@ -429,13 +417,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // pls check
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | no leave | in | no break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -445,13 +433,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | no leave | in | break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | working | no leave | in | break | resume
@@ -463,13 +451,13 @@ use App\Models\HumanResources\HROutstation;
 															$ll = null;          // pls check
 														}
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | working | no leave | in | break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -485,13 +473,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | leave | no in | no break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | no working | leave | no in | no break | resume
@@ -499,13 +487,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | leave | no in | no break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -515,13 +503,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | leave | no in | break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | no working | leave | no in | break | resume
@@ -529,13 +517,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | leave | no in | break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -547,13 +535,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | leave | in | no break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | no working | leave | in | no break | resume
@@ -561,13 +549,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | leave | in | no break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -577,13 +565,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | leave | in | break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | no working | leave | in | break | resume
@@ -591,13 +579,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | leave | in | break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -611,13 +599,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | no leave | no in | no break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | no working | no leave | no in | no break | resume
@@ -625,13 +613,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | no leave | no in | no break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -641,13 +629,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | no leave | no in | break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | no working | no leave | no in | break | resume
@@ -655,13 +643,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | no leave | no in | break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -673,13 +661,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | no leave | in | no break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | no working | no leave | in | no break | resume
@@ -687,13 +675,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | no leave | in | no break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -703,13 +691,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | no leave | in | break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // outstation | no working | no leave | in | break | resume
@@ -717,13 +705,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // outstation | no working | no leave | in | break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // outstation
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -867,13 +855,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // absent
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // no outstation | working | no leave | no in | no break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // half absent
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // no outstation | working | no leave | no in | no break | resume
@@ -881,13 +869,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          //  pls check
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // no outstation | working | no leave | no in | no break | resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // half absent
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -897,13 +885,13 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // pls check
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // no outstation |  outstation | working | no leave | no in | break | no resume | out
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // pls check
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											} else {                                            // no outstation |  outstation | working | no leave | no in | break | resume
@@ -911,7 +899,7 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // pls check
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // no outstation |  outstation | working | no leave | no in | break | resume | out
 													if (is_null($v1->attendance_type_id)) {
@@ -921,7 +909,7 @@ use App\Models\HumanResources\HROutstation;
 															$ll = null;          // pls check
 														}
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												}
 											}
@@ -934,7 +922,7 @@ use App\Models\HumanResources\HROutstation;
 														if (is_null($v1->attendance_type_id)) {
 															$ll = null;          // half absent
 														} else {
-															$ll = OptTcms::find($v1->attendance_type_id)->leave;
+															$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 														}
 													} else {
 														$ll = false;
@@ -947,7 +935,7 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // pls check
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // no outstation |  outstation | working | no leave | in | no break | resume | out
 													$ll = false;
@@ -959,7 +947,7 @@ use App\Models\HumanResources\HROutstation;
 													if (is_null($v1->attendance_type_id)) {
 														$ll = null;          // half absent
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // no outstation | working | no leave | in | break | no resume | out
 													$ll = false;
@@ -973,7 +961,7 @@ use App\Models\HumanResources\HROutstation;
 															$ll = null;          // pls check
 														}
 													} else {
-														$ll = OptTcms::find($v1->attendance_type_id)->leave;
+														$ll = \App\Models\HumanResources\OptTcms::find($v1->attendance_type_id)->leave;
 													}
 												} else {                                          // no outstation | working | no leave | in | break | resume | out
 													$ll = false;
@@ -1233,15 +1221,15 @@ use App\Models\HumanResources\HROutstation;
 						</td>
 						<td align="right">
 							<?php
-							if (TimeCalculator::total_time($m[$i]) != '00:00:00') {
-								list($hour, $minute, $second) = explode(":", TimeCalculator::total_time($m[$i]));
+							if (\App\Helpers\TimeCalculator::total_time($m[$i]) != '00:00:00') {
+								list($hour, $minute, $second) = explode(":", \App\Helpers\TimeCalculator::total_time($m[$i]));
 								echo $hour . ':' . $minute;
 							}
 						?>
 						</td>
 						<td align="right">
-							<?php if (TimeCalculator::total_time($p[$i]) != '00:00:00') { ?>
-								{{ Carbon::parse(TimeCalculator::total_time($p[$i]))->format('H:i') }}&nbsp;
+							<?php if (\App\Helpers\TimeCalculator::total_time($p[$i]) != '00:00:00') { ?>
+								{{ Carbon::parse(\App\Helpers\TimeCalculator::total_time($p[$i]))->format('H:i') }}&nbsp;
 							<?php } ?>
 						</td>
 						<td colspan="3"></td>

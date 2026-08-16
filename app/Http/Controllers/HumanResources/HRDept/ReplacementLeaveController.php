@@ -7,6 +7,9 @@ use App\Http\Controllers\Controller;
 // models
 use App\Models\HumanResources\HRLeaveReplacement;
 
+// service
+use App\Services\HumanResources\ReplacementLeaveService;
+
 // validation
 use App\Http\Requests\HumanResources\ReplacementLeave\ReplacementRequestStore;
 use App\Http\Requests\HumanResources\ReplacementLeave\ReplacementRequestUpdate;
@@ -56,7 +59,12 @@ class ReplacementLeaveController extends Controller
 	 */
 	public function create(): View
 	{
-		return view('humanresources.hrdept.rleave.create');
+		$service = app(ReplacementLeaveService::class);
+
+		return view('humanresources.hrdept.rleave.create', [
+			'staffs' => $service->staffOptions(),
+			'customer' => $service->customerOptions(),
+		]);
 	}
 
 	/**
@@ -104,7 +112,10 @@ class ReplacementLeaveController extends Controller
 	 */
 	public function edit(HRLeaveReplacement $rleave): View
 	{
-		return view('humanresources.hrdept.rleave.edit', ['rleave'=>$rleave]);
+		return view('humanresources.hrdept.rleave.edit', [
+			'rleave' => $rleave,
+			'customer' => app(ReplacementLeaveService::class)->customerOptions(true),
+		]);
 	}
 
 	/**

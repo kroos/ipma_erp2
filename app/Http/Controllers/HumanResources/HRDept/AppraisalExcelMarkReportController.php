@@ -65,16 +65,11 @@ class AppraisalExcelMarkReportController extends Controller
 	 */
 	public function create(Request $request)/*: View*/
 	{
-		if (!$request->id) {
-			if (session()->exists('lastBatchId')) {
-				$bid = session()->get('lastBatchId');
-			} else {
-				$bid = 1;
-			}
-		} else {
-			$bid = $request->id;
+		$batchId = $request->id ?: session('lastBatchId');
+		if ($batchId) {
+			session()->forget('lastBatchId');
 		}
-		$batch = Bus::findBatch($bid);
+		$batch = Bus::findBatch($batchId ?: 1);
 
 		// dd(Storage::exists('public/excel/export.csv'));
 		if (Storage::exists('public/excel/export.csv')) {
@@ -111,7 +106,7 @@ class AppraisalExcelMarkReportController extends Controller
 			// return redirect($url);
 			return Storage::download('public/excel/'.$filename);
 		}
-		return view('humanresources.hrdept.appraisal.markreport.create', ['batch' => $batch]);
+		return view('humanresources.hrdept.appraisal.markreport.create', ['batch' => $batch, 'batchId' => $batchId]);
 	}
 
 	/**

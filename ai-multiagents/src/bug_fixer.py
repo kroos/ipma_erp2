@@ -45,6 +45,14 @@ class BugFixer:
         self.adapters = orch.adapters
         self.roles = orch.roles
         self.brain = brain or self._default_brain()
+        # fallback order for the fix brain: the configured/primary agent
+        # first, then every other wired agent (sorted for determinism).
+        # finding-8 fix: an agent-level tool-config hiccup (e.g. openclaude's
+        # Bash failing with NotFound) must not lose the defect — the loop
+        # tries the next wired agent (e.g. opencode) before giving up.
+        self.brains = [self.brain] + sorted(
+            a for a in self.adapters if a != self.brain
+        )
         self.memory = MemoryStore("bug_fixer")
 
     def _default_brain(self) -> str:
@@ -119,8 +127,30 @@ class BugFixer:
 
     def _request_fix(self, defect: dict, round_no: int,
                      verdict: dict | None) -> dict:
-        """Ask the brain for a fix note; retry once when the JSON does not
-        parse (real LLMs occasionally emit malformed JSON, M7 E2E)."""
+        """Ask the fix brain for a note; retry once when the JSON does not
+        parse (real LLMs occasionally emit malformed JSON, M7 E2E).
+
+        On FixError from the primary brain, fall back to the next wired
+        agent (finding-8: openclaude's Bash tool failed with NotFound and
+        the defect was lost). The note records which brain produced it.
+        """
+        last_error: FixError | None = None
+        for brain in self.brains:
+            try:
+                return self._request_fix_from(brain, defect, round_no, verdict)
+            except FixError as exc:
+                last_error = exc
+                if len(self.brains) > 1:
+                    print(
+                        f"[bug_fixer] fix brain {brain!r} failed: "
+                        f"{str(exc)[:120]}; trying next"
+                    )
+        assert last_error is not None
+        raise last_error
+
+    def _request_fix_from(self, brain: str, defect: dict, round_no: int,
+                          verdict: dict | None) -> dict:
+        """One fix-brain attempt against `brain` (primary or fallback)."""
         for attempt in (1, 2):
             prompt = self._fix_prompt(defect, round_no, verdict)
             if attempt > 1:
@@ -128,17 +158,19 @@ class BugFixer:
             message = make_message(
                 "task",
                 from_="bug_fixer",
-                to=[self.brain],
+                to=[brain],
                 task_id=f"fix_{round_no:03d}",
                 parts=[{"type": "text", "text": prompt}],
             )
-            result = self.adapters[self.brain].run_task(message)
+            result = self.adapters[brain].run_task(message)
             text = result.get("parts", [{}])[0].get("text", "")
             if result.get("metadata", {}).get("state") == "failed":
                 raise FixError(f"bug fixer brain failed: {text[:300]}")
             parsed = extract_json_block(text)
             if parsed is not None:
-                return self._validate_fix_note(parsed)
+                note = self._validate_fix_note(parsed)
+                note["brain"] = brain
+                return note
         raise FixError("bug fixer brain returned no parseable fix note")
 
     def fix(self, defect: dict, tester) -> dict:

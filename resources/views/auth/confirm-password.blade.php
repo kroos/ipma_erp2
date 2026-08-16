@@ -12,7 +12,7 @@
 			<div class="form-group row m-1 @error('password') has-error @enderror">
 				<label for="pass" class="col-form-label col-sm-2">Password : </label>
 				<div class="col-sm-6 my-auto">
-					<input type="password" name="password" value="{{ old('password', @$variable->password) }}" id="pass" class="form-control form-control-sm @error('password') is-invalid @enderror" placeholder="Password">
+					<input type="password" name="password" value="{{ old('password') }}" id="pass" class="form-control form-control-sm @error('password') is-invalid @enderror" placeholder="Password">
 					@error('password')
 						<div class="invalid-feedback">
 							{{ $message }}

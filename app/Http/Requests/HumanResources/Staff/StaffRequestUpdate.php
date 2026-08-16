@@ -47,7 +47,7 @@ class StaffRequestUpdate extends FormRequest
 			'branch_id' => 'required',
 			'pivot_dept_id' => 'required',
 			'leave_flow_id' => 'required',
-			'image' => 'nullable|file|max:5120|mimes:jpeg,jpg,png,bmp',
+			'image' => 'nullable|file|max:5120|mimetypes:image/jpeg,image/png,image/bmp',
 			// 'document' => 'sometimes|file|max:5120|mimes:jpeg,jpg,png,bmp,pdf,doc,docx',
 
 			// 'username' => 'required|alpha_num:ascii|unique:logins,username,'.$this->staff['id'],

@@ -1,100 +1,70 @@
 @extends('layouts.app')
 
-@section('content')
-<form method="POST" action="{{ route('login') }}" id='form' class="needs-validation" autocomplete="off" enctype="multipart/form-data">
-	@csrf
-	<div class="card">
-		<div class="card-header">
-			<h3>Sign In</h3>
-		</div>
-		<div class="card-body">
+@section('fullscreen')
+	<div class="login-page w-100">
+		<form method="POST" action="{{ route('login') }}" id='form' class="needs-validation card login-card" autocomplete="off" enctype="multipart/form-data">
+			@csrf
+			<div class="card-header">
+				<img src="{{ asset('images/logo.png') }}" class="brand-mark" alt="logo">
+				<h3>Sign In</h3>
+				<p class="m-0 mt-2 opacity-75 small">{!! config('app.name') !!}</p>
+			</div>
+			<div class="card-body">
 
-			<div class="form-group row m-2 @error('username') has-error @enderror">
-				<label for="username" class="col-sm-4 col-form-label col-form-label-sm">Username : </label>
-				<div class="col-sm-6 my-auto">
-					<input type="text" name="username" value="{{ old('username') }}" id="username" class="form-control form-control-sm @error('username') is-invalid @enderror" id="username" placeholder="Username">
+				<div class="mb-3 @error('username') has-error @enderror">
+					<label for="username" class="form-label">Username</label>
+					<div class="input-group">
+						<span class="input-group-text"><i class="fa-regular fa-user"></i></span>
+						<input type="text" name="username" value="{{ old('username') }}" id="username" class="form-control @error('username') is-invalid @enderror" placeholder="Enter your username">
+					</div>
 					@error('username')
-						<div class="invalid-feedback">
+						<div class="invalid-feedback d-block">
 							{{ $message }}
 						</div>
 					@enderror
-
 				</div>
-			</div>
 
-			<div class="form-group row m-2 @error('password') has-error @enderror">
-				<label for="password" class="col-sm-4 col-form-label col-form-label-sm">Password : </label>
-				<div class="col-sm-6 my-auto">
-					<input type="password" name="password" class="form-control form-control-sm @error('password') is-invalid @enderror" id="password" placeholder="Password">
+				<div class="mb-3 @error('password') has-error @enderror">
+					<label for="password" class="form-label">Password</label>
+					<div class="input-group">
+						<span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+						<input type="password" name="password" class="form-control @error('password') is-invalid @enderror" id="password" placeholder="Enter your password">
+					</div>
 					@error('password')
-						<div class="invalid-feedback">
+						<div class="invalid-feedback d-block">
 							{{ $message }}
 						</div>
 					@enderror
-
 				</div>
-			</div>
 
-			<div class="mb-3 row col-sm-6 offset-sm-4">
-				<div class="pretty p-svg p-round p-plain p-jelly">
-					<input type="checkbox" name="remember" value="{{ old('remember') }}" class="form-check-input form-check-input-sm" id="remember_me">
-					<div class="state p-success">
-						<span class="svg"><i class="bi bi-check"></i></span>
-						<label for="remember_me">{{ __('Remember me') }}</label>
+				<div class="mb-3">
+					<div class="pretty p-svg p-round p-plain p-jelly">
+						<input type="checkbox" name="remember" value="{{ old('remember') }}" class="form-check-input form-check-input-sm" id="remember_me">
+						<div class="state p-success">
+							<span class="svg"><i class="bi bi-check"></i></span>
+							<label for="remember_me">{{ __('Remember me') }}</label>
+						</div>
 					</div>
 				</div>
+
 			</div>
+			<div class="card-footer">
 
+				<div class="d-grid">
+					<button type="submit" class="btn btn-primary">Login</button>
+					@if (Route::has('password.request'))
+						<div class="text-center mt-3">
+							<a class="small" href="{{ route('password.request') }}">
+								{{ __('Forgot your password?') }}
+							</a>
+						</div>
+					@endif
+				</div>
 
-		</div>
-		<div class="card-footer">
-
-			<div class="d-flex justify-content-end mt-4">
-				<button type="submit" class="btn btn-sm btn-outline-secondary me-2">Login</button>
-				@if (Route::has('password.request'))
-					<a class="" href="{{ route('password.request') }}">
-						{{ __('Forgot your password?') }}
-					</a>
-				@endif
 			</div>
-
-		</div>
+		</form>
 	</div>
-</form>
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-// validator
-$(document).ready(function() {
-	$('#form').bootstrapValidator({
-		fields: {
-			username: {
-				validators: {
-					notEmpty: {
-						message: 'Please insert username'
-					},
-				}
-			},
-			password: {
-				validators: {
-					notEmpty : {
-						message: 'Please insert password'
-					},
-				}
-			},
-		}
-	})
-	.find('[name="reason"]')
-	// .ckeditor()
-	// .editor
-		.on('change', function() {
-			// Revalidate the bio field
-		$('#form').bootstrapValidator('revalidateField', 'reason');
-		// console.log($('#reason').val());
-	})
-	;
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
 @endsection

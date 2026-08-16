@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\DB;
 
 // load models
 use App\Models\HumanResources\HRAttendance;
+use App\Models\HumanResources\HRLeave;
+use App\Models\HumanResources\OptDayType;
+use App\Models\HumanResources\OptTcms;
 use App\Models\Staff;
 
 // load paginator
@@ -32,6 +35,9 @@ use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
+
+// load service
+use App\Services\HumanResources\AttendanceService;
 
 // load Carbon
 use \Carbon\Carbon;
@@ -67,12 +73,41 @@ class AttendanceController extends Controller
 			->where('staffs.active', 1)
 			->where('attend_date', $selected_date)
 			// ->where(function(Builder $query) {
-			// 	$query->whereDate('attend_date', '>=', '2023-01-01')
+			// 	$query->whereDate('attend_date', '>=', '2023-01-01'
 			// 	->whereDate('attend_date', '<=', '2023-12-31');
 			// })
 			->get();
 
-		return view('humanresources.hrdept.attendance.index', ['attendance' => $attendance, 'selected_date' => $selected_date]);
+		// who am i? ppl who can see only his staff in same department
+		$staff = auth()->user()->belongstostaff;
+		$me1 = $staff->div_id == 1;		// hod
+		$me2 = $staff->div_id == 5;		// hod assistant
+		$me3 = $staff->div_id == 4;		// supervisor
+		// $me4 = $staff->div_id == 3;	// HR
+		$me5 = $staff->authorise_id == 1;	// admin
+		$me6 = $staff->div_id == 2;		// director
+
+		$dept = $staff->belongstomanydepartment()->wherePivot('main', 1)->first();
+		$deptid = $dept->id;
+		$branch = $dept->branch_id;
+		$category = $dept->category_id;
+
+		// per-row grid computation moved out of the blade into the service
+		$grid = (new AttendanceService())->gridData($attendance, [
+			'me1' => $me1,
+			'me2' => $me2,
+			'me3' => $me3,
+			'me5' => $me5,
+			'me6' => $me6,
+			'deptid' => $deptid,
+			'branch' => $branch,
+		]);
+
+		return view('humanresources.hrdept.attendance.index', [
+			'attendance' => $attendance,
+			'selected_date' => $selected_date,
+			'grid' => $grid,
+		]);
 	}
 
 	/**
@@ -103,7 +138,76 @@ class AttendanceController extends Controller
 	 */
 	public function edit(HRAttendance $attendance): View
 	{
-		return view('humanresources.hrdept.attendance.edit', ['attendance' => $attendance]);
+		$time_start_am = $time_end_am = $time_start_pm = $time_end_pm = '';
+
+		$staff = Staff::find($attendance->staff_id);
+		$department = $staff?->belongstomanydepartment()->wherePivot('main', 1)->first();
+
+		$day_type = OptDayType::pluck('daytype', 'id')->sortKeys()->toArray();
+		$tcms = OptTcms::pluck('leave_short', 'id')->sortKeys()->toArray();
+
+		$login = $staff?->hasmanylogin()->where('active', '1')->get()->first();
+
+		// preserved verbatim: original blade always took the raw value (condition used ||, effectively always true)
+		$time_work_hour = $attendance->time_work_hour;
+
+		$leaves = HRLeave::where('staff_id', $attendance->staff_id)
+			->whereDate('date_time_start', '<=', $attendance->attend_date)
+			->whereDate('date_time_end', '>=', $attendance->attend_date)
+			->where(function (Builder $query) {
+				$query->whereIn('leave_status_id', [5, 6])
+					->orWhereNull('leave_status_id');
+			})
+			->orderBy('date_time_start', 'DESC')
+			->get();
+
+		if ($leaves->count()) {
+			foreach ($leaves as $lv) {
+				$leave = [$lv->id => 'HR9-' . str_pad($lv->leave_no, 5, '0', STR_PAD_LEFT) . '/' . $lv->leave_year];
+			}
+		} else {
+			$leave = [];
+		}
+
+		if ($department) {
+			$day_name = Carbon::parse($attendance->attend_date)->format('l');
+
+			$working_hour = $department->belongstowhgroup()
+				->where('effective_date_start', '<=', $attendance->attend_date)
+				->where('effective_date_end', '>=', $attendance->attend_date);
+
+			if (in_array($department->id, [19, 30])) {		// maintenance staff
+				$working_hour = $working_hour->where('category', $day_name == 'Friday' ? 7 : 8);
+			} elseif ($day_name == 'Friday') {
+				$working_hour = $working_hour->where('category', 3);
+			} else {
+				$working_hour = $working_hour->where('category', '!=', 3);
+			}
+
+			$working_hour = $working_hour->first();
+
+			if ($working_hour) {
+				$time_start_am = Carbon::parse($working_hour->time_start_am)->format('H:i');
+				$time_end_am = Carbon::parse($working_hour->time_end_am)->format('H:i');
+				$time_start_pm = Carbon::parse($working_hour->time_start_pm)->format('H:i');
+				$time_end_pm = Carbon::parse($working_hour->time_end_pm)->format('H:i');
+			}
+		}
+
+		return view('humanresources.hrdept.attendance.edit', [
+			'attendance' => $attendance,
+			'staff' => $staff,
+			'login' => $login,
+			'day_type' => $day_type,
+			'tcms' => $tcms,
+			'time_work_hour' => $time_work_hour,
+			'leaves' => $leaves,
+			'leave' => $leave,
+			'time_start_am' => $time_start_am,
+			'time_end_am' => $time_end_am,
+			'time_start_pm' => $time_start_pm,
+			'time_end_pm' => $time_end_pm,
+		]);
 	}
 
 	/**

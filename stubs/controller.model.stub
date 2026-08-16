@@ -3,106 +3,140 @@ namespace {{ namespace }};
 use {{ rootNamespace }}Http\Controllers\Controller;
 
 // for controller output
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\{
+	JsonResponse,
+	RedirectResponse,
+	Response
+};
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 // models
 use {{ namespacedModel }};
 
+// load validation
+use {{ namespacedRequests }};
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+
 // load db facade
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
-
-
-// load validation
-use {{ namespacedRequests }}
-use Illuminate\Support\Facades\Validator;
 
 // load batch and queue
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 
 // load email & notification
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Notification;// more email
-
-// load pdf
-// use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\{
+	Mail, Notification
+};
 
 // load helper
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\{
+	Arr, Str, Collection, Facades\Storage
+};
 
 // load Carbon library
-use \Carbon\Carbon;
-use \Carbon\CarbonPeriod;
-use \Carbon\CarbonInterval;
+use \Carbon\{
+	Carbon, CarbonPeriod, CarbonInterval
+};
 
 use Session;
 use Throwable;
 use Exception;
 use Log;
 
+
+// load pdf
+// use Barryvdh\DomPDF\Facade\Pdf;
+
 class {{ class }} extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(): View
-    {
-        //
-    }
+	/**
+	 * Display a listing of the resource.
+	 */
+	public function index(): View
+	{
+		return view('{{ modelVariable }}.index');
+	}
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(): View
-    {
-        //
-    }
+	/**
+	 * Show the form for creating a new resource.
+	 */
+	public function create(): View
+	{
+		return view('{{ modelVariable }}.create');
+	}
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store({{ storeRequest }} $request): RedirectResponse
-    {
-        //
-    }
+	/**
+	 * Store a newly created resource in storage.
+	 */
+	public function store({{ storeRequest }} $request): RedirectResponse
+	{
+		$request->validate([
+		],[],[
+		]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show({{ model }} ${{ modelVariable }}): View
-    {
-        //
-    }
+		$result = {{ model }}::create(
+			$request->except('_token')
+		);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit({{ model }} ${{ modelVariable }}): View
-    {
-        //
-    }
+		$result->hasManyRelationship()->createMany(
+			$request->arrays
+		);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update({{ updateRequest }} $request, {{ model }} ${{ modelVariable }}): RedirectResponse
-    {
-        //
-    }
+		return redirect()->route('{{ modelVariable }}.index')->with('success', 'Data Added');
+	}
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy({{ model }} ${{ modelVariable }}): JsonResponse
-    {
-        //
-    }
+	/**
+	 * Display the specified resource.
+	 */
+	public function show({{ model }} ${{ modelVariable }}): View
+	{
+		return view('{{ modelVariable }}.show', ['var' => ${{ modelVariable }}]);
+	}
+
+	/**
+	 * Show the form for editing the specified resource.
+	 */
+	public function edit({{ model }} ${{ modelVariable }}): View
+	{
+		return view('{{ modelVariable }}.edit', ['var' => ${{ modelVariable }}]);
+	}
+
+	/**
+	 * Update the specified resource in storage.
+	 */
+	public function update({{ updateRequest }} $request, {{ model }} ${{ modelVariable }}): RedirectResponse
+	{
+		$request->validate([
+		],[],[
+		]);
+
+		${{ modelVariable }}->update(
+			$request->except('_token', '_method')
+		);
+
+		foreach ($request->arrays as $array) {
+			${{ modelVariable }}->hasManyRelationship()->updateOrCreate(
+				['id' => $array['id'] ?? null],
+				$array
+			);
+		}
+
+		return redirect()->route('{{ modelVariable }}.index')->with('success', 'Data Updated');
+	}
+
+	/**
+	 * Remove the specified resource from storage.
+	 */
+	public function destroy({{ model }} ${{ modelVariable }}): JsonResponse
+	{
+		${{ modelVariable }}->delete();
+		return response()->json([
+			'status' => 'success',
+			'message' => 'Data Deleted',
+		]);
+	}
 }

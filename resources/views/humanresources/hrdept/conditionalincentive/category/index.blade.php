@@ -20,5 +20,3 @@
 @section('js')
 @endsection
 
-@section('nonjquery')
-@endsection

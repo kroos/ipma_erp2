@@ -23,6 +23,9 @@ use App\Models\Staff;
 use App\Models\HumanResources\HRLeaveApprovalSupervisor;
 use App\Models\HumanResources\HRLeave;
 
+// service
+use App\Services\HumanResources\LeaveApprovalService;
+
 // load array helper
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -49,7 +52,16 @@ class HRLeaveApprovalSupervisorController extends Controller
 	 */
 	public function index(): View
 	{
-		return view('humanresources.hrdept.leave.supervisorleaveapproval.index');
+		$service = new LeaveApprovalService();
+		$approvals = $service->approvals(HRLeaveApprovalSupervisor::class);
+
+		return view('humanresources.hrdept.leave.supervisorleaveapproval.index', array_merge(
+			$service->context(),
+			[
+				'approvals' => $approvals,
+				'grid'      => $service->gridData($approvals, 'supervisor'),
+			]
+		));
 	}
 
 	/**

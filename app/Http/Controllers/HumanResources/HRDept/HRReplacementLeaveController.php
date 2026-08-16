@@ -8,6 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Models\HumanResources\HRLeaveReplacement;
 use App\Models\Staff;
 
+// services
+use App\Services\HumanResources\EntitlementService;
+
 // validation
 
 
@@ -44,12 +47,17 @@ class HRReplacementLeaveController extends Controller
 	 */
 	public function index(): View
 	{
-		$replacements = HRLeaveReplacement::groupByRaw('YEAR(date_start)')
-											->selectRaw('YEAR(date_start) as ryear')
-											->orderBy('ryear', 'DESC')
-											->get();
-											// ->ddrawsql();
-		return view('humanresources.hrdept.entitlement.replacement.index', ['replacements' => $replacements]);
+		$config = [
+			'title' => 'Replacement Leave Entitlement',
+			'variant' => 'replacement',
+			'model' => HRLeaveReplacement::class,
+			'endpoint' => 'hrreplacementleave.index',
+			'columns' => ['ID', 'Name', 'Reason', 'Location', 'Replacement Leave', 'Replacement Leave Utilize', 'Replacement Leave Balance', 'Remarks', 'Leave'],
+		];
+
+		$rows = app(EntitlementService::class)->replacementRows();
+
+		return view('humanresources.hrdept.entitlement.index', compact('config', 'rows'));
 	}
 
 	/**

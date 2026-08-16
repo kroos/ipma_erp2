@@ -25,10 +25,10 @@
 								@foreach ($incentivestaff->belongstomanycicategoryitem()?->get() as $k => $v)
 									<tr wire:key="{{ $v->id.now() }}">
 										<td>{{ $k + 1 }}</td>
-										<td>{!! nl2br($v->description) !!}</td>
+										<td>{!! nl2br(e($v->description)) !!}</td>
 										<td>MYR {{ $v->point }}</td>
 										<td>
-											<button type="button" class="btn btn-sm btn-outline-secondary text-danger" wire:click="delstaffitem('{!! $incentivestaff->id.'_'.$v->id !!}')" wire:confirm="Are you sure?">
+											<button type="button" class="btn btn-sm btn-outline-secondary text-danger" wire:click="delstaffitem('{{ $incentivestaff->id.'_'.$v->id }}')" wire:confirm="Are you sure?">
 												<i class="fa-solid fa-trash-can fa-beat"></i>
 											</button>
 										</td>

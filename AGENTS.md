@@ -1,0 +1,129 @@
+# AGENTS.md — IPMA ERP Coding Rules
+
+These rules are **mandatory** for every change made to this codebase. When in doubt, follow the existing conventions in `resources/views/sales` and `resources/js/modules`.
+
+---
+
+## §1 — File creation: `php artisan` only
+
+**You must not create application files by hand.** Every new file (controller, model, migration, request, policy, service, view, JS module, route) is generated via artisan commands.
+
+- **Full module:** `php artisan make:module {Module}\{Name} -M`
+  - Generates: controller, model + migration, `Store/Update` Form Requests, policy, service, views (`index`, `create`, `edit`, `show`, `_form`, `_js`), JS (`index`, `show`, `form`), and appends the resource routes to `routes/auth.php`.
+  - Reference an existing model instead of a new one: `php artisan make:module {Module}\{Name} -m App\Models\{Existing}`
+- **Single pieces:** `php artisan make:controller`, `make:model -m`, `make:request`, `make:policy`, `make:migration` (services have no stock command — `make:module` covers them).
+- Editing an existing file is fine; **creating one is not** (except this rules doc and docs).
+
+---
+
+## §2 — JavaScript lives in `resources/js/modules`
+
+All page JavaScript goes in:
+
+```
+resources/js/modules/<module>/
+    index.js    # list page (route: <module>.index)
+    show.js     # detail page (route: <module>.show)
+    form.js     # create + edit pages (routes: <module>.create / <module>.edit)
+```
+
+These are the **only** filenames allowed. `create.js` / `edit.js` are not used — the loader maps both actions to `form.js` (see `ACTION_MAP` in `resources/js/moduleLoader.js`), and the literal `create.js`/`edit.js` only exist as a loader fallback if a module ever needs it. **Do not create `create.js`/`edit.js`.**
+- **Blade ↔ JS bridge:** the view includes `<module>._js` partial which defines a single `window.data` object:
+  ```js
+  window.data = {
+      route: { key: '{{ route('module.key') }}' },   // named routes (API + page)
+      url:   { key: '{{ url('path') }}' },           // plain URLs
+      old:   { field: @json(old('field', $model?->field)) },
+      errors: @json($errors->toArray()),
+  };
+  ```
+- **JS modules** start with `const { route, url, old } = window.data;` and use the **shared presets** from `resources/js/config/plugins.js`:
+  - DataTables: `$('#table').DataTable({ ...config.datatable })`
+  - SweetAlert: `swal.fire({ ...config.swal })`
+  - Select2: `$('.sel').select2({ ...config.select2 })`
+- No inline `<script>` in views other than the `@section('js')` wrapper (`layouts/app.blade.php` runs it inside `$(document).ready`).
+
+---
+
+## §3 — Business logic: services & API endpoints only
+
+- All business rules, queries, and calculations live in **services** (`app/Services/{Module}/{Name}Service.php`) or **API endpoints**.
+- **Controllers stay thin:** validate → call service → return view / redirect / JSON.
+- **Never** put DB queries, `where()` chains, or calculations inside Blade views or JS.
+
+---
+
+## §4 — API endpoints: only two controllers
+
+| Purpose | Controller | Routes file |
+|---|---|---|
+| **Read only** (DataTables, Select2, autocomplete, lookups) | `App\Http\Controllers\API\AjaxSupportController` | `routes/api.php` |
+| **Write only** (POST / PUT / PATCH / DELETE) | `App\Http\Controllers\API\ModelAjaxCRUDController` | `routes/apiCRUD.php` |
+
+- Every new endpoint must be added to one of these two controllers and registered **only** in the matching routes file.
+- Response shape: JSON `{ status, message, data }` (write) / `{ data }` (read).
+- Routes are grouped under the `api` prefix with auth middleware — never define ad-hoc ajax controllers per module.
+- ⚠️ **Write controller not created yet:** `routes/apiCRUD.php` references `ModelAjaxCRUDController` (matching this rule) — it will be generated via `php artisan make:controller` when the first write endpoint is added.
+- ⚠️ **Legacy:** pre-existing module AJAX routes (e.g. `routes/Sales/ajax_sales.php` → `Sales\AjaxController`, `routes/HumanResources/ajax_hr.php`) violate this rule; they are scheduled for migration into the two API controllers as part of the fix backlog — new code must follow §4.
+
+---
+
+## §5 — Page (auth) routes: `routes/auth.php` & `routes/web.php`
+
+- **Guest / public** routes (login, register, forgot-password, landing) → `routes/web.php`.
+- **Authenticated page routes** → `routes/auth.php` (inside the `Route::middleware('auth')` group). `make:module` auto-appends resource routes here.
+- The legacy module route files (`routes/Sales/*`, `routes/HumanResources/*`, `routes/Costing/*`) exist for the current modules; **new** module routes go into `routes/auth.php` per this rule.
+- Access control via the registered middleware aliases: `adminAccess`, `highMgmtAccess[Level1-3]`, `leaveaccess`, `profileaccess`.
+
+---
+
+## §6 — Module / view conventions (from `resources/views/sales`)
+
+Each module has a folder with these files (generated by `make:module`):
+
+```
+resources/views/<module>/
+    index.blade.php      # list + DataTable + row actions
+    create.blade.php     # @include _form + _js
+    edit.blade.php       # @include _form + _js
+    show.blade.php       # detail view
+    _form.blade.php      # shared create/edit form
+    _js.blade.php        # window.data bridge (see §2)
+```
+
+- `create`/`edit` include `@include('<module>._form')` and `@include('<module>._js')`.
+- Tables use a kebab/module id (`<table id="salescustomer">`) and a per-row delete button with `data-id="{{ $row->id }}"`; deletion runs through `swal.fire({ ...config.swal })` → AJAX DELETE.
+- Route naming: `{module}.{action}` kebab-case (`salescustomer.create`, `sales.getOptSalesType`, `uom.uom`).
+
+---
+
+## §7 — Security & escaping
+
+- **Escape output by default:** use `{{ $var }}` for all user-supplied and DB data (XSS). `{!! $var !!}` is allowed **only** for documented trusted markup — i.e. server-side constants/config (e.g. `{!! config('app.name') !!}` in `layouts/app.blade.php`). Never use it for anything coming from user input or the database.
+- Sanitize user input server-side; validate via Form Requests (`Store{Name}Request` / `Update{Name}Request`).
+- Use query builder binding (not string interpolation) in LIKE/where clauses.
+
+---
+
+## §8 — Naming & structure
+
+- **Modules:** kebab-case folders (`salescustomer`, `h-r-leave`, `attendance`) — must match the route prefix and the JS module folder in §2.
+- **Controllers:** `{Module}Controller` in module namespaces (`App\Http\Controllers\Sales\...`).
+- **Services:** `App\Services\{Module}\{Name}Service`.
+- **Eloquent relations — project style (not stock Laravel):** relations are named with a compact `prefix + name` scheme:
+  - `hasmany...()` — one-to-many (e.g. `hasmanylogin()`, `hasmanyjobdescription()`)
+  - `belongsto...()` — inverse one-to-one/one-to-many (e.g. `belongstostaff`)
+  - `belongstomany...()` — many-to-many with a pivot (e.g. `belongstomanydepartment()`, `belongstomanydelivery()`, `belongstomanysalesgetitem()`)
+  - **When adding a relation to an existing model, follow the style already present in that model.** Don't mix in `snake_case`/stock names within the same model.
+- Keep lock files (`composer.lock`, `package-lock.json`) in git.
+
+---
+
+## §9 — Verification (full suite)
+
+Every change must pass all of these before it is considered done:
+
+1. **PHP tests:** `php artisan test` — run the suite; fix any failures related to the change.
+2. **Frontend build:** `npx mix` — the JS/CSS bundle must compile cleanly (this also confirms the new JS module is picked up by `moduleLoader.js`'s webpack context).
+3. **Route sanity:** for new/changed routes, `php artisan route:list` must show the route with the correct middleware and name.
+4. **Manual spot-check:** exercise the affected page in the browser (page renders, JS module loads via `data-route`, API calls hit the correct controller).

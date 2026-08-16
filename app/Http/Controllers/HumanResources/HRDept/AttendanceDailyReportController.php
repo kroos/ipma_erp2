@@ -35,6 +35,9 @@ use \Carbon\Carbon;
 use \Carbon\CarbonPeriod;
 use \Carbon\CarbonInterval;
 
+// load service
+use App\Services\HumanResources\AttendanceService;
+
 // load pdf
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -193,7 +196,13 @@ class AttendanceDailyReportController extends Controller
       ->orderBy('logins.username', 'ASC')
       ->get();
 
-    $pdf = PDF::loadView('humanresources.hrdept.attendance.attendancedailyreport.printpdf', ['dailyreport_absent' => $dailyreport_absent, 'dailyreport_late' => $dailyreport_late, 'dailyreport_outstation' => $dailyreport_outstation, 'selected_date' => $selected_date]);
+    // per-row display data moved out of the blade into the service
+    $service = app(AttendanceService::class);
+    $dailyreport_absent = $service->enrichAbsent($dailyreport_absent);
+    $lateRows = $service->lateRows($staffs_late, $dailyreport_late ?? []);
+    $dailyreport_outstation = $service->enrichOutstation($dailyreport_outstation);
+
+    $pdf = PDF::loadView('humanresources.hrdept.attendance.attendancedailyreport.printpdf', ['dailyreport_absent' => $dailyreport_absent, 'lateRows' => $lateRows, 'dailyreport_outstation' => $dailyreport_outstation, 'selected_date' => $selected_date]);
     // return $pdf->download('attendance daily report ' . $selected_date . '.pdf');
     return $pdf->stream();
   }
@@ -362,7 +371,13 @@ class AttendanceDailyReportController extends Controller
       ->orderBy('logins.username', 'ASC')
       ->get();
 
-    return view('humanresources.hrdept.attendance.attendancedailyreport.index', ['dailyreport_absent' => $dailyreport_absent, 'dailyreport_late' => $dailyreport_late, 'dailyreport_outstation' => $dailyreport_outstation, 'selected_date' => $selected_date]);
+    // per-row display data moved out of the blade into the service
+    $service = app(AttendanceService::class);
+    $dailyreport_absent = $service->enrichAbsent($dailyreport_absent);
+    $lateRows = $service->lateRows($staffs_late, $dailyreport_late ?? []);
+    $dailyreport_outstation = $service->enrichOutstation($dailyreport_outstation);
+
+    return view('humanresources.hrdept.attendance.attendancedailyreport.index', ['dailyreport_absent' => $dailyreport_absent, 'lateRows' => $lateRows, 'dailyreport_outstation' => $dailyreport_outstation, 'selected_date' => $selected_date]);
   }
 
   /**

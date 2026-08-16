@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\DB;
 // load models
 use App\Models\HumanResources\HRLeaveMaternity;
 
+// load services
+use App\Services\HumanResources\EntitlementService;
+
 // load array helper
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -43,7 +46,19 @@ class HRMaternityLeaveController extends Controller
 	 */
 	public function index(): View
 	{
-		return view('humanresources.hrdept.entitlement.maternity.index');
+		$config = [
+			'title' => 'Maternity Leave Entitlement',
+			'variant' => 'entitlement',
+			'model' => HRLeaveMaternity::class,
+			'endpoint' => 'hrmaternityleave.index',
+			'label' => 'Maternity',
+			'field' => 'maternity_leave',
+			'columns' => ['ID', 'Name', 'Maternity Leave', 'Maternity Leave Adjustment', 'Maternity Leave Utilize', 'Maternity Leave Balance', 'Remarks', '&nbsp;'],
+		];
+
+		$rows = app(EntitlementService::class)->rows(HRLeaveMaternity::class, $config['field']);
+
+		return view('humanresources.hrdept.entitlement.index', compact('config', 'rows'));
 	}
 
 	/**

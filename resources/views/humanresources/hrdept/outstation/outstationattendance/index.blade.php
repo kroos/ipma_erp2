@@ -2,10 +2,6 @@
 
 @section('content')
 <?php
-use App\Models\Staff;
-use App\Models\Login;
-use App\Models\HumanResources\HROutstation;
-use App\Models\HumanResources\HROutstationAttendance;
 use \Carbon\Carbon;
 
 // load array helper
@@ -51,10 +47,10 @@ use Illuminate\Support\Str;
 								<input type="checkbox" name="id[]" value="{{ $v->id }}" class="form-check-input @error('id.*') is-invalid @enderror" {{ (old('id.*') == $v->id)?'checked':NULL }}>
 							@endif
 						</td>
-						<td>{{ Login::where([['staff_id', $v->staff_id], ['active', 1]])->first()?->username }}</td>
-						<td>{{ Staff::find($v->staff_id)->name }}</td>
-						<td {!! ($v->outstation_id)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.HROutstation::find($v->outstation_id)->belongstocustomer?->customer.'"':NULL !!}>
-							{{ Str::limit(HROutstation::find($v->outstation_id)->belongstocustomer?->customer, 7, ' >>') }}
+						<td>{{ $usernames[$v->staff_id] ?? '' }}</td>
+						<td>{{ $staffNames[$v->staff_id] ?? '' }}</td>
+						<td @if($v->outstation_id) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $outstationCustomers[$v->outstation_id] ?? '' }}" @endif>
+							{{ Str::limit($outstationCustomers[$v->outstation_id] ?? '', 7, ' >>') }}
 						</td>
 						<td>{{ ($v->date_attend)?Carbon::parse($v->date_attend)->format('j M Y'):NULL }}</td>
 						<td>{{ ($v->in)?Carbon::parse($v->in)->format('g:i a'):NULL }}</td>
@@ -65,7 +61,7 @@ use Illuminate\Support\Str;
 						<td>{{ $v->out_cityName }}</td> --}}
 						<td>{{ ($v->confirm)?'Sended':'Not Sended' }}</td>
 						<td>{{ ($v->date_confirm)?Carbon::parse($v->date_confirm)->format('j M Y'):null }}</td>
-						<td {!! ($v->remarks)?'data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="'.$v->remarks.'"':NULL !!}>
+						<td @if($v->remarks) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $v->remarks }}" @endif>
 							{{ Str::limit($v->remarks, 8, ' >') }}
 						</td>
 						<td>
@@ -86,85 +82,15 @@ use Illuminate\Support\Str;
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-// tooltip
-$(document).ready(function(){
-	$('[data-bs-toggle="tooltip"]').tooltip();
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////
-$("#checkAll").change(function () {
-	$("input:checkbox").prop('checked', this.checked);
-});
-/////////////////////////////////////////////////////////////////////////////////////////
-// datatables
-$.fn.dataTable.moment( 'D MMM YYYY' );
-$.fn.dataTable.moment( 'D MMM YYYY h:mm a' );
-$('#outstation').DataTable({
-	"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
-	"columnDefs": [
-					{ type: 'date', 'targets': [4] },
-					// { type: 'time', 'targets': [4, 5] }
-				],
-	"order": [[4, "desc" ]],	// sorting the 5th column descending
-	responsive: true
-})
-.on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
-	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip();
-	});}
-);
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// ajax post delete row
-$(document).on('click', '.delete_button', function(e){
-
-	var outId = $(this).data('id');
-	SwalDelete(outId);
-	e.preventDefault();
-});
-
-function SwalDelete(outId){
-	swal.fire({
-		title: 'Are you sure?',
-		text: "It will be deleted permanently!",
-		type: 'warning',
-		showCancelButton: true,
-		confirmButtonColor: '#3085d6',
-		cancelButtonColor: '#d33',
-		confirmButtonText: 'Yes, delete it!',
-		showLoaderOnConfirm: true,
-
-		preConfirm: function() {
-			return new Promise(function(resolve) {
-				$.ajax({
-					url: '{{ url('outstation') }}' + '/' + outId,
-					type: 'DELETE',
-					data: {
-							_token : $('meta[name=csrf-token]').attr('content'),
-							id: outId,
-					},
-					dataType: 'json'
-				})
-				.done(function(response){
-					swal.fire('Deleted!', response.message, response.status)
-					.then(function(){
-						window.location.reload(true);
-					});
-					//$('#delete_product_' + outId).parent().parent().remove();
-				})
-				.fail(function(){
-					swal.fire('Oops...', 'Something went wrong with ajax !', 'error');
-				})
-			});
-		},
-		allowOutsideClick: false
-	})
-	.then((result) => {
-		if (result.dismiss === swal.DismissReason.cancel) {
-			swal.fire('Cancelled', 'Your data is safe from delete', 'info')
-		}
-	});
-}
-
+window.data = {
+	route: {
+		destroy: '{{ route('hroutstationattendance.destroy', ['hroutstationattendance' => ':id']) }}',
+	},
+	url: {
+		outstation: '{{ url('outstation') }}',
+	},
+	old: {
+	},
+	errors: @json($errors->toArray()),
+};
 @endsection

@@ -83,16 +83,11 @@ class AttendanceExcelReportController extends Controller
 	{
 		$from = Carbon::parse(session()->get('from'))->format('j_M_Y');
 		$to = Carbon::parse(session()->get('to'))->format('j_M_Y');
-		if (!$request->id) {
-			if (session()->exists('lastBatchId')) {
-				$bid = session()->get('lastBatchId');
-			} else {
-				$bid = 1;
-			}
-		} else {
-			$bid = $request->id;
+		$batchId = $request->id ?: session('lastBatchId');
+		if ($batchId) {
+			session()->forget('lastBatchId');
 		}
-		$batch = Bus::findBatch($bid);
+		$batch = Bus::findBatch($batchId ?: 1);
 
 		if (Storage::exists('public/excel/payslip.csv')) {
 
@@ -124,7 +119,7 @@ class AttendanceExcelReportController extends Controller
 			session()->forget('to');
 			return Storage::download('public/excel/'.$filename);
 		}
-		return view('humanresources.hrdept.attendance.attendanceexcelreport.create', ['batch' => $batch]);
+		return view('humanresources.hrdept.attendance.attendanceexcelreport.create', ['batch' => $batch, 'batchId' => $batchId]);
 	}
 
 	/**

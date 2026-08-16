@@ -34,7 +34,7 @@ $meloc = $me->belongstomanydepartment()->first()->branch_id;
 										<tr wire:key="{{ $v->id.$incentivestaff->id.now() }}">
 											<td>{{ $k2 + 1 }}</td>
 											<td class="w-50">
-												{!! nl2br($v->description) !!}
+												{!! nl2br(e($v->description)) !!}
 											</td>
 											<td>
 												<table class="table table-sm table-hover" style="font-size: 12px;">
@@ -91,7 +91,7 @@ $meloc = $me->belongstomanydepartment()->first()->branch_id;
 											<tr wire:key="{{ $v->id.$incentivestaff->id.now() }}">
 												<td>{{ $k2 + 1 }}</td>
 												<td class="w-50">
-													{!! nl2br($v->description) !!}
+													{!! nl2br(e($v->description)) !!}
 												</td>
 												<td>
 													<table class="table table-sm table-hover" style="font-size: 12px;">

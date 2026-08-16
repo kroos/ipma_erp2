@@ -1,92 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<style>
-  @media print {
-    body {
-      visibility: hidden;
-    }
-
-    #printPageButton,
-    #back {
-      display: none;
-    }
-
-    .table-container {
-      visibility: visible;
-      position: absolute;
-      left: 0;
-      top: 0;
-    }
-  }
-
-  .table-container {
-    display: table;
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .table {
-    display: table;
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 0;
-    padding-top: 0;
-    margin-bottom: 0;
-    padding-bottom: 0;
-  }
-
-  .table-row {
-    display: table-row;
-  }
-
-  .table-cell {
-    display: table-cell;
-    border: 1px solid #b3b3b3;
-    padding: 4px;
-    box-sizing: border-box;
-  }
-
-  .table-cell-top {
-    display: table-cell;
-    border: 1px solid #b3b3b3;
-    border-top: none;
-    padding: 4px;
-    box-sizing: border-box;
-  }
-
-  .table-cell-top-bottom {
-    display: table-cell;
-    border: 1px solid #b3b3b3;
-    border-top: none;
-    border-bottom: none;
-    padding: 0px;
-    box-sizing: border-box;
-  }
-
-  .table-cell-hidden {
-    display: table-cell;
-    border: none;
-  }
-
-  .header {
-    font-size: 22px;
-    text-align: center;
-  }
-
-  .theme {
-    background-color: #e6e6e6;
-  }
-
-  .table-cell-top1 {
-    display: table-cell;
-    border: 1px solid #b3b3b3;
-    border-top: none;
-    padding: 0px;
-    box-sizing: border-box;
-  }
-</style>
-
 <?php
 
 use \App\Models\HumanResources\HRAttendance;
@@ -201,7 +115,7 @@ if ($leave_status_temp == 'Approved' || $leave_status_temp == 'Waived') {
 }
 ?>
 
-<div class="col-sm-12 row">
+<div class="page-humanresources-leave-show col-sm-12 row">
   @include('humanresources.hrdept.navhr')
   <h4>Leave Application</h4>
 
@@ -248,7 +162,7 @@ if ($leave_status_temp == 'Approved' || $leave_status_temp == 'Waived') {
     <div class="table">
       @foreach($hrremarksattendance as $key => $value)
       <div class="table-row">
-        <div class="table-cell-top" style="width: 100%;">ATTENDANCE REMARK : {!! $value->remarks !!}<br />HR ATTENDANCE REMARK : {!! $value->hr_remarks !!}</div>
+        <div class="table-cell-top" style="width: 100%;">ATTENDANCE REMARK : {{ $value->remarks }}<br />HR ATTENDANCE REMARK : {{ $value->hr_remarks }}</div>
       </div>
       @endforeach
     </div>
@@ -259,7 +173,7 @@ if ($leave_status_temp == 'Approved' || $leave_status_temp == 'Waived') {
     @if($leave->remarks)
     <div class="table">
       <div class="table-row">
-        <div class="table-cell-top" style="width: 100%;">LEAVE REMARK : {!! $leave->remarks !!}</div>
+        <div class="table-cell-top" style="width: 100%;">LEAVE REMARK : {{ $leave->remarks }}</div>
       </div>
     </div>
     @endif
@@ -393,7 +307,7 @@ if ($leave_status_temp == 'Approved' || $leave_status_temp == 'Waived') {
 
   <div class="table">
     <div class="table-row">
-      Supporting Document : {!! ($leave->softcopy)?'<a href="'.asset('storage/leaves/'.$leave->softcopy).'" target="_blank">Link</a>':null !!}
+      Supporting Document : @if($leave->softcopy)<a href="{{ asset('storage/leaves/'.$leave->softcopy) }}" target="_blank">Link</a>@endif
     </div>
   </div>
 
@@ -414,11 +328,5 @@ if ($leave_status_temp == 'Approved' || $leave_status_temp == 'Waived') {
 @endsection
 
 @section('js')
-function printPage() {
-window.print();
-}
 
-function back() {
-window.history.back();
-}
 @endsection

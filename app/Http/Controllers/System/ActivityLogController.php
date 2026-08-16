@@ -107,7 +107,7 @@ class ActivityLogController extends Controller
 		]);
 
 		if ($request->search_value) {
-			$search = $request->search_value;
+			$search = addcslashes($request->search_value, '\\%_');
 
 			$query->where(function ($q) use ($search) {
 				$q->where('model_type', 'LIKE', "%{$search}%")

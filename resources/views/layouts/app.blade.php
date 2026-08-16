@@ -19,43 +19,57 @@ $currentYear = Carbon::now()->year;
 	<!-- <link href="{{ asset('css/bootstrap.css') }}" rel="stylesheet"> -->
 	@stack('styles')
 </head>
-	<body class="d-flex flex-column bg-secondary bg-opacity-10 min-vh-100" data-route="{{ Route::currentRouteName() }}">
+	<body class="ipma-app d-flex flex-column min-vh-100" data-route="{{ Route::currentRouteName() }}">
 
-		@include('layouts.navigation')
-
-			<div class="container-fluid mx-auto my-2">
-
-				<div class="col-sm-12 align-items-top justify-content-center m-0">
-					@include('layouts.nav')
+		@hasSection('fullscreen')
+			<div class="flex-fill d-flex flex-column">
+				<div class="container mt-3">
+					<div class="col-sm-12 mx-auto">
+						@include('layouts.messages')
+					</div>
 				</div>
+				<div class="flex-fill d-flex">
+					@yield('fullscreen')
+				</div>
+			</div>
+		@else
+			@include('layouts.navigation')
 
-		</div>
+			@auth
+				<div class="container-fluid px-3 pt-3">
+					<div class="col-sm-12">
+						@include('layouts.nav')
+					</div>
+				</div>
+			@endauth
 
-		<div class="container-fluid d-flex flex-fill p-1 mx-auto">
-
-			<div class="container mx-auto border border-success rounded">
+			<div class="container-fluid flex-fill px-3 py-3">
 
 				<div class="col-sm-12 mx-auto">
 					@include('layouts.messages')
 				</div>
 
-				<main class="col-sm-12 mx-auto d-flex flex-fill justify-content-center m-0">
+				@hasSection('page-header')
+					<div class="page-header">
+						@yield('page-header')
+					</div>
+				@endif
+
+				<main class="col-sm-12 mx-auto">
 					@yield('content')
 				</main>
 
 			</div>
 
-		</div>
-
-		<div class="container-fluid row mt-2">
-			<div class="col-sm-12 d-flex justify-content-center">
-				<p class="m-0 fs-6 text-sm text-light-emphasis">
-					<a href="{{ config('app.url') }}">{{ config('app.name') }}</a> develop using <a href="">Laravel v.{{ app()->version() }}</a></p>
-			</div>
-			<div class="col-sm-12 d-flex justify-content-center">
-				<small class="m-0 fw-lighter fs-6 text-body-secondary">Made with love by Dhiauddin and Tan</small>
-			</div>
-		</div>
+			<footer class="ipma-footer py-3 mt-auto">
+				<div class="container-fluid d-flex flex-column align-items-center gap-1">
+					<p class="m-0 fs-6">
+						<a href="{{ config('app.url') }}">{{ config('app.name') }}</a> built on Laravel v{{ app()->version() }}
+					</p>
+					<small class="m-0 fw-lighter text-body-secondary">Made with love by Dhiauddin and Tan</small>
+				</div>
+			</footer>
+		@endif
 	</body>
 
 	<script>

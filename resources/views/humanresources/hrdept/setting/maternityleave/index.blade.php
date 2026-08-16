@@ -55,10 +55,10 @@ use \Carbon\Carbon;
 			<tr>
 				<th>ID</th>
 				<th>Name</th>
-				<th>Annual Leave</th>
-				<th>Annual Leave Adjustment</th>
-				<th>Annual Leave Utilize</th>
-				<th>Annual Leave Balance</th>
+				<th>Maternity Leave</th>
+				<th>Maternity Leave Adjustment</th>
+				<th>Maternity Leave Utilize</th>
+				<th>Maternity Leave Balance</th>
 				<th>Remarks</th>
 				<th>&nbsp;</th>
 			</tr>
@@ -85,75 +85,14 @@ use \Carbon\Carbon;
 @endsection
 
 @section('js')
-/////////////////////////////////////////////////////////////////////////////////////////
-// datatables
-$.fn.dataTable.moment( 'D MMM YYYY' );
-$.fn.dataTable.moment( 'h:mm a' );
-$('#mll').DataTable({
-	"lengthMenu": [ [-1], ["All"] ],
-	// "columnDefs": [
-	// 				{ type: 'date', 'targets': [4,5,6] },
-	// 				// { type: 'time', 'targets': [6] },
-	// 			],
-	"order": [ 0, 'asc' ],
-	responsive: true
-})
-.on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
-	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip();
-	});}
-);
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// ajax post delete row
-$(document).on('click', '#genal', function(e){
-	// var outId = $(this).data('id');
-	SwalGenerate();
-	e.preventDefault();
-});
-
-function SwalGenerate(){
-	swal.fire({
-		title: 'Are you sure?',
-		text: "System will generate Maternity Leave Entitlement for each of female & active staff",
-		type: 'info',
-		showCancelButton: true,
-		confirmButtonColor: '#3085d6',
-		cancelButtonColor: '#d33',
-		confirmButtonText: 'Yes, generate it!',
-		showLoaderOnConfirm: true,
-
-		preConfirm: function() {
-			return new Promise(function(resolve) {
-				$.ajax({
-					url: '{{ route('generatematernityleave') }}',
-					type: 'POST',
-					data: {
-							_token : $('meta[name=csrf-token]').attr('content'),
-							// id: outId,
-					},
-					dataType: 'json'
-				})
-				.done(function(response){
-					swal.fire('Done!', response.message, response.status)
-					.then(function(){
-						window.location.reload(true);
-					});
-					//$('#delete_product_' + outId).parent().parent().remove();
-				})
-				.fail(function(){
-					swal.fire('Oops...', 'Something went wrong with ajax !', 'error');
-				})
-			});
-		},
-		allowOutsideClick: false
-	})
-	.then((result) => {
-		if (result.dismiss === swal.DismissReason.cancel) {
-			swal.fire('Cancelled', 'System did not generate Maternity Leave Entitlements.', 'info')
-		}
-	});
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
+window.data = {
+	route: {
+		generatematernityleave: '{{ route('generatematernityleave') }}',
+	},
+	url: {
+	},
+	old: {
+	},
+	errors: @json($errors->toArray()),
+};
 @endsection
