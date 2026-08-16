@@ -14,6 +14,14 @@ const config = {
 		width: '100%',
 	},
 
+	bootstrapValidator: {
+		feedbackIcons: {
+			valid: 'fas fa-light fa-check',
+			invalid: 'fas fa-sharp fa-light fa-xmark',
+			validating: 'fas fa-duotone fa-spinner-third'
+		}
+	},
+
 	datetimepicker: {
 		icons: {
 			time: "fas fa-regular fa-clock fa-beat",

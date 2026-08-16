@@ -20,6 +20,9 @@ class OptStatus extends Model
     use HasFactory;
 	// protected $connection = 'mysql';
 	protected $table = 'option_statuses';
+	protected $casts = [
+		'id' => 'integer',
+	];
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanystaff(): HasMany

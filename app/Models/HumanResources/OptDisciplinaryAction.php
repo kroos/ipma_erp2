@@ -20,6 +20,10 @@ class OptDisciplinaryAction extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_disciplinary_actions';
 
+	protected $casts = [
+		'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanyhrdisciplinary(): HasMany
 	{

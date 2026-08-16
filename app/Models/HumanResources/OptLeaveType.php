@@ -20,6 +20,10 @@ class OptLeaveType extends Model
 	use HasFactory;
 	// protected $connection = 'mysql';
 	protected $table = 'option_leave_types';
+	protected $casts = [
+		'id' => 'integer',
+		'sorting' => 'integer',
+	];
 
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship

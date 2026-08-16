@@ -22,6 +22,15 @@ class DepartmentPivot extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'pivot_dept_cate_branches';
 
+	protected $casts = [
+		'id' => 'integer',
+		'department_id' => 'integer',
+		'branch_id' => 'integer',
+		'category_id' => 'integer',
+		'wh_group_id' => 'integer',
+		'staff_quota' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	// db relation belongsToMany
 	public function belongstomanystaff(): BelongsToMany

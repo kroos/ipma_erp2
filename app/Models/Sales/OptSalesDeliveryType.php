@@ -23,6 +23,10 @@ class OptSalesDeliveryType extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_sales_delivery_types';
 
+	protected $casts = [
+		'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship
 

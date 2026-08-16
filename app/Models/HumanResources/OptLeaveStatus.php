@@ -21,6 +21,10 @@ class OptLeaveStatus extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_leave_statuses';
 
+	protected $casts = [
+		'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship
 	public function hasmanyleave(): HasMany

@@ -25,7 +25,7 @@
 
 			<div class="form-group row mb-3 {{ $errors->has('ot_date') ? 'has-error' : '' }}">
 				<label for="nam" class="col-form-label col-sm-4">Date Overtime : </label>
-				<div class="col-auto">
+				<div class="col-auto" style="position: relative;">
 					<input type="text" name="ot_date" value="{{ old('ot_date', $overtime->ot_date) }}" id="nam" class="form-control form-control-sm col-sm-12 @error('ot_date') is-invalid @enderror" placeholder="Date Overtime">
 				</div>
 			</div>

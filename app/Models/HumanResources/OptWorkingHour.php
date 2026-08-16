@@ -22,6 +22,15 @@ class OptWorkingHour extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_working_hours';
 
+	protected $casts = [
+		'id' => 'integer',
+		'effective_date_start' => 'date',
+		'effective_date_end' => 'date',
+		'year' => 'integer',
+		'category' => 'boolean',
+		'group' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanydepartment(): HasMany
 	{

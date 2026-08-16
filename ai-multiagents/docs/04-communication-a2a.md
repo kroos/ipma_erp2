@@ -168,15 +168,52 @@ decides whether to wait, requeue, or escalate.
 - Task dependency tracking stays in the Coordinator's global task list; Omniroute
   enforces status/no-double-dispatch but does **not** schedule dependencies.
 
-## 8. Local Transport Design
+## 8. Transport Design
 
 `src/message_bus.py` exposes an interface (`OmnirouteTransport`) with two
-implementations:
+implementations. The mesh transport is selected at Orchestrator construction
+by the `MESH_TRANSPORT` environment switch in
+`src/orchestrator.py::build_transport` — the swap only changes the bus the
+adapters are wired onto; agent adapters are never touched.
 
-1. `LocalBusTransport` — **default**. In-process queues + SQLite persistence.
-2. `HttpJsonRpcTransport` — *future* real A2A over HTTP JSON-RPC (Agent Cards,
-   `message/send`, `task/get`, `task/cancel`). Not built in Phase 1; the interface
-   guarantees swap-in without touching agent adapters.
+1. `LocalBusTransport` — **default** (`MESH_TRANSPORT=local`). In-process
+   queues + SQLite persistence.
+2. `HttpJsonRpcTransport` — **built (2026-08-17)**, `src/http_transport.py`.
+   Real A2A over HTTP JSON-RPC 2.0, selected with `MESH_TRANSPORT=http`
+   (listener host/port overridable via `MESH_HOST` / `MESH_PORT`, defaults
+   `127.0.0.1:47500`). Subclasses `LocalBusTransport`, so named /
+   capability / broadcast routing, status ownership, the central
+   no-double-dispatch rule and SQLite outbox dedupe by `messageId` are all
+   inherited unchanged.
+
+### 8.1 HTTP JSON-RPC 2.0 surface
+
+`HttpJsonRpcTransport` extends the local core with a stdlib
+`ThreadingHTTPServer` listener on a daemon thread, reachable as soon as the
+transport is constructed (default endpoint `http://127.0.0.1:47500`):
+
+- `GET /` and `GET /health` → `{"status": "ok"}`.
+- `POST` with a JSON-RPC 2.0 request body (`{"jsonrpc":"2.0","id":…,
+  "method":…,"params":…}`) dispatches the mesh methods (the POST path is not
+  validated; the code examples use `POST /`):
+
+| Method | Params | Result |
+|--------|--------|--------|
+| `mesh.cards` | `{}` | `{"cards": [ … ]}` — the Agent Card mesh directory |
+| `mesh.send` | `{"message": {A2A envelope}}` | `{"delivered": ["<agent>", …], "status": "ok"}` — delivers like the in-process `send()` (named / `toCapability` / broadcast), persists to the same SQLite outbox (`memory/bus.db`) with dedupe by `messageId`; a `RoutingError` (e.g. no-double-dispatch) comes back as JSON-RPC error `-32000` |
+| `mesh.status` | `{}` | `{"status": "ok", "agents": <n>, "host": …, "port": …}` — listener health |
+
+JSON-RPC 2.0 errors are returned in the standard shape: `-32700` parse
+error, `-32600` invalid request, `-32601` method not found, `-32602`
+invalid params, `-32000` routing / internal error.
+
+### 8.2 Verification (2026-08-17)
+
+Live check `a2a_http_verify.py` boots the real Orchestrator with
+`MESH_TRANSPORT=http` (ephemeral port `MESH_PORT=47511`), then `mesh.cards`
+lists the registered agent cards, `mesh.send` delivers an A2A task envelope
+to an agent over HTTP, and the envelope is confirmed persisted in the SQLite
+outbox (`memory/bus.db`, `message_id=msg_http_live_001`).
 
 ## 9. Privacy / Security
 

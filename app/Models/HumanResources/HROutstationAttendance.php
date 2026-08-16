@@ -20,6 +20,16 @@ class HROutstationAttendance extends Model
 	use HasFactory;
 	// protected $connection = 'mysql';
 	protected $table = 'hr_outstation_attendances';
+
+    protected $casts = [
+        'id' => 'integer',
+        'staff_id' => 'integer',
+        'outstation_id' => 'integer',
+        'date_attend' => 'date',
+        'confirm' => 'integer',
+        'date_confirm' => 'datetime',
+    ];
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship
 

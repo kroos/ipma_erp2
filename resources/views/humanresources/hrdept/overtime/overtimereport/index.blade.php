@@ -18,6 +18,7 @@ if ($date_start != NULL && $date_end != NULL) {
 
 $currentYear = Carbon::now()->year;
 $lastYear = Carbon::now()->subYear()->year;
+$rows = [];
 ?>
 
 <div class="page-humanresources-hrdept-overtime-overtimereport-index container">
@@ -31,9 +32,15 @@ $lastYear = Carbon::now()->subYear()->year;
     <div class="col-auto" style="position: relative;">
       <input type="text" name="date_start" value="{{ old('date_start') }}" id="date_start" class="form-control form-control-sm col-sm-12 @error('date_start') is-invalid @enderror" placeholder="Date Start">
     </div>
+    @error('date_start')
+    <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
     <div class="col-auto" style="position: relative;">
       <input type="text" name="date_end" value="{{ old('date_end') }}" id="date_end" class="form-control form-control-sm col-sm-12 @error('date_end') is-invalid @enderror" placeholder="Date End">
     </div>
+    @error('date_end')
+    <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
     <div class="col-auto">
       <select name="branch" id="branch" class="form-select form-select-sm branch @error('branch') is-invalid @enderror">
         <option value="">Please choose</option>

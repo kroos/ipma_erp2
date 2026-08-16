@@ -21,6 +21,10 @@ class OptUOM extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_uom';
 
+	protected $casts = [
+		'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	// public function hasmanystaff(): HasMany
 	// {

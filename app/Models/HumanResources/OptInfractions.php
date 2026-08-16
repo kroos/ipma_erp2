@@ -20,6 +20,11 @@ class OptInfractions extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_infractions';
 
+	protected $casts = [
+		'id' => 'integer',
+		'created_date' => 'datetime',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanyhrdisciplinary(): HasMany
 	{

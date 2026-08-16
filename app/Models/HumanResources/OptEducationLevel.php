@@ -21,6 +21,10 @@ class OptEducationLevel extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_education_levels';
 
+	protected $casts = [
+		'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanytaxexemptionpercentage(): HasMany
 	{

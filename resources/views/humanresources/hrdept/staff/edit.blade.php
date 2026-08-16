@@ -170,14 +170,14 @@
 
 			<div class="form-group row m-2 {{ $errors->has('join') ? 'has-error' : '' }}">
 				<label for="jpo" class="col-form-label col-sm-4">Date Join : </label>
-				<div class="col-sm-7">
+				<div class="col-sm-7" style="position: relative">
 					<input type="text" name="join" value="{{ old('join', $staff->join) }}" id="jpo" class="form-control form-control-sm col-sm-12 @error('join') is-invalid @enderror" placeholder="Date Join">
 				</div>
 			</div>
 
 			<div class="form-group row m-2 {{ $errors->has('confirmed') ? 'has-error' : '' }}">
 				<label for="jpo" class="col-form-label col-sm-4">Date Confirm : </label>
-				<div class="col-sm-7">
+				<div class="col-sm-7" style="position: relative">
 					<input type="text" name="confirmed" value="{{ old('confirmed', $staff->confirmed) }}" id="jpo" class="form-control form-control-sm col-sm-12 @error('confirmed') is-invalid @enderror" placeholder="Date Confirm">
 				</div>
 			</div>
@@ -258,7 +258,7 @@
 									<input type="text" name="staffchildren[{{ $i }}][children]" value="{{ $child->children }}" id="chi_{{ $i }}" class="form-control form-control-sm" placeholder="Children">
 								</div>
 								<div class="col-sm-1"></div>
-								<div class="col-sm-7 form-group {{ $errors->has('staffchildren.*.dob') ? 'has-error' : '' }}">
+								<div class="col-sm-7 form-group {{ $errors->has('staffchildren.*.dob') ? 'has-error' : '' }}" style="position: relative">
 									<input type="text" name="staffchildren[1][dob]" value="{{ old('staffchildren[$i][dob]', $child->dob) }}" id="cdo_{{ $i }}" class="form-control form-control-sm" placeholder="Date Of Birth">
 								</div>
 								<div class="col-sm-4 form-group {{ $errors->has('staffchildren.*.gender_id') ? 'has-error' : '' }}">

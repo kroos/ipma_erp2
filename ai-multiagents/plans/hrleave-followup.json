@@ -1,0 +1,17 @@
+{
+  "clarifying_questions": [],
+  "tasks": [
+    {
+      "title": "Laravel style fix in this repo (project root), file app/Models/HumanResources/HRLeave.php: the recent edit that added 'protected $table = \u0027hr_leaves\u0027;' (around line 38) accidentally lost the leading TAB on the following line — 'protected $casts = [' now sits at column 0 (no indentation) while every other property in this file is indented with a single TAB (e.g. the $table line above it and the commented properties below it). Fix: restore the single leading tab so the line reads (TAB)protected $casts = [ . Do NOT change anything else — not the $table value, not the casts content, not the comments. Then run php -l app/Models/HumanResources/HRLeave.php and php artisan view:cache to confirm nothing broke. Report the exact line as it now appears (with visible tab) and the php -l / view:cache results.",
+      "capability": "php-utilities",
+      "dependsOn": [],
+      "owner": "php_specialist"
+    },
+    {
+      "title": "Document the HRLeave table-name fix in this repo (project root): write a short changelog doc to docs/changelog/2026-08-16-hrleave-table-name-fix.md describing (1) the bug: HRLeave model had no explicit $table so Eloquent derived h_r_leaves while the real table is hr_leaves, causing SQLSTATE[42S02] 1146 on the attendance date search (and any HRLeave query); (2) the fix: added protected $table = 'hr_leaves'; to app/Models/HumanResources/HRLeave.php; (3) the full-folder audit: a script compared every model's resolved table name against the live DB (SHOW TABLES, 176 tables) - only HRLeave was wrong (SalesAmend's derived sales_amends is correct, all other 72 models map to existing tables); (4) the stray scaffold migration database/migrations/2026_08_12_175759_create_h_r_leaves_table.php was deleted (it created an empty h_r_leaves table, nothing referenced it, not recorded in the migrations table); (5) verification: tinker getTable() prints hr_leaves, the exact failing query shape returns count 0 with no 42S02, full suite 47 passed / 159 assertions. Before writing, VERIFY each claim against the actual codebase (HRLeave has the table property set with correct indentation, the stray migration file is gone from database/migrations/, the audit findings match) - do not invent anything; if a claim cannot be verified, omit it or flag it as unverified. Keep it concise (roughly one screen).",
+      "capability": "technical-decisions",
+      "dependsOn": [],
+      "owner": "doc_writer"
+    }
+  ]
+}

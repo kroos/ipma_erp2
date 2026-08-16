@@ -15,7 +15,7 @@ use \Carbon\Carbon;
 	<div class="col-sm-12 row m-1">
 		  <form method="POST" action="{{ route('attendance.index') }}" accept-charset="UTF-8" id="form" autocomplete="off" class="form-horizontal" enctype="multipart/form-data">
 		    @csrf
-			<div class="col-sm-8 row g-3">
+			<div class="col-sm-8 row g-3" style="position: relative;">
 				<input type="text" name="date" value="{{ old('date', $selected_date) }}" id="date" class="col-sm-2 form-control form-control-sm @error('date') is-invalid @enderror" placeholder="Date">
 				<div class="col-auto">
 					<button type="submit" class="btn btn-sm btn-outline-secondary">Search</button>

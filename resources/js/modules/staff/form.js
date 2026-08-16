@@ -410,7 +410,7 @@ $(cadd_buttons).click(function () {
 					'<input type="text" name="staffchildren[' + xc + '][children]" id="chi_' + xc + '" class="form-control form-control-sm" placeholder="' + (isEdit ? 'Children' : 'Children Name') + '">' +
 				'</div>' +
 				'<div class="col-sm-1"></div>' +
-				'<div class="col-sm-7 form-group ' + hasErr('staffchildren.*.dob') + '">' +
+				'<div class="col-sm-7 form-group ' + hasErr('staffchildren.*.dob') + '" style="position: relative">' +
 					'<input type="text" name="staffchildren[' + xc + '][dob]" value="" id="cdo_' + xc + '" class="form-control form-control-sm" placeholder="Date Of Birth">' +
 				'</div>' +
 				'<div class="col-sm-4 form-group ' + hasErr('staffchildren.*.gender_id') + '">' +

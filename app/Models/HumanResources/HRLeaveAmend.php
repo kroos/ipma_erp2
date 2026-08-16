@@ -36,5 +36,13 @@ class HRLeaveAmend extends Model
         return $this->belongsTo(\App\Models\HumanResources\HRLeave::class, 'leave_id')->withDefault();
     }
 
-
+protected $casts = [
+	'id' => 'integer',
+	'leave_id' => 'integer',
+	'staff_id' => 'integer',
+	'leave_status_id' => 'integer',
+	'amend_type' => 'string',
+	'remarks' => 'string',
+	'date' => 'date',
+];
 }

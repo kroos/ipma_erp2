@@ -21,6 +21,10 @@ class OptDepartment extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_departments';
 
+	protected $casts = [
+		'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanydepartment(): HasMany
 	{

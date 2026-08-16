@@ -34,6 +34,28 @@ class Staff extends Model // implements MustVerifyEmail
 		'id', 'status_id', 'name', 'ic', 'authorise_id', 'restday_group_id', 'religion_id', 'gender_id', 'race_id', 'nationality_id', 'marital_status_id', 'leave_flow_id', 'div_id', 'email', 'address', 'place_of_birth', 'mobile', 'phone', 'dob', 'cimb_account', 'epf_account', 'income_tax_no', 'socso_no', 'weight', 'height', 'active', 'join', 'confirmed', 'remarks', 'image'
 	];
 
+	protected $casts = [
+	'id' => 'integer',
+	'status_id' => 'integer',
+	'authorise_id' => 'integer',
+	'restday_group_id' => 'integer',
+	'religion_id' => 'integer',
+	'gender_id' => 'integer',
+	'race_id' => 'integer',
+	'nationality_id' => 'integer',
+	'marital_status_id' => 'integer',
+	'leave_flow_id' => 'integer',
+	'div_id' => 'integer',
+	'dob' => 'date',
+	'bank_type_id' => 'integer',
+	'weight' => 'float',
+	'height' => 'float',
+	'active' => 'boolean',
+	'join' => 'date',
+	'confirmed' => 'date',
+	'appraisal_category_id' => 'integer',
+	];
+
 	// public function getEmailForPasswordReset()
 	// {
 	// 	return $this->email;

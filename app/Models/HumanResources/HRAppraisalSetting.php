@@ -21,6 +21,13 @@ class HRAppraisalSetting extends Model
     // protected $connection = 'mysql';
     protected $table = 'hr_appraisal_settings';
 
+    protected $casts = [
+		'id' => 'integer',
+		'value1' => 'decimal:2',
+		'value2' => 'decimal:2',
+		'value3' => 'decimal:2',
+    ];
+
     protected $fillable = [
         'value1',
         'value2',

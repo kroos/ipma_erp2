@@ -53,6 +53,20 @@ try {
 
 	window.config = require('./config/plugins').default;
 
+// expose Bootstrap 5 as a global (webpack keeps the UMD module-scoped otherwise)
+	window.bootstrap = require('bootstrap/dist/js/bootstrap.bundle');
+
+// jQuery modal compat shim - Bootstrap 5 ships no jQuery plugin, but pages
+// still call $(el).modal('show' | 'hide')
+	$.fn.modal = function (action) {
+		return this.each(function () {
+			var instance = window.bootstrap.Modal.getOrCreateInstance(this);
+			if (typeof action === 'string' && instance[action]) {
+				instance[action]();
+			}
+		});
+	};
+
 } catch (e) {}
 
 /**

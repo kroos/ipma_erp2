@@ -21,6 +21,18 @@ class HRDisciplinary extends Model
 
 	// protected $connection = 'mysql';
 	protected $table = 'hr_disciplinary';
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// casts
+	protected $casts = [
+		'id' => 'integer',
+		'staff_id' => 'integer',
+		'supervisor_id' => 'integer',
+		'disciplinary_action_id' => 'integer',
+		'violation_id' => 'integer',
+		'infraction_id' => 'integer',
+		'misconduct_date' => 'date',
+		'action_taken_date' => 'date',
+	];
 
   	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	//belongsto relationship

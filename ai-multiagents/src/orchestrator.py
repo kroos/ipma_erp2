@@ -9,6 +9,7 @@ Shutdown: persist state + memory -> close bus -> report.
 
 from __future__ import annotations
 
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -16,7 +17,27 @@ from pathlib import Path
 from . import config_loader, state
 from .agent_adapter import AgentAdapter
 from .dispatcher import Dispatcher
+from .http_transport import HttpJsonRpcTransport
 from .message_bus import LocalBusTransport
+
+# Mesh transport selection (docs/04 §8): MESH_TRANSPORT=local (default) uses
+# the in-process LocalBusTransport; MESH_TRANSPORT=http uses
+# HttpJsonRpcTransport (same routing core + an A2A JSON-RPC listener on
+# MESH_HOST:MESH_PORT, default 127.0.0.1:47500). Swap-in never touches the
+# agent adapters — only the bus the Orchestrator wires them onto. The env is
+# read at construction time so it can be set before or after import.
+
+
+def build_transport(roles: dict):
+    """Pick the mesh transport from MESH_TRANSPORT, sharing the capability map."""
+    capability_map = build_capability_map(roles)
+    if os.environ.get("MESH_TRANSPORT", "local").strip().lower() == "http":
+        host = os.environ.get("MESH_HOST", "127.0.0.1")
+        port = int(os.environ.get("MESH_PORT", "47500"))
+        return HttpJsonRpcTransport(
+            host=host, port=port, capability_map=capability_map
+        )
+    return LocalBusTransport(capability_map=capability_map)
 
 
 def agent_capabilities(agent_id: str, roles: dict) -> list[str]:
@@ -70,7 +91,7 @@ class Orchestrator:
         self.mcp_defs = config_loader.load_mcp()
         self.state = state.StateStore()
         self.model_overrides = model_overrides or {}
-        self.bus = LocalBusTransport(capability_map=build_capability_map(self.roles))
+        self.bus = build_transport(self.roles)
         self.adapters: dict[str, AgentAdapter] = {}
         self.dispatcher = Dispatcher(self.bus, self.adapters)
 

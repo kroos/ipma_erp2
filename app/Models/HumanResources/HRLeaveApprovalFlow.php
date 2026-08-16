@@ -21,10 +21,13 @@ class HRLeaveApprovalFlow extends Model
     // protected $connection = 'mysql';
     protected $table = 'hr_leave_approval_flow';
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////
-    public function hasmanydepartment(): HasMany
-    {
-        return $this->hasMany(App\Models\Staff::class, 'leave_flow_id');
-    }
+    protected $casts = [
+        'id' => 'integer',
+        'backup_approval' => 'integer',
+        'supervisor_approval' => 'integer',
+        'hod_approval' => 'integer',
+        'director_approval' => 'integer',
+        'hr_approval' => 'integer',
+    ];
 }
 

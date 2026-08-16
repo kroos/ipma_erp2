@@ -103,6 +103,7 @@ $(document).ready(function() {
 	}
 
 	$('#form').bootstrapValidator({
+		...config.bootstrapValidator,
 		feedbackIcons: {
 			valid: '',
 			invalid: '',

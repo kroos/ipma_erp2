@@ -23,6 +23,21 @@ class HRLeaveAnnual extends Model
     // protected $connection = 'mysql';
     protected $table = 'hr_leave_annuals';
 
+protected $casts = [
+    'id' => 'integer',
+    'leave_id' => 'integer',
+    'staff_id' => 'integer',
+    'leave_status_id' => 'integer',
+    'leave_type_id' => 'integer',
+    'number_of_days' => 'integer',
+    'annual_leave' => 'integer',
+    'annual_leave_adjustment' => 'integer',
+    'annual_leave_balance' => 'integer',
+    'annual_leave_utilize' => 'integer',
+    'year' => 'integer',
+    'remarks' => 'string',
+];
+
     protected $fillable = [
 	'annual_leave',
 	'annual_leave_adjustment',

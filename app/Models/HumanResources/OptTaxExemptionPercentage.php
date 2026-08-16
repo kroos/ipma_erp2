@@ -20,6 +20,9 @@ class OptTaxExemptionPercentage extends Model
     use HasFactory;
 	// protected $connection = 'mysql';
 	protected $table = 'option_tax_exemption_percentages';
+	protected $casts = [
+		'id' => 'integer',
+	];
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanytaxexemptionpercentage(): HasMany

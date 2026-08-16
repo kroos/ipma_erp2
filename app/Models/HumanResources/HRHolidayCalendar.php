@@ -21,6 +21,14 @@ class HRHolidayCalendar extends Model
     // protected $connection = 'mysql';
     protected $table = 'hr_holiday_calendars';
 
+protected $casts = [
+'id' => 'integer',
+'date_start' => 'date',
+'date_end' => 'date',
+'holiday' => 'string',
+'remarks' => 'string',
+];
+
 protected $fillable = [
         'date_start',
         'date_end',

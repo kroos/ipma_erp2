@@ -22,6 +22,17 @@ class HRRestdayCalendar extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'hr_restday_calendars';
 
+protected $casts = [
+    'id' => 'integer',
+    'date_start' => 'date',
+    'date_end' => 'date',
+    'friday_date' => 'date',
+    'restday_group_id' => 'integer',
+    'saturday_date' => 'date',
+    'restday' => 'string',
+    'remarks' => 'string',
+];
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	public function belongstorestdaygroup(): BelongsTo
 	{

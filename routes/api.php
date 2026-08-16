@@ -36,6 +36,7 @@ Route::middleware(['auth:sanctum', 'auth'])->group(function () {
     Route::post('/uom', 'uom')->name('uom.uom');
     Route::get('/machine', 'machine')->name('machine.machine');
     Route::get('/machineaccessories', 'machineaccessories')->name('machineaccessories.machineaccessories');
+    Route::get('/leaveapproval/{type}', 'leaveApprovalTable')->name('api.leaveapproval.table');
     // Route::post('/jdescgetitem', 'jdescgetitem')->name('jdescgetitem.jdescgetitem');
     Route::post('/category', 'category')->name('category.category');
     Route::post('/country', 'country')->name('country.country');

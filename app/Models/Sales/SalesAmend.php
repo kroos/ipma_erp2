@@ -37,9 +37,10 @@ class SalesAmend extends Model
 	// const UPDATED_AT = '';
 	// protected $rememberTokenName = '';
 
-	// protected $casts = [
-	// 	'is_active' => 'boolean',
-	// ];
+	protected $casts = [
+		'id' => 'integer',
+		'sales_id' => 'integer',
+	];
 
 	// public function sluggable(): array
 	// {

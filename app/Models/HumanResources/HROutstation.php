@@ -21,6 +21,15 @@ class HROutstation extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'hr_outstations';
 
+    protected $casts = [
+        'id' => 'integer',
+        'staff_id' => 'integer',
+        'customer_id' => 'integer',
+        'date_from' => 'date',
+        'date_to' => 'date',
+        'active' => 'boolean',
+    ];
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasone relationship
 	public function hasonehrattendance(): HasOne

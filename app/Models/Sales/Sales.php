@@ -27,10 +27,20 @@ class Sales extends Model
 	protected $table = 'sales';
 
 	protected $casts = [
-		'spec_req' => 'boolean',
-		'urgency' => 'boolean',
+		'id' => 'integer',
+		'staff_id' => 'integer',
+		'sales_by_id' => 'integer',
+		'no' => 'integer',
+		'year' => 'integer',
 		'date_order' => 'date',
+		'customer_id' => 'integer',
 		'delivery_at' => 'date',
+		'spec_req' => 'boolean',
+		'stock' => 'boolean',
+		'deliveryby_id' => 'integer',
+		'sales_type_id' => 'integer',
+		'urgency' => 'boolean',
+		'confirm' => 'boolean',
 		'confirm_date' => 'date',
 	];
 

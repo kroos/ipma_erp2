@@ -21,6 +21,10 @@ class OptDivision extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_div';
 
+	protected $casts = [
+		'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanybranch(): HasMany
 	{

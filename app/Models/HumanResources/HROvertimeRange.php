@@ -21,6 +21,17 @@ class HROvertimeRange extends Model
 
 	// protected $connection = 'mysql';
 	protected $table = 'hr_overtime_ranges';
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// casts
+	protected $casts = [
+		'id' => 'integer',
+		'ramadhan' => 'boolean',
+		'active' => 'boolean',
+		'created_date' => 'datetime',
+		'updated_date' => 'datetime',
+		'deleted_date' => 'datetime',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship
 	public function hasmanyovertime(): HasMany

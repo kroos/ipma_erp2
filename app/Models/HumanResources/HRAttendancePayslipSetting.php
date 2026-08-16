@@ -20,4 +20,10 @@ class HRAttendancePayslipSetting extends Model
     use HasFactory;
     // protected $connection = 'mysql';
     protected $table = 'hr_attendance_payslip_settings';
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// casts
+	protected $casts = [
+		'id' => 'integer',
+		'value' => 'float',
+	];
 }

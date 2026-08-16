@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Validator;
 
 // load batch and queue
 // use Illuminate\Bus\Batch;
-// use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Bus;
 
 // load email & notification
 use Illuminate\Support\Facades\Mail;
@@ -53,6 +53,7 @@ use Log;
 
 /* helper */
 use App\Helpers\UnavailableDateTime;
+use App\Services\HumanResources\LeaveApprovalService;
 
 // load model
 use App\Models\{
@@ -1711,5 +1712,13 @@ class AjaxSupportController extends Controller
       'totalJobs' => $batch->totalJobs,
       'progress' => $batch->progress()
     ]);
+  }
+
+  /**
+   * Leave-approval DataTables source (supervisor|hod|dir|hr).
+   */
+  public function leaveApprovalTable(Request $request, string $type): JsonResponse
+  {
+    return response()->json(['data' => (new LeaveApprovalService())->tableData($type)]);
   }
 }

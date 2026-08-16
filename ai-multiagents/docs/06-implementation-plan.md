@@ -37,7 +37,7 @@ This is the build plan. It is phased so the system can be incrementally verified
 
 1. `src/message_bus.py` — the Omniroute gateway:
    - Full A2A data model (per `docs/04`): Agent Card, Message (parts: text/file/data), Task, Artifact, lifecycle states `submitted → working → input-required → completed | failed | canceled`.
-   - `OmnirouteTransport` interface + `LocalBusTransport` (default): in-process queues + per-agent persisted outbox in SQLite (at-least-once, dedupe by `messageId`). `HttpJsonRpcTransport` is a documented future swap-in, not built yet.
+   - `OmnirouteTransport` interface + `LocalBusTransport` (default): in-process queues + per-agent persisted outbox in SQLite (at-least-once, dedupe by `messageId`). `HttpJsonRpcTransport` (**implemented 2026-08-17**, `src/http_transport.py`): real A2A over HTTP JSON-RPC 2.0, selected via `MESH_TRANSPORT=http` (see `docs/04 §8`).
    - Smart routing: named delivery, capability addressing (`toCapability`), and broadcast; resolves against the Agent Card registry.
    - **Central no-double-dispatch enforcement**: reject `task` to an agent with status `working`; return a clear `routing` error when no idle capable agent exists.
 2. `src/agent_adapter.py`:
@@ -175,7 +175,7 @@ as the "brain" for judgment calls. (Decision recorded in `docs/03`.)
 ## Open Questions to Resolve During Build
 
 1. **Coordinator default agent** — spec says "chosen by user". One-shot CLI mode needs a prompt or flag for this.
-2. ~~How much "A2A" is real protocol vs. internal envelope?~~ **Resolved:** full A2A data model on a local bus; `HttpJsonRpcTransport` is the documented future swap-in (ADR-2).
+2. ~~How much "A2A" is real protocol vs. internal envelope?~~ **Resolved:** full A2A data model on a local bus; `HttpJsonRpcTransport` was implemented 2026-08-17 as the HTTP JSON-RPC 2.0 transport (ADR-2, `docs/04 §8`).
 3. ~~Agent CLI invocation shapes~~ **Resolved:** config-driven templates in
    `agents.yaml`. Historical (2026-08-12): templates were verified against
    each real CLI's `--help` (`opencode run`, `openclaude -p`, `claude -p`,

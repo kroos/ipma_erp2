@@ -20,6 +20,10 @@ class OptViolation extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_violations';
 
+	protected $casts = [
+		'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanyhrdisciplinary(): HasMany
 	{

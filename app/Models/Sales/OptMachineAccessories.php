@@ -21,6 +21,11 @@ class OptMachineAccessories extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_machine_accessories';
 
+	protected $casts = [
+		'id' => 'integer',
+		'machine_id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	// {
 	// 	return $this->hasMany(\App\Models\Staff::class, 'race_id');

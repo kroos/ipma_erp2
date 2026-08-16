@@ -23,8 +23,17 @@ class HRAttendance extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'hr_attendances';
 	protected $casts = [
-    'exception' => 'boolean',
-	];
+	'id' => 'integer',
+	'staff_id' => 'integer',
+	'daytype_id' => 'integer',
+	'attendance_type_id' => 'integer',
+	'attend_date' => 'date',
+	'work_hour' => 'float',
+	'overtime_id' => 'integer',
+	'leave_id' => 'integer',
+	'outstation_id' => 'integer',
+	'exception' => 'boolean',
+];
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	//belongsto relationship

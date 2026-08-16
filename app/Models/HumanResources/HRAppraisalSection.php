@@ -22,6 +22,11 @@ class HRAppraisalSection extends Model
     // protected $connection = 'mysql';
     protected $table = 'hr_appraisal_sections';
 
+    protected $casts = [
+		'id' => 'integer',
+		'display_order' => 'integer',
+    ];
+
     ////////////////////////// belongsToMany //////////////////////////
     public function belongstomanycategorypivot(): BelongsToMany
 	{

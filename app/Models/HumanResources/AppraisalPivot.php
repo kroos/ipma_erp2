@@ -22,6 +22,16 @@ class AppraisalPivot extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'pivot_apoint_appraisals';
 
+	protected $casts = [
+	'id' => 'integer',
+	'evaluator_id' => 'integer',
+	'evaluatee_id' => 'integer',
+	'year' => 'integer',
+	'appraisal_category_id' => 'integer',
+	'appraisal_category_version' => 'integer',
+	'finalise_date' => 'datetime',
+];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	// db relation belongsTo
 	public function belongstostaffevaluator(): BelongsTo

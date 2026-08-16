@@ -21,6 +21,10 @@ class OptAuthorise extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_authorities';
 
+    protected $casts = [
+        'id' => 'integer',
+    ];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanystaff(): HasMany
 	{

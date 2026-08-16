@@ -21,6 +21,13 @@ class HRLeaveApprovalBackup extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'hr_leave_approval_backups';
 
+	protected $casts = [
+	'id' => 'integer',
+	'leave_id' => 'integer',
+	'staff_id' => 'integer',
+	'leave_status_id' => 'integer',
+];
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship
 

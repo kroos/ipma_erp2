@@ -30,4 +30,15 @@ class HRLeaveMC extends Model
 	'mc_leave_balance',
 	'remarks',
 ];
+
+protected $casts = [
+	'id' => 'integer',
+	'mc_leave' => 'integer',
+	'mc_leave_adjustment' => 'integer',
+	'mc_leave_utilize' => 'integer',
+	'mc_leave_balance' => 'integer',
+	'remarks' => 'string',
+	'staff_id' => 'integer',
+	'year' => 'integer',
+];
 }

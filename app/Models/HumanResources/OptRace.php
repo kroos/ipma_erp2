@@ -20,6 +20,9 @@ class OptRace extends Model
     use HasFactory;
 	// protected $connection = 'mysql';
 	protected $table = 'option_races';
+	protected $casts = [
+		'id' => 'integer',
+	];
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanystaff(): HasMany

@@ -88,7 +88,7 @@ through the internal A2A mesh.
 | # | Decision | Rationale |
 |---|----------|-----------|
 | ADR-1 | Python orchestrator spawns CLI agents as subprocesses | The involved AI agents are CLI tools; a lightweight Python supervisor is the most portable wrapper. |
-| ADR-2 | A2A via Omniroute for all inter-agent messaging; full A2A data model (Agent Card, Message, Task, Artifact, Part, lifecycle) on a local bus; smart routing by capability + status | Uniform protocol-native envelopes regardless of which CLI backs the agent; upgrade path to HTTP JSON-RPC later |
+| ADR-2 | A2A via Omniroute for all inter-agent messaging; full A2A data model (Agent Card, Message, Task, Artifact, Part, lifecycle) on a local bus; smart routing by capability + status | Uniform protocol-native envelopes regardless of which CLI backs the agent; HTTP JSON-RPC 2.0 transport implemented 2026-08-17 (`docs/04 §8`) |
 | ADR-2a | Omniroute enforces the no-double-dispatch rule centrally | Routing source of truth is a single registry, not per-agent judgment |
 | ADR-3 | SQLite for per-agent persistent memory | Zero-config, single file, works on Windows and Linux without a server. |
 | ADR-4 | YAML config files for roles, agents, models | Human-editable; portable; the "last session model" state lives in a JSON state file. |

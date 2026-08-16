@@ -22,6 +22,17 @@ class HRAppraisalMark extends Model
     // protected $connection = 'mysql';
     protected $table = 'hr_appraisal_marks';
 
+    protected $casts = [
+		'id' => 'integer',
+		'score' => 'decimal:2',
+		'weight' => 'decimal:2',
+		'pivot_apoint_id' => 'integer',
+		'section_id' => 'integer',
+		'section_sub_id' => 'integer',
+		'main_question_id' => 'integer',
+		'question_id' => 'integer',
+	];
+
     ////////////////////////// BelongsTo //////////////////////////
     public function belongstosection(): BelongsTo
 	{

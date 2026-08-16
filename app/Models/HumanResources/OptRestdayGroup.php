@@ -21,6 +21,9 @@ class OptRestdayGroup extends Model
 
 	// protected $connection = 'mysql';
 	protected $table = 'option_restday_groups';
+	protected $casts = [
+		'id' => 'integer',
+	];
 
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship

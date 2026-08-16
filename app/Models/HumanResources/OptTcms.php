@@ -21,6 +21,10 @@ class OptTcms extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_tcms';
 
+	protected $casts = [
+		'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanyhrattendance(): HasMany
 	{

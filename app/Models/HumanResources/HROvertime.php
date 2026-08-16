@@ -22,6 +22,19 @@ class HROvertime extends Model
 
 	// protected $connection = 'mysql';
 	protected $table = 'hr_overtimes';
+
+protected $casts = [
+    'id' => 'integer',
+    'staff_id' => 'integer',
+    'overtime_type_id' => 'integer',
+    'date' => 'date',
+    'hours' => 'float',
+    'active' => 'boolean',
+    'assign_staff_id' => 'integer',
+    'ot_date' => 'date',
+    'overtime_range_id' => 'integer',
+    'remarks' => 'string',
+];
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship
 

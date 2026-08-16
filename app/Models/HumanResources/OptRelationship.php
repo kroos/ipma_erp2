@@ -19,6 +19,9 @@ class OptRelationship extends Model
 {
 	use HasFactory;
 	protected $table = 'option_relationships';
+	protected $casts = [
+		'id' => 'integer',
+	];
 
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship

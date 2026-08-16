@@ -23,6 +23,10 @@ class OptSalesGetItem extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_sales_get_items';
 
+	protected $casts = [
+		'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship
 

@@ -23,6 +23,17 @@ class ConditionalIncentiveStaffItemWeek extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'ci_staffcicategoryitemcheck';
 
+	protected $casts = [
+		'id' => 'integer',
+		'week_number' => 'integer',
+		'is_active' => 'boolean',
+		'cicategory_item_id' => 'integer',
+		'pivot_staff_item_id' => 'integer',
+		'staff_id' => 'integer',
+		'week_id' => 'integer',
+		'weight' => 'decimal:2',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship
 

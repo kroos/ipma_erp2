@@ -27,7 +27,12 @@ class SalesJobDescription extends Model
 	protected $table = 'sales_job_descriptions';
 
 	protected $casts = [
+		'id' => 'integer',
+		'sales_id' => 'integer',
 		'quantity' => 'decimal:2',
+		'uom_id' => 'integer',
+		'machine_id' => 'integer',
+		'machine_accessory_id' => 'integer',
 	];
 
 	public function setRemarksAttribute($value)

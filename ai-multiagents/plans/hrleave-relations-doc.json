@@ -1,0 +1,11 @@
+{
+  "clarifying_questions": [],
+  "tasks": [
+    {
+      "title": "Document the HRLeave relations restore in this repo (project root): write a short changelog doc to docs/changelog/2026-08-16-hrleave-relations-restore.md describing (1) the bug: 'Call to undefined method' on HRLeave::hasmanyleaveapprovalbackup() - the HRLeave model had lost ALL 19 relationship methods (empty relationship section), while ~50 call sites across services (LeaveApprovalService, AttendanceService), controllers (HRLeaveController, ModelAjaxCRUDController) and the leave blades rely on them; (2) the fix: restored the 19 relations verbatim from the git history version (commit fe5f58c) - hasmanyleaveamend/leaveapprovalbackup/leaveapprovalsupervisor/leaveapprovalhod/leaveapprovaldir/leaveapprovalhr/attendance, belongstomanyleaveannual/leavemc/leavematernity/leavereplacement, belongstostaff/optleavetype/optleavestatus, hasoneleaveapprovalbackup/supervisor/hod/dir/hr - plus the HasOne/HasMany/BelongsTo/BelongsToMany imports, keeping the existing $table = 'hr_leaves' fix and the $fillable/$casts blocks; (3) a secondary defect caught during verification: the restored belongstostaff initially pointed at a non-existent HumanResources Staff class and was corrected to the real App Models Staff class; (4) verification: php -l clean, 19/19 methods present, full suite 47 passed / 159 assertions, live DB smoke query on the relations ran without error. Before writing, VERIFY each claim against the actual codebase (the 19 methods and the imports are actually present in app/Models/HumanResources/HRLeave.php, belongstostaff points at the real Staff model) - do not invent anything; if a claim cannot be verified, omit it or flag it as unverified. Keep it concise (roughly one screen).",
+      "capability": "technical-decisions",
+      "dependsOn": [],
+      "owner": "doc_writer"
+    }
+  ]
+}

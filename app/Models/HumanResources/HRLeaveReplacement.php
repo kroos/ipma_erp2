@@ -22,6 +22,18 @@ class HRLeaveReplacement extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'hr_leave_replacements';
 
+    protected $casts = [
+        'id' => 'integer',
+        'leave_id' => 'integer',
+        'staff_id' => 'integer',
+        'date_start' => 'date',
+        'date_end' => 'date',
+        'customer_id' => 'integer',
+        'leave_total' => 'float',
+        'leave_utilize' => 'float',
+        'leave_balance' => 'float',
+    ];
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship
 

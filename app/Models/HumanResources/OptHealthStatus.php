@@ -21,6 +21,10 @@ class OptHealthStatus extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_health_statuses';
 
+	protected $casts = [
+		'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanychildren(): HasMany
 	{

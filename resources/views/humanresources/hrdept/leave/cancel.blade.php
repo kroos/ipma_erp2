@@ -55,7 +55,7 @@ if ( ($ul->leave_type_id == 9) || ($ul->leave_type_id != 9 && $ul->half_type_id 
 							<td>{{ $ul->belongstostaff?->name }}</td>
 							<td><a href="{{ route('hrleave.show', $ul->id) }}" target="_blank">HR9-{{ str_pad( $ul->leave_no, 5, "0", STR_PAD_LEFT ) }}/{{ $ul->leave_year }}</a></td>
 							<td>{{ $ul->belongstooptleavetype?->leave_type_code }}</td>
-							<td>{{ Carbon::parse($ul->created_at)->format('j M Y') }}</td>
+							<td>{{ \Carbon\Carbon::parse($ul->created_at)->format('j M Y') }}</td>
 							<td>{{ $dts }}</td>
 							<td>{{ $dte }}</td>
 							<td>{{ $dper }}</td>

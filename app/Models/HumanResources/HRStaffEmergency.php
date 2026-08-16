@@ -21,6 +21,12 @@ class HRStaffEmergency extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'hr_emergency';
 
+    protected $casts = [
+        'id' => 'integer',
+        'staff_id' => 'integer',
+        'relationship_id' => 'integer',
+    ];
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship
 

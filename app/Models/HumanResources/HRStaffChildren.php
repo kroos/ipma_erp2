@@ -21,6 +21,17 @@ class HRStaffChildren extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'hr_childrens';
 
+    protected $casts = [
+        'id' => 'integer',
+        'staff_id' => 'integer',
+        'dob' => 'date',
+        'gender_id' => 'integer',
+        'education_level_id' => 'integer',
+        'health_status_id' => 'integer',
+        'tax_exemption' => 'integer',
+        'tax_exemption_percentage_id' => 'integer',
+    ];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	// db relation hasMany/hasOne
 

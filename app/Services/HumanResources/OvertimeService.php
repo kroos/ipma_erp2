@@ -94,13 +94,23 @@ class OvertimeService
 	/**
 	 * Staff dropdown options for the edit form: id => 'username - name'.
 	 */
-	public function staffOptions(): array
+	public function staffOptions(?int $includeStaffId = null): array
 	{
-		return Staff::where('active', 1)->get()->mapWithKeys(function ($s) {
+		$options = Staff::where('active', 1)->get()->mapWithKeys(function ($s) {
 			$username = $s->hasmanylogin()->where('active', 1)->first()?->username;
 
 			return [$s->id => ($username ?? '') . ' - ' . $s->name];
 		})->toArray();
+
+		if ($includeStaffId && !isset($options[$includeStaffId])) {
+			$s = \App\Models\Staff::find($includeStaffId);
+			if ($s) {
+				$username = $s->hasmanylogin()->where('active', 1)->first()?->username;
+				$options[$includeStaffId] = ($username ?? '') . ' - ' . $s->name;
+			}
+		}
+
+		return $options;
 	}
 
 	/**

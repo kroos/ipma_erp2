@@ -127,7 +127,7 @@ class OvertimeController extends Controller
 
 		return view('humanresources.hrdept.overtime.edit', [
 			'overtime' => $overtime,
-			'staffs' => $service->staffOptions(),
+			'staffs' => $service->staffOptions($overtime->staff_id),
 			'overtimeRanges' => $service->overtimeRangeOptions(),
 		]);
 	}

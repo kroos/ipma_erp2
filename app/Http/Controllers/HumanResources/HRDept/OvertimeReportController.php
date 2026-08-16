@@ -76,6 +76,8 @@ class OvertimeReportController extends Controller
 	 */
 	public function print(Request $request)
 	{
+		$request->validate(['date_start' => 'required_with:date_end,branch|date', 'date_end' => 'required_with:date_start,branch|date|after_or_equal:date_start', 'branch' => 'required_with:date_start,date_end'], ['date_end.after_or_equal' => 'The end date must be the same as or after the start date.', 'date_start.date' => 'Please select a valid start date.', 'date_end.date' => 'Please select a valid end date.']);
+
 		$current_datetime = Carbon::now();
 
 		$overtimes = HROvertime::join('staffs', 'staffs.id', '=', 'hr_overtimes.staff_id')
@@ -119,6 +121,8 @@ class OvertimeReportController extends Controller
 		$year = NULL;
 		$date_start = NULL;
 		$date_end = NULL;
+
+		$request->validate(['date_start' => 'required_with:date_end,branch|date', 'date_end' => 'required_with:date_start,branch|date|after_or_equal:date_start', 'branch' => 'required_with:date_start,date_end'], ['date_end.after_or_equal' => 'The end date must be the same as or after the start date.', 'date_start.date' => 'Please select a valid start date.', 'date_end.date' => 'Please select a valid end date.']);
 
 		if ($request->date_start != NULL && $request->date_end != NULL && $request->branch != NULL) {
 			$overtimes = HROvertime::join('staffs', 'staffs.id', '=', 'hr_overtimes.staff_id')

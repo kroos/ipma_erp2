@@ -21,4 +21,8 @@ class HRTempPunchTime extends Model
 
 	// protected $connection = 'mysql';
 	protected $table = 'hr_temp_punch_time';
+
+    protected $casts = [
+        'id' => 'integer',
+    ];
 }

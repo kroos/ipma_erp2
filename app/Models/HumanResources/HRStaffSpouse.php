@@ -21,6 +21,12 @@ class HRStaffSpouse extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'hr_spouses';
 
+    protected $casts = [
+        'id' => 'integer',
+        'staff_id' => 'integer',
+        'dob' => 'date',
+    ];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	// db relation hasMany/hasOne
 

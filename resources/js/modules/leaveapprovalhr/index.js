@@ -5,78 +5,38 @@ $(document).ready(function(){
 	$('[data-bs-toggle="tooltip"]').tooltip({ ...config.tooltip });
 });
 
-/* form submit via ajax (direct binding) */
-$(".form").on('submit', function(e){
-	var ids = $(this).data('id');
+/* datatables */
+var table = $('#leaveapproval-hr').DataTable({ ...config.datatable, processing: true, serverSide: false, ajax: { url: url.table, dataSrc: 'data' }, columns: [{data:'leave_no_link'},{data:'username'},{data:'name'},{data:'leave_type_code'},{data:'reason'},{data:'date_applied'},{data:'dts'},{data:'dte'},{data:'dper'},{data:'bapp'},{data:'supp'},{data:'hodd'},{data:'dirr'},{data:'approve', orderable:false }], columnDefs: [ { type: 'date', targets: [5,6,7] } ], order: [[6, 'desc']], paging: false, rowCallback: function(row, data){ if (data.DT_RowClass) $(row).addClass(data.DT_RowClass); }, initComplete: function(){ $('[data-bs-toggle="tooltip"]').tooltip({ ...config.tooltip }); } });
+
+/* approve-button handler (delegated) */
+$(document).on('click', '.approve-btn', function (e) {
 	e.preventDefault();
-	$.ajax({
-		url: url.hrstatus,
-		type: 'PATCH',
-		data: {
-			id: ids,
-			leave_status_id: $(':input[name="leave_status_id"]:checked').val(),
-			verify_code: $('#hrcode' + ids).val(),
-			remarks: $('#remarks' + ids).val(),
-		},
-		dataType: 'json',
-		global: false,
-		async: false,
-		success: function (response) {
-			$('#hrapproval' + ids).modal('hide');
-			var row = $('#hrapproval' + ids).parent().parent();
-			row.remove();
-			swal.fire('Success!', response.message, response.status);
-		},
-		error: function(resp) {
-			const res = resp.responseJSON;
-			$('#hrapproval' + ids).modal('hide');
-			swal.fire('Error!', res.message, 'error');
-		}
+	var $btn = $(this);
+	var id = $btn.data('id');
+	var rowData = table.row($btn.closest('tr')).data();
+	if (!rowData || !rowData.modal_html) return;
+	var $modal = $(rowData.modal_html);
+	$('.page-humanresources-hrdept-leave-' + window.data.type + 'leaveapproval-index').append($modal);
+	var el = document.getElementById('hrapproval' + id);
+	var modal = new bootstrap.Modal(el);
+	modal.show();
+	$modal.on('hidden.bs.modal', function () {
+		$modal.remove();
 	});
 });
 
-/* form submit via ajax (delegated binding) */
+/* form submit handler (delegated) */
 $(document).on('submit', '.form', async function (e) {
 	e.preventDefault();
-
-	let form = $(this);
-	let ids  = form.data('id');
-
+	var form = $(this);
+	var ids = form.data('id');
 	try {
-		const response = await $.ajax({
-			url: form.attr('action'),
-			type: 'PATCH',
-			data: {
-				id: ids,
-				leave_status_id: form.find('input[name="leave_status_id"]:checked').val(),
-				verify_code: form.find('#hrcode' + ids).val(),
-				remarks: form.find('#remarks' + ids).val(),
-			},
-			dataType: 'json',
-		});
-
-		$('#hrapproval' + ids).modal('hide');
-
-		/* remove row */
-		form.closest('tr').remove();
-
+		var response = await $.ajax({ url: route.patch, type: 'PATCH', data: { id: ids, leave_status_id: form.find('input[name="leave_status_id"]:checked').val(), verify_code: form.find('input[name="verify_code"]').val(), remarks: form.find('textarea[name="remarks"]').val() }, dataType: 'json' });
+		$('#' + 'hr' + 'approval' + ids).modal('hide');
 		swal.fire('Success!', response.message, 'success');
+		table.ajax.reload();
 	} catch (err) {
-		let res = err.responseJSON ?? { message: 'Unknown error' };
+		var res = err.responseJSON ?? { message: 'Unknown error' };
 		swal.fire('Error!', res.message, 'error');
 	}
-});
-
-/* datatables */
-$.fn.dataTable.moment( 'D MMM YYYY' );
-$.fn.dataTable.moment( 'h:mm a' );
-$('#bapprover, #sapprover, #hodapprover, #dirapprover, #hrapprover').DataTable({ ...config.datatable,
-    paging: false,
-    columnDefs: [ { type: 'date', targets: [5,6,7] } ],
-    order: [[6, "desc" ]],
-})
-.on( 'length.dt page.dt order.dt search.dt', function ( e, settings, len ) {
-	$(document).ready(function(){
-		$('[data-bs-toggle="tooltip"]').tooltip({ ...config.tooltip });
-	});
 });

@@ -1168,4 +1168,65 @@ class LeaveApprovalService
         }
         return $grid;
     }
+    /**
+     * Check if current user can approve a given leave row.
+     */
+    public function canApprove(array $row, string $type, array $ctx): bool {
+        $backupApproved = $row['backup']->count() ? !is_null($row['backup']->first()->leave_status_id) : true;
+        if ($type === 'supervisor') {
+            $visible = ($ctx['me3'] ?? false) ? (($row['ul'] ?? null) == ($ctx['us'] ?? null)) : true;
+            return $visible && $backupApproved;
+        }
+        if ($type === 'hod') {
+            $stadept = $row['stadept'] ?? null;
+            $staffDiv = $row['staff']->div_id ?? null;
+            $visible = $ctx['me5'] ?? false || (($ctx['deptid'] == 28 || $ctx['deptid'] == 21) && (in_array($stadept, [2,3,4,8,18,19,20,25,32,27,30,21,28]) || $staffDiv == 4)) || ($ctx['deptid'] == 6 && in_array($stadept, [6,7,3])) || ($ctx['deptid'] == 23 && in_array($stadept, [23,17,11,16])) || ($ctx['deptid'] == 1 && $stadept == 1) || ($ctx['deptid'] == 5 && $stadept == 5) || ($ctx['deptid'] == 12 && $stadept == 12) || ($ctx['deptid'] == 14 && $stadept == 14) || ($ctx['deptid'] == 15 && $stadept == 15) || ($ctx['deptid'] == 22 && $stadept == 22) || ($ctx['deptid'] == 24 && $stadept == 24);
+            return $visible && $row['bappb'];
+        }
+        if ($type === 'dir') {
+            return $backupApproved;
+        }
+        if ($type === 'hr') {
+            return ($row['bappb'] ?? false) && ($row['suppb'] ?? false) && ($row['hoddb'] ?? false) && ($row['dirrb'] ?? false);
+        }
+        return false;
+    }
+
+    /**
+     * Build table data rows for a given approval type.
+     */
+    public function tableData(string $type): array {
+        $models = ['supervisor' => \App\Models\HumanResources\HRLeaveApprovalSupervisor::class, 'hod' => \App\Models\HumanResources\HRLeaveApprovalHOD::class, 'dir' => \App\Models\HumanResources\HRLeaveApprovalDirector::class, 'hr' => \App\Models\HumanResources\HRLeaveApprovalHR::class];
+        if (!isset($models[$type])) {
+            throw new \InvalidArgumentException('Unknown approval type: ' . $type);
+        }
+        $routes = ['supervisor' => 'leavestatus.supervisorstatus', 'hod' => 'leavestatus.hodstatus', 'dir' => 'leavestatus.dirstatus', 'hr' => 'leavestatus.hrstatus'];
+        $approvals = $this->approvals($models[$type]);
+        $grid = $this->gridData($approvals, $type);
+        $ctx = $this->context();
+        $ls = $ctx['ls'];
+        $rows = [];
+        foreach ($approvals as $a) {
+            $row = $grid[$a->id] ?? [];
+            if ($type === 'supervisor' && ($ctx['me3'] ?? false) && (($row['ul'] ?? null) != ($ctx['us'] ?? null))) {
+                continue;
+            }
+            if ($type === 'hod') {
+                $stadept = $row['stadept'] ?? null;
+                $staffDiv = $row['staff']->div_id ?? null;
+                $visible = $ctx['me5'] ?? false || (($ctx['deptid'] == 28 || $ctx['deptid'] == 21) && (in_array($stadept, [2,3,4,8,18,19,20,25,32,27,30,21,28]) || $staffDiv == 4)) || ($ctx['deptid'] == 6 && in_array($stadept, [6,7,3])) || ($ctx['deptid'] == 23 && in_array($stadept, [23,17,11,16])) || ($ctx['deptid'] == 1 && $stadept == 1) || ($ctx['deptid'] == 5 && $stadept == 5) || ($ctx['deptid'] == 12 && $stadept == 12) || ($ctx['deptid'] == 14 && $stadept == 14) || ($ctx['deptid'] == 15 && $stadept == 15) || ($ctx['deptid'] == 22 && $stadept == 22) || ($ctx['deptid'] == 24 && $stadept == 24);
+                if (!$visible) {
+                    continue;
+                }
+            }
+            $can = $this->canApprove($row, $type, $ctx);
+            $staff = $row['staff'] ?? $row['staff1'] ?? null;
+            $leav = $row['leav'] ?? null;
+            $staffName = $staff?->name ?? '';
+            $reasonText = $leav->reason ?? '';
+            $modalHtml = $can ? view('humanresources.hrdept.leave._approval_modal', array_merge($row, ['type' => $type, 'approval_id' => $a->id, 'ls' => $ls, 'route_name' => $routes[$type], 'approval_created_at' => $a->created_at, 'approval_remarks' => $a->remarks ?? '']))->render() : '';
+            $rows[] = ['DT_RowClass' => $row['u'] ?? '', 'leave_no_link' => $leav ? '<a href="' . route('leave.show', $a->leave_id) . '">HR9-' . str_pad($leav->leave_no, 5, '0', STR_PAD_LEFT) . '/' . $leav->leave_year . '</a>' : '', 'username' => $row['username'] ?? '', 'name' => '<span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="' . e($staffName) . '">' . \Illuminate\Support\Str::words($staffName, 3, ' >') . '</span>', 'leave_type_code' => $row['leavtype']?->leave_type_code ?? '', 'reason' => '<span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="' . e($reasonText) . '">' . \Illuminate\Support\Str::limit($reasonText, 7, ' >') . '</span>', 'date_applied' => \Carbon\Carbon::parse($a->created_at)->format('j M Y'), 'dts' => $row['dts'] ?? '', 'dte' => $row['dte'] ?? '', 'dper' => $row['dper'] ?? '', 'bapp' => $row['bapp'] ?? '', 'supp' => $row['supp'] ?? '', 'hodd' => $row['hodd'] ?? '', 'dirr' => $row['dirr'] ?? '', 'approve' => $can ? '<button type="button" class="btn btn-sm btn-outline-secondary approve-btn" data-id="' . $a->id . '"><i class="bi bi-box-arrow-in-down"></i></button>' : '', 'modal_html' => $modalHtml];
+        }
+        return $rows;
+    }
 }

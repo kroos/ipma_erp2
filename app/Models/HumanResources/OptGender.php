@@ -21,6 +21,10 @@ class OptGender extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_genders';
 
+	protected $casts = [
+		'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanystaff(): HasMany
 	{

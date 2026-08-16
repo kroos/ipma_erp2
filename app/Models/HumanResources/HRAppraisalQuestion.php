@@ -21,6 +21,14 @@ class HRAppraisalQuestion extends Model
     // protected $connection = 'mysql';
     protected $table = 'hr_appraisal_questions';
 
+    protected $casts = [
+		'id' => 'integer',
+		'display_order' => 'integer',
+		'main_question_id' => 'integer',
+		'mark' => 'integer',
+		'sort' => 'integer',
+	];
+
     /////////////////////////////////////////////////////////////////////////////////////////
     // belongsto relationship
     public function belongstohrappraisalmainquestion(): BelongsTo

@@ -5,7 +5,10 @@ $('#from1').datetimepicker({ ...config.datetimepicker,
 })
 .on('dp.change dp.update', function () {
 	$('#form').bootstrapValidator('revalidateField', 'from');
-	$('#to1').datetimepicker('minDate', $('#from1').val());
+	var fromVal = $('#from1').val();
+	if (fromVal) {
+		$('#to1').datetimepicker('minDate', fromVal);
+	}
 });
 
 $('#to1').datetimepicker({ ...config.datetimepicker,
@@ -13,15 +16,14 @@ $('#to1').datetimepicker({ ...config.datetimepicker,
 })
 .on('dp.change dp.update', function () {
 	$('#form').bootstrapValidator('revalidateField', 'to');
-	$('#from1').datetimepicker('maxDate', $('#to1').val());
+	var toVal = $('#to1').val();
+	if (toVal) {
+		$('#from1').datetimepicker('maxDate', toVal);
+	}
 });
 
 $('#form').bootstrapValidator({
-	feedbackIcons: {
-		valid: 'fas fa-light fa-check',
-		invalid: 'fas fa-sharp fa-light fa-xmark',
-		validating: 'fas fa-duotone fa-spinner-third'
-	},
+	...config.bootstrapValidator,
 	fields: {
 		from: {
 			validators: {

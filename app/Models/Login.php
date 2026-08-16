@@ -64,9 +64,12 @@ class Login extends Authenticatable // implements MustVerifyEmail
 	 * @var array<string, string>
 	 */
 	protected $casts = [
-		'email_verified_at' => 'datetime',
-		'password' => 'hashed',
-	];
+	'id' => 'integer',
+	'staff_id' => 'integer',
+	'active' => 'boolean',
+	'email_verified_at' => 'datetime',
+	'password' => 'hashed',
+];
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 

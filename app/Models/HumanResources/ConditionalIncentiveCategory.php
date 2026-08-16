@@ -23,6 +23,10 @@ class ConditionalIncentiveCategory extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'ci_categories';
 
+	protected $casts = [
+	'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship
 

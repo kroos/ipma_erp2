@@ -20,6 +20,14 @@ class HRAttendanceRemark extends Model
 	use HasFactory;
 	// protected $connection = 'mysql';
 	protected $table = 'hr_attendance_remarks';
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// casts
+	protected $casts = [
+		'id' => 'integer',
+		'staff_id' => 'integer',
+		'date_from' => 'date',
+		'date_to' => 'date',
+	];
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	//belongsto relationship

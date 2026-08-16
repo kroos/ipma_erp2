@@ -21,4 +21,9 @@ class Setting extends Model
 	use HasFactory, SoftDeletes;
 	// protected $connection = 'mysql';
 	protected $table = 'settings';
+
+	protected $casts = [
+	'id' => 'integer',
+	'active' => 'integer',
+	];
 }

@@ -33,11 +33,14 @@ class ActivityLog extends Model
 	// protected $rememberTokenName = '';
 
 	protected $casts = [
-		'changes' => 'array',
-		'snapshot' => 'array',
-		'meta' => 'array',
-		'is_critical' => 'boolean',
-	];
+	'changes' => 'array',
+	'snapshot' => 'array',
+	'meta' => 'array',
+	'is_critical' => 'boolean',
+	'id' => 'integer',
+	'staff_id' => 'integer',
+	'model_id' => 'integer',
+];
 
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////

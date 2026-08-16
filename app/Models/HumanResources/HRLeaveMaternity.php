@@ -30,4 +30,15 @@ class HRLeaveMaternity extends Model
 	'maternity_leave_balance',
 	'remarks',
 ];
+
+protected $casts = [
+	'id' => 'integer',
+	'maternity_leave' => 'integer',
+	'maternity_leave_adjustment' => 'integer',
+	'maternity_leave_utilize' => 'integer',
+	'maternity_leave_balance' => 'integer',
+	'remarks' => 'string',
+	'staff_id' => 'integer',
+	'year' => 'integer',
+];
 }

@@ -22,6 +22,10 @@ class Customer extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'customers';
 
+	protected $casts = [
+		'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship
 	public function hasmanyleavereplacement(): HasMany

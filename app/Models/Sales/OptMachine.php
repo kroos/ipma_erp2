@@ -21,6 +21,11 @@ class OptMachine extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_machine';
 
+	protected $casts = [
+		'id' => 'integer',
+		'department_id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanymachineacc(): HasMany
 	{

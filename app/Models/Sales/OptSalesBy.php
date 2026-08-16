@@ -23,6 +23,10 @@ class OptSalesBy extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_sales_by';
 
+	protected $casts = [
+		'id' => 'integer',
+	];
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// hasmany relationship
 

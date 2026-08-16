@@ -20,4 +20,10 @@ class OptWeekDates extends Model
     use HasFactory;
     // protected $connection = 'mysql';
     protected $table = 'option_week_dates';
+
+	protected $casts = [
+		'id' => 'integer',
+		'date_from' => 'date',
+		'date_to' => 'date',
+	];
 }

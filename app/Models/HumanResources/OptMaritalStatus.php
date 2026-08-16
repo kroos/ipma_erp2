@@ -20,6 +20,9 @@ class OptMaritalStatus extends Model
     use HasFactory;
 	// protected $connection = 'mysql';
 	protected $table = 'option_marital_statuses';
+	protected $casts = [
+		'id' => 'integer',
+	];
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function hasmanystaff(): HasMany

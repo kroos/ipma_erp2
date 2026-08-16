@@ -3,6 +3,7 @@ $('#date').datetimepicker({ ...config.datetimepicker,
 });
 
 $('#form').bootstrapValidator({
+	...config.bootstrapValidator,
 	feedbackIcons: {
 		valid: '',
 		invalid: '',

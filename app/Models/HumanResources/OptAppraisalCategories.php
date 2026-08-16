@@ -22,6 +22,10 @@ class OptAppraisalCategories extends Model
 	// protected $connection = 'mysql';
 	protected $table = 'option_appraisal_categories';
 
+    protected $casts = [
+        'id' => 'integer',
+    ];
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function belongstomanysection(): BelongsToMany
 	{
