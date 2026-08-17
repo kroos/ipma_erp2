@@ -21,11 +21,13 @@ class OptionTableSeeder2 extends Seeder
         DB::table('option_races')->truncate();
         DB::table('option_relationships')->truncate();
         DB::table('option_religions')->truncate();
+        DB::table('option_restday_groups')->truncate();
         DB::table('option_sales_by')->truncate();
         DB::table('option_sales_delivery_types')->truncate();
         DB::table('option_sales_get_items')->truncate();
         DB::table('option_sales_order_types')->truncate();
         DB::table('option_statuses')->truncate();
+        DB::table('option_tax_exemption_percentages')->truncate();
         DB::table('option_taxes')->truncate();
         DB::table('option_tcms')->truncate();
         DB::table('option_uom')->truncate();
@@ -4888,6 +4890,16 @@ class OptionTableSeeder2 extends Seeder
         DB::unprepared('INSERT INTO `option_yes_no` VALUES
 (1, \'Yes\', 1, NULL, \'2018-12-03 10:21:57\', \'2018-12-03 10:21:57\'),
 (2, \'No\', 0, NULL, \'2018-12-03 10:21:57\', \'2018-12-03 10:21:57\');');
+
+        // ---- option_restday_groups (2 rows) ----
+        DB::unprepared('INSERT INTO `option_restday_groups` VALUES
+(1, \'Group 1\', \'alternate saturday 1\', \'2023-07-07 14:54:00\', \'2023-07-07 14:54:00\', NULL),
+(2, \'Group 2\', \'alternate saturday 2\', \'2023-07-07 14:54:06\', \'2023-07-07 14:54:06\', NULL);');
+
+        // ---- option_tax_exemption_percentages (2 rows) ----
+        DB::unprepared('INSERT INTO `option_tax_exemption_percentages` VALUES
+(1, \'50%\', NULL, \'2018-07-31 14:38:06\', \'2018-07-31 14:38:08\'),
+(2, \'100%\', NULL, \'2018-07-31 14:38:25\', \'2018-07-31 14:38:27\');');
 
     }
 }

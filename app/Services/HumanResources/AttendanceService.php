@@ -2,24 +2,33 @@
 
 namespace App\Services\HumanResources;
 
+// load request
+use Illuminate\Http\Request;
+
 // load db facade
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
-// load collection
+// load collection & array helper
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 // load models
+use App\Models\Login;
+use App\Models\Staff;
+use App\Models\HumanResources\HRAttendance;
 use App\Models\HumanResources\HRAttendanceRemark;
 use App\Models\HumanResources\HRHolidayCalendar;
 use App\Models\HumanResources\HRLeave;
 use App\Models\HumanResources\HROutstation;
 use App\Models\HumanResources\HROutstationAttendance;
 use App\Models\HumanResources\HROvertime;
+use App\Models\HumanResources\HROvertimeRange;
 use App\Models\HumanResources\OptDayType;
 use App\Models\HumanResources\OptTcms;
 
 // load helper
+use App\Helpers\TimeCalculator;
 use App\Helpers\UnavailableDateTime;
 
 // load Carbon
@@ -4194,5 +4203,319 @@ class AttendanceService
 		}
 
 		return $rows;
+	}
+
+	/**
+	 * Attendance-by-staff report (attendancereport store + storepdf).
+	 *
+	 * Returns fully decorated per-staff blocks so both report blades only echo.
+	 * Each row carries both variants the two blades render (html links for the
+	 * store view, plain/null values for the PDF).
+	 */
+	public function reportData(Request $request): array
+	{
+		$staffIds = HRAttendance::select('staff_id')
+				->whereIn('staff_id', $request->staff_id)
+				->where(function (Builder $query) use ($request) {
+					$query->whereDate('attend_date', '>=', $request->from)
+						->whereDate('attend_date', '<=', $request->to);
+				})
+				->groupBy('staff_id')
+				->pluck('staff_id');
+
+		$logins = Login::whereIn('staff_id', $staffIds)
+					->where('active', 1)
+					->orderBy('username')
+					->get();
+
+		$optDayTypes = OptDayType::all()->keyBy('id');
+		$optTcms = OptTcms::all()->keyBy('id');
+
+		$data = [];
+		foreach ($logins as $v) {
+			$staff = $v->belongstostaff;
+			$dept = $staff?->belongstomanydepartment()->wherePivot('main', 1)->first();
+
+			$rows = HRAttendance::where('staff_id', $v->staff_id)
+				->where(function (Builder $query) use ($request) {
+					$query->whereDate('attend_date', '>=', $request->from)
+						->whereDate('attend_date', '<=', $request->to);
+				})
+				->orderBy('attend_date', 'ASC')
+				->get();
+
+			$durationSum = [];
+			$overtimeSum = [];
+			$durationSumPdf = [];
+			$overtimeSumPdf = [];
+			$staffRows = [];
+
+			foreach ($rows as $v1) {
+				$row = $this->decorateReportRow($v1, $staff, $optDayTypes, $optTcms);
+				$durationSum[] = $row['duration_sum'];
+				$overtimeSum[] = $row['overtime_sum'];
+				$durationSumPdf[] = $row['duration_sum_pdf'];
+				$overtimeSumPdf[] = $row['overtime_sum_pdf'];
+				$staffRows[] = $row;
+			}
+
+			$durationTotal = $durationSum ? TimeCalculator::total_time($durationSum) : '00:00:00';
+			$overtimeTotal = $overtimeSum ? TimeCalculator::total_time($overtimeSum) : '00:00:00';
+
+			// PDF totals: duration unpadded h:m (as printed), overtime padded H:i
+			$durationTotalPdf = null;
+			if ($durationTotal != '00:00:00') {
+				[$h, $m] = explode(':', $durationTotal);
+				$durationTotalPdf = $h.':'.$m;
+			}
+			$overtimeTotalPdf = ($overtimeTotal != '00:00:00') ? Carbon::parse($overtimeTotal)->format('H:i') : null;
+
+			$data[] = [
+				'staff_id' => $v->staff_id,
+				'username' => $v->username,
+				'name' => $staff?->name,
+				'dept' => $dept?->department,
+				'group' => $staff?->belongstorestdaygroup?->group,
+				'rows' => $staffRows,
+				'duration_total' => $durationTotal,
+				'overtime_total' => $overtimeTotal,
+				'duration_total_pdf' => $durationTotalPdf,
+				'overtime_total_pdf' => $overtimeTotalPdf,
+			];
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Decorate a single attendance row with everything both report blades echo.
+	 */
+	private function decorateReportRow(HRAttendance $v1, ?Staff $staff, Collection $optDayTypes, Collection $optTcms): array
+	{
+		$staffId = $staff?->id;
+		$wh = UnavailableDateTime::workinghourtime($v1->attend_date, $staffId)->first();
+
+		// leave covering this attendance date (approved [5,6] or still pending)
+		$l = HRLeave::where('staff_id', $staffId)
+				->where(function (Builder $query) {
+					$query->whereIn('leave_status_id', [5, 6])->orWhereNull('leave_status_id');
+				})
+				->where(function (Builder $query) use ($v1) {
+					$query->whereDate('date_time_start', '<=', $v1->attend_date)
+						->whereDate('date_time_end', '>=', $v1->attend_date);
+				})
+				->with('belongstooptleavetype')
+				->first();
+
+		$o = HROvertime::where([['staff_id', $staffId], ['ot_date', $v1->attend_date], ['active', 1]])
+				->with('belongstoovertimerange')
+				->first();
+
+		$os = HROutstation::where('staff_id', $staffId)
+				->where('active', 1)
+				->where(function (Builder $query) use ($v1) {
+					$query->whereDate('date_from', '<=', $v1->attend_date)
+						->whereDate('date_to', '>=', $v1->attend_date);
+				})
+				->get();
+
+		$in = Carbon::parse($v1->in)->equalTo('00:00:00');
+		$break = Carbon::parse($v1->break)->equalTo('00:00:00');
+		$resume = Carbon::parse($v1->resume)->equalTo('00:00:00');
+		$out = Carbon::parse($v1->out)->equalTo('00:00:00');
+
+		// day type: HOLIDAY / RESTDAY / WORKDAY
+		$hdate = HRHolidayCalendar::where(function (Builder $query) use ($v1) {
+			$query->whereDate('date_start', '<=', $v1->attend_date)
+				->whereDate('date_end', '>=', $v1->attend_date);
+		})->get();
+
+		if ($hdate->isNotEmpty()) {
+			$dayt = (string) ($optDayTypes[3]->daytype ?? '');
+			$dtype = false;
+		} elseif (Carbon::parse($v1->attend_date)->dayOfWeek == 0) {
+			$dayt = (string) ($optDayTypes[2]->daytype ?? '');
+			$dtype = false;
+		} elseif (Carbon::parse($v1->attend_date)->dayOfWeek == 6) {
+			$sat = $staff?->belongstorestdaygroup?->hasmanyrestdaycalendar()->whereDate('saturday_date', $v1->attend_date)->first();
+			if ($sat) {
+				$dayt = (string) ($optDayTypes[2]->daytype ?? '');
+				$dtype = false;
+			} else {
+				$dayt = (string) ($optDayTypes[1]->daytype ?? '');
+				$dtype = true;
+			}
+		} else {
+			$dayt = (string) ($optDayTypes[1]->daytype ?? '');
+			$dtype = true;
+		}
+
+		// active overtime range (original blade chained where()->first() on the relation model,
+		// which forwards to a fresh query — keep the same effective lookup)
+		$range = ($o?->belongstoovertimerange) ? HROvertimeRange::where('active', 1)->first() : null;
+
+		$osNotEmpty = $os->isNotEmpty();
+		$llHtml = $this->reportLeaveLabel($v1, $osNotEmpty, $l, $dtype, $in, $break, $resume, $out, $optTcms, true);
+		$llPdf = $this->reportLeaveLabel($v1, $osNotEmpty, $l, $dtype, $in, $break, $resume, $out, $optTcms, false);
+
+		if ($l) {
+			$leaHtml = '<a href="'.route('leave.show', $l->id).'">HR9-'.str_pad((string) $l->leave_no, 5, '0', STR_PAD_LEFT).'/'.e((string) $l->leave_year).'</a>';
+			$leaPdf = 'HR9-'.str_pad((string) $l->leave_no, 5, '0', STR_PAD_LEFT).'/'.$l->leave_year;
+		} else {
+			$leaHtml = null;
+			$leaPdf = null;
+		}
+
+		// punch display values + colouring ('' when the punch is missing)
+		$inTxt = $in ? '' : Carbon::parse($v1->in)->format('g:i a');
+		$breakTxt = $break ? '' : Carbon::parse($v1->break)->format('g:i a');
+		$resumeTxt = $resume ? '' : Carbon::parse($v1->resume)->format('g:i a');
+		$outTxt = $out ? '' : Carbon::parse($v1->out)->format('g:i a');
+
+		$inClass = $in ? 'text-info' : (Carbon::parse($v1->in)->gt($wh?->time_start_am) ? 'text-danger' : '');
+		$breakClass = $break ? 'text-info' : (Carbon::parse($v1->break)->lt($wh?->time_end_am) ? 'text-danger' : '');
+		$resumeClass = $resume ? 'text-info' : (Carbon::parse($v1->resume)->gt($wh?->time_start_pm) ? 'text-danger' : '');
+
+		if ($out) {
+			$outClass = 'text-info';
+		} elseif ($o) {
+			if (Carbon::parse($v1->out)->gt($range?->end)) {
+				$outClass = 'text-d ot';
+			} elseif (Carbon::parse($v1->out)->lt($range?->end)) {
+				$outClass = 'text-danger ot';
+			} else {
+				$outClass = '';
+			}
+		} else {
+			if (Carbon::parse($v1->out)->lt($wh?->time_end_pm)) {
+				$outClass = 'text-danger wh';
+			} elseif (Carbon::parse($v1->out)->gt($wh?->time_end_pm)) {
+				$outClass = 'text-d wh';
+			} else {
+				$outClass = '';
+			}
+		}
+
+		// pdf bold-italic flags for late in / resume
+		$inLate = (!$in) && Carbon::parse($v1->in)->gt($wh?->time_start_am);
+		$resumeLate = (!$resume) && Carbon::parse($v1->resume)->gt($wh?->time_start_pm);
+
+		// duration + overtime display values and totals
+		$durationTxt = $v1->time_work_hour;
+		$durationPdf = ($v1->time_work_hour == '00:00:00') ? null : Carbon::parse($v1->time_work_hour)->format('H:i');
+		$durationSum = (!is_null($v1->time_work_hour)) ? Carbon::parse($v1->time_work_hour)->format('H:i:s') : '00:00:00';
+		$durationSumPdf = (!is_null($v1->time_work_hour)) ? Carbon::parse($v1->time_work_hour)->format('H:i') : '00:00';
+
+		$overtimeTxt = $range?->total_time;
+		$overtimePdf = (!is_null($range?->total_time)) ? Carbon::parse($range?->total_time)->format('H:i') : null;
+		$overtimeSum = (!is_null($range?->total_time)) ? Carbon::parse($range?->total_time)->format('H:i:s') : '00:00:00';
+		$overtimeSumPdf = (!is_null($range?->total_time)) ? Carbon::parse($range?->total_time)->format('H:i') : '00:00';
+
+		$outstationHtml = $osNotEmpty ? $os->first()?->belongstocustomer?->customer : null;
+		$outstationPdf = $osNotEmpty ? Str::lower((string) $os->first()?->belongstocustomer?->customer) : null;
+
+		$remarksHtml = e((string) $v1->remarks).' <br /><span class="text-danger">'.e((string) $v1->hr_remarks).'</span>';
+		$remarksPdf = Str::limit(ucwords(Str::lower($v1->remarks. (($v1->hr_remarks) ? ' | ' : ''). $v1->hr_remarks)), 40, '...');
+
+		return [
+			'date' => Carbon::parse($v1->attend_date)->format('Y-m-d D'),
+			'row_class' => (Carbon::parse($v1->attend_date)->dayOfWeek == 0) ? 'table-secondary' : null,
+			'dayt' => $dayt,
+			'leave_html' => $llHtml,
+			'leave_pdf' => $llPdf,
+			'lea_html' => $leaHtml,
+			'lea_pdf' => $leaPdf,
+			'in' => $inTxt, 'in_class' => $inClass, 'in_late' => $inLate,
+			'break' => $breakTxt, 'break_class' => $breakClass,
+			'resume' => $resumeTxt, 'resume_class' => $resumeClass, 'resume_late' => $resumeLate,
+			'out' => $outTxt, 'out_class' => $outClass,
+			'duration' => $durationTxt, 'duration_pdf' => $durationPdf,
+			'overtime' => $overtimeTxt, 'overtime_pdf' => $overtimePdf,
+			'outstation' => $outstationHtml, 'outstation_pdf' => $outstationPdf,
+			'remarks' => $remarksHtml, 'remarks_pdf' => $remarksPdf,
+			'exception' => $v1->exception,
+			'duration_sum' => $durationSum,
+			'overtime_sum' => $overtimeSum,
+			'duration_sum_pdf' => $durationSumPdf,
+			'overtime_sum_pdf' => $overtimeSumPdf,
+		];
+	}
+
+	/**
+	 * The "Leave" column label — verbatim port of the report decision tree.
+	 *
+	 * Flags are the missing-punch booleans (true when the punch is 00:00:00).
+	 * $pdf: true renders the plain labels the storepdf blade shows (null for
+	 * absent / half-absent / check / outstation links); false renders the
+	 * <a href="attendance.edit"> edit links of the store blade.
+	 */
+	private function reportLeaveLabel(HRAttendance $v1, bool $os, ?HRLeave $l, bool $dtype, bool $in, bool $break, bool $resume, bool $out, Collection $optTcms, bool $pdf): ?string
+	{
+		// a set attendance type always wins — every leaf checks it first
+		if (!is_null($v1->attendance_type_id)) {
+			$label = (string) ($optTcms[$v1->attendance_type_id]->leave ?? '');
+			return $pdf ? $label : e($label);
+		}
+
+		if ($os) {
+			if ($dtype && !$l) {
+				// outstation | working | no leave — most combos show the outstation label, a few read "Check"
+				$bits = ($in ? '1' : '0').($break ? '1' : '0').($resume ? '1' : '0').($out ? '1' : '0');
+
+				return match ($bits) {
+					'0101', '1001', '1010', '1011' => $this->reportLink($v1, 'check', $pdf),
+					'0001', '1000' => ($break == $resume) ? $this->reportLink($v1, 'outstation', $pdf) : $this->reportLink($v1, 'check', $pdf),
+					default => $this->reportLink($v1, 'outstation', $pdf),
+				};
+			}
+
+			return $this->reportLink($v1, 'outstation', $pdf);
+		}
+
+		if (!$dtype) {
+			return false;   // no working day → empty cell in both variants
+		}
+
+		if ($l) {
+			// leave code wins on a working day; raw for html, blade escapes for pdf
+			return (string) ($l->belongstooptleavetype?->leave_type_code ?? '');
+		}
+
+		// no outstation | working | no leave — absent / half-absent / check truth table
+		// (bits are the missing-punch flags: in | break | resume | out, 1 = punch missing)
+		$bits = ($in ? '1' : '0').($break ? '1' : '0').($resume ? '1' : '0').($out ? '1' : '0');
+
+		return match ($bits) {
+			'1111' => $this->reportLink($v1, 'absent', $pdf),
+			'1110' => $this->reportLink($v1, 'half-absent', $pdf),
+			'1101' => $this->reportLink($v1, 'check', $pdf),
+			'1100' => $this->reportLink($v1, 'half-absent', $pdf),
+			'1011', '1010', '1001' => $this->reportLink($v1, 'check', $pdf),
+			'1000' => ($break == $resume) ? $this->reportLink($v1, 'half-absent', $pdf) : $this->reportLink($v1, 'check', $pdf),
+			'0111' => Carbon::parse(now())->gt($v1->attend_date) ? $this->reportLink($v1, 'half-absent', $pdf) : false,
+			'0110', '0100', '0010', '0000' => false,
+			'0101' => $this->reportLink($v1, 'check', $pdf),
+			'0011' => $this->reportLink($v1, 'half-absent', $pdf),
+			'0001' => ($break == $resume) ? $this->reportLink($v1, 'half-absent', $pdf) : $this->reportLink($v1, 'check', $pdf),
+		};
+	}
+
+	/**
+	 * Status link for the html report (null for the PDF variant).
+	 */
+	private function reportLink(HRAttendance $v1, string $kind, bool $pdf): ?string
+	{
+		$label = match ($kind) {
+			'outstation' => (string) (OptTcms::find(4)->leave ?? ''),
+			'absent' => (string) (OptTcms::find(1)->leave ?? ''),
+			'half-absent' => (string) (OptTcms::find(2)->leave ?? ''),
+			default => 'Check',
+		};
+
+		if ($pdf) {
+			return null;
+		}
+
+		return '<a href="'.route('attendance.edit', $v1->id).'">'.e($label).'</a>';
 	}
 }

@@ -46,14 +46,9 @@ class HRLeaveController extends Controller
 	 */
 	public function index(): View
 	{
-		$settingStart = (int) Setting::find(7)?->active;
-		$settingEnd = (int) Setting::find(6)?->active;
+		$data = app(\App\Services\HumanResources\HRLeaveService::class)->indexData();
 
-		// leave-status filter options (blade used to query OptLeaveStatus inline)
-		$statusIds = auth()->user()->belongstostaff->div_id == 2 ? [4, 5, 6] : [4, 5];
-		$ls = OptLeaveStatus::whereIn('id', $statusIds)->get()->map(fn ($v) => ['id' => $v->id, 'text' => $v->status])->all();
-
-		return view('humanresources.leave.index', compact('settingStart', 'settingEnd', 'ls'));
+		return view('humanresources.leave.index', compact('data'));
 	}
 
 	/**

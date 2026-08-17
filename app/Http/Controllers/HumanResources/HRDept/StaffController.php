@@ -53,13 +53,14 @@ class StaffController extends Controller
 
 	/**
 	 * Display a listing of the resource.
+	 * Rows are served by the API (client-side DataTable); the controller only
+	 * passes the admin flag the page needs.
 	 */
 	public function index(): View
 	{
-		$activeStaff = Staff::where('active', 1)->get();
-		$inactiveStaff = Staff::where('active', '<>', 1)->get();
-
-		return view('humanresources.hrdept.staff.index', compact('activeStaff', 'inactiveStaff'));
+		return view('humanresources.hrdept.staff.index', [
+			'isAdmin' => (new StaffProfileService())->isAdmin(),
+		]);
 	}
 
 	/**
@@ -172,37 +173,25 @@ class StaffController extends Controller
 			$month = $current_month;
 		}
 
-		$attendance = HRAttendance::join('staffs', 'hr_attendances.staff_id', '=', 'staffs.id')
-			->where('hr_attendances.staff_id', $staff->id)
-			->whereYear('hr_attendances.attend_date', '=', $year)
-			->whereMonth('hr_attendances.attend_date', '=', $month)
-			->select('hr_attendances.remarks as attend_remark', 'hr_attendances.*', 'staffs.*')
-			->get();
-
-		$wh_group = $staff->belongstomanydepartment()->wherePivot('main', 1)->first();
-		$wh_group_id = $wh_group->wh_group_id;
-		$dept = $wh_group;
+		// main department of the staff (profile identity column)
+		$dept = $staff->belongstomanydepartment()->wherePivot('main', 1)->first();
 
 		$service = new StaffProfileService();
 
 		return view('humanresources.hrdept.staff.show', [
 			'staff' => $staff,
-			'attendance' => $attendance,
-			'wh_group' => $wh_group_id,
 			'dept' => $dept,
 			'year' => $year,
 			'month' => $month,
-		] + $service->leaveEntitlements($staff)
+		] + $service->profileCard($staff)
+			+ $service->leaveEntitlements($staff)
 			+ $service->familyAndAuth($staff)
 			+ $service->crossBackup($staff)
 			+ $service->attendanceYears($staff)
-			+ $service->attendanceDecor($attendance, $wh_group_id)
 			+ $service->leaveTables($staff)
 			+ $service->replacementTable($staff)
-			+ $service->leaveRecords($staff)
 			+ $service->unpaidLeaves($staff)
-			+ $service->leaveTypeMap()
-			+ $service->disciplinaryRecords($staff));
+			+ $service->leaveTypeMap());
 	}
 
 	/**

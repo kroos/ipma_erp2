@@ -54,6 +54,7 @@ use Log;
 /* helper */
 use App\Helpers\UnavailableDateTime;
 use App\Services\HumanResources\LeaveApprovalService;
+use App\Services\HumanResources\StaffProfileService;
 
 // load model
 use App\Models\{
@@ -1720,5 +1721,57 @@ class AjaxSupportController extends Controller
   public function leaveApprovalTable(Request $request, string $type): JsonResponse
   {
     return response()->json(['data' => (new LeaveApprovalService())->tableData($type)]);
+  }
+
+  /**
+   * "My leave" dashboard DataTables source (own leaves + backup approvals).
+   */
+  public function myLeaveTable(): JsonResponse
+  {
+    return response()->json(['data' => (new \App\Services\HumanResources\HRLeaveService())->myLeaves()]);
+  }
+
+  /**
+   * Staff index DataTables source (active + inactive rows, access-filtered).
+   */
+  public function staffTable(): JsonResponse
+  {
+    $data = (new StaffProfileService())->indexData();
+    return response()->json(['data' => ['active' => $data['active'], 'inactive' => $data['inactive']]]);
+  }
+
+  /**
+   * Staff show — attendance table source for a year/month.
+   * (named …Table because staffattendance() is the calendar-events endpoint)
+   */
+  public function staffAttendanceTable(Request $request, Staff $staff): JsonResponse
+  {
+    $year = $request->input('year', now()->format('Y'));
+    $month = $request->input('month', now()->format('m'));
+    return response()->json(['data' => (new StaffProfileService())->attendanceRows($staff, (string) $year, (string) $month)]);
+  }
+
+  /**
+   * Staff show — leave table source.
+   */
+  public function staffLeaveRows(Staff $staff): JsonResponse
+  {
+    return response()->json(['data' => (new StaffProfileService())->leaveRows($staff)]);
+  }
+
+  /**
+   * Staff show — replacement-leave table source.
+   */
+  public function staffReplacementRows(Staff $staff): JsonResponse
+  {
+    return response()->json(['data' => (new StaffProfileService())->replacementRows($staff)]);
+  }
+
+  /**
+   * Staff show — disciplinary table source.
+   */
+  public function staffDisciplineRows(Staff $staff): JsonResponse
+  {
+    return response()->json(['data' => (new StaffProfileService())->disciplineRows($staff)]);
   }
 }

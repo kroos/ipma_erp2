@@ -1,4 +1,9 @@
-const { route, url, old } = window.data;
+const { route, url, old, errors } = window.data;
+
+/* tooltips (re-applied after every DataTable draw) */
+function initTooltips() {
+	$('[data-bs-toggle="tooltip"]').tooltip({ ...config.tooltip });
+}
 
 // scroll restore
 if (typeof (Storage) !== 'undefined') {
@@ -61,68 +66,136 @@ function DeactivateStaff(staffId) {
 		});
 }
 
-// tooltip on reason
-$(document).ready(function () {
-	$('[data-bs-toggle="tooltip"]').tooltip({ ...config.tooltip });
-});
-
-// datatables - attendance
+// datatables - attendance (API, client-side processing)
 $.fn.dataTable.moment('D MMM YYYY');
 $.fn.dataTable.moment('h:mm a');
-$('#attendance').DataTable({ ...config.datatable,
-    "searching": false,
-    "info": false,
-    "paging": false,
-    "lengthMenu": [[30, 60, 100, -1], [30, 60, 100, "All"]],
-    "columnDefs": [
-		{ type: 'date', 'targets': [0] },
-		{ type: 'time', 'targets': [2] },
-		{ type: 'time', 'targets': [3] },
-		{ type: 'time', 'targets': [4] },
-		{ type: 'time', 'targets': [5] },
-		{ type: 'time', 'targets': [6] },
+var attendanceTable = $('#attendance').DataTable({
+	...config.datatable,
+	processing: true,
+	serverSide: false,
+	ajax: {
+		url: url.attendance,
+		dataSrc: 'data',
+		data: function (d) {
+			d.year = $('#year').val();
+			d.month = $('#month').val();
+		},
+	},
+	columns: [
+		{ data: 'date', type: 'date' },
+		{ data: 'daytype' },
+		{ data: 'in', type: 'time' },
+		{ data: 'break', type: 'time' },
+		{ data: 'resume', type: 'time' },
+		{ data: 'out', type: 'time' },
+		{ data: 'work_hour', type: 'time' },
+		{ data: 'overtime' },
+		{ data: 'leave_form' },
+		{ data: 'leave_type' },
+		{ data: 'remark' },
+		{ data: 'outstation' },
 	],
-    "order": [[0, 'asc']],
-})
-	.on('length.dt page.dt order.dt search.dt', function (e, settings, len) {
-		$(document).ready(function () {
-			$('[data-bs-toggle="tooltip"]').tooltip({ ...config.tooltip });
-		});
-	});
+	searching: false,
+	info: false,
+	paging: false,
+	lengthMenu: [[30, 60, 100, -1], [30, 60, 100, 'All']],
+	order: [[0, 'asc']],
+	initComplete: initTooltips,
+	drawCallback: initTooltips,
+});
 
-// datatables - leave
+// attendance year/month filter -> reload the table via the API
+$('#attendanceForm').on('submit', function (e) {
+	e.preventDefault();
+	attendanceTable.ajax.reload();
+});
+
+// datatables - leave (API, client-side processing)
 $.fn.dataTable.moment('D MMM YYYY h:mm a');
-$('#leave').DataTable({ ...config.datatable,
-    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-    "columnDefs": [{ type: 'date', 'targets': [2, 3] }],
-    "order": [[2, "desc"]],
-})
-	.on('length.dt page.dt order.dt search.dt', function (e, settings, len) {
-		$(document).ready(function () {
-			$('[data-bs-toggle="tooltip"]').tooltip({ ...config.tooltip });
-		});
-	});
+var leaveTable = $('#leave').DataTable({
+	...config.datatable,
+	processing: true,
+	serverSide: false,
+	ajax: { url: url.leaves, dataSrc: 'data' },
+	columns: [
+		{ data: 'no' },
+		{ data: 'type' },
+		{ data: 'applied', type: 'date' },
+		{ data: 'from', type: 'date' },
+		{ data: 'to', type: 'date' },
+		{ data: 'duration' },
+		{ data: 'reason' },
+		{ data: 'status' },
+		{ data: null, orderable: false, render: function (data, type, row) {
+			return '<a href="' + row.show_url + '" class="btn btn-sm btn-outline-secondary"><i class="fa-regular fa-eye"></i></a>';
+		} },
+	],
+	lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
+	order: [[2, 'desc']],
+	initComplete: initTooltips,
+	drawCallback: initTooltips,
+});
 
-$('#replacementleave').DataTable({ ...config.datatable,
-    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-    "columnDefs": [{ type: 'date', 'targets': [0, 1] }],
-})
-	.on('length.dt page.dt order.dt search.dt', function (e, settings, len) {
-		$(document).ready(function () {
-			$('[data-bs-toggle="tooltip"]').tooltip({ ...config.tooltip });
-		});
+// nested replacement-leave sub-table (row.leaves + row.total_days)
+function replacementNested(data, row) {
+	if (!data || !data.length) return '';
+	var html = '<table class="table table-hover table-sm"><thead><tr><th>Leave ID</th><th>Duration</th></tr></thead><tbody>';
+	data.forEach(function (l) {
+		html += '<tr><td><a href="' + l.show_url + '" target="_blank">' + l.no + '</a></td><td>' + l.period_day + ' day/s</td></tr>';
 	});
+	html += '</tbody><tfoot><tr><th>Total</th><th>' + row.total_days + ' day/s</th></tr></tfoot></table>';
+	return html;
+}
 
-$('#disc').DataTable({ ...config.datatable,
-    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-    "columnDefs": [{ type: 'date', 'targets': [3] }],
-    "order": [[3, "desc"]],
-})
-	.on('length.dt page.dt order.dt search.dt', function (e, settings, len) {
-		$(document).ready(function () {
-			$('[data-bs-toggle="tooltip"]').tooltip({ ...config.tooltip });
-		});
-	});
+// datatables - replacement leave (API, client-side processing)
+var replacementTable = $('#replacementleave').DataTable({
+	...config.datatable,
+	processing: true,
+	serverSide: false,
+	ajax: { url: url.replacement, dataSrc: 'data' },
+	columns: [
+		{ data: 'from', type: 'date' },
+		{ data: 'to', type: 'date' },
+		{ data: 'location' },
+		{ data: 'reason' },
+		{ data: 'leave_total' },
+		{ data: 'leave_utilize' },
+		{ data: 'leave_balance' },
+		{ data: 'leaves', render: replacementNested },
+		{ data: null, orderable: false, render: function (data, type, row) {
+			return '<a href="' + row.edit_url + '" class="btn btn-sm btn-outline-secondary"><i class="fa-regular fa-pen-to-square"></i></a>';
+		} },
+	],
+	lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
+	order: [],
+	initComplete: initTooltips,
+	drawCallback: initTooltips,
+});
+
+// datatables - discipline (API, client-side processing)
+var discTable = $('#disc').DataTable({
+	...config.datatable,
+	processing: true,
+	serverSide: false,
+	ajax: { url: url.disciplinaries, dataSrc: 'data' },
+	columns: [
+		{ data: 'action' },
+		{ data: 'violation' },
+		{ data: 'reason' },
+		{ data: 'date', type: 'date' },
+		{ data: 'softcopy_url', orderable: false, render: function (data, type, row) {
+			return data ? '<a href="' + data + '" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-text" style="font-size: 15px;"></i></a>' : '';
+		} },
+		{ data: null, orderable: false, render: function (data, type, row) {
+			return '<a href="' + row.edit_url + '" class="btn btn-sm btn-outline-secondary"><i class="fa-regular fa-pen-to-square"></i></a>'
+				+ '&nbsp;<button type="button" class="btn btn-sm btn-outline-secondary delete_discipline" data-id="' + row.id + '" data-softcopy="' + row.softcopy + '" data-table="discipline"><i class="fa-regular fa-trash-can"></i></button>';
+		} },
+	],
+	lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
+	order: [[3, 'desc']],
+	initComplete: initTooltips,
+	drawCallback: initTooltips,
+});
 
 // delete discipline
 $(document).on('click', '.delete_discipline', function (e) {

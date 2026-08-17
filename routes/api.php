@@ -37,6 +37,12 @@ Route::middleware(['auth:sanctum', 'auth'])->group(function () {
     Route::get('/machine', 'machine')->name('machine.machine');
     Route::get('/machineaccessories', 'machineaccessories')->name('machineaccessories.machineaccessories');
     Route::get('/leaveapproval/{type}', 'leaveApprovalTable')->name('api.leaveapproval.table');
+    Route::get('/leave/my-leaves', 'myLeaveTable')->name('api.leave.myLeaves');
+    Route::get('/staff/table', 'staffTable')->name('api.staff.table');
+    Route::get('/staff/{staff}/attendance', 'staffAttendanceTable')->name('api.staff.attendance');
+    Route::get('/staff/{staff}/leaves', 'staffLeaveRows')->name('api.staff.leaves');
+    Route::get('/staff/{staff}/replacement-leaves', 'staffReplacementRows')->name('api.staff.replacement');
+    Route::get('/staff/{staff}/disciplinaries', 'staffDisciplineRows')->name('api.staff.discipline');
     // Route::post('/jdescgetitem', 'jdescgetitem')->name('jdescgetitem.jdescgetitem');
     Route::post('/category', 'category')->name('category.category');
     Route::post('/country', 'country')->name('country.country');

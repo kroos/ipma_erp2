@@ -31,41 +31,59 @@ return new class extends Migration
 
         Schema::create('todo_schedules', function (Blueprint $table) {
             $table->integer('id', true);
-            $table->string('schedule', 255)->nullable();
-            $table->string('remarks', 255)->nullable();
-            $table->dateTime('created_at')->nullable();
-            $table->dateTime('updated_at')->nullable();
-            $table->primary('id');
-        });
-
-        Schema::create('todo_list', function (Blueprint $table) {
-            $table->integer('id', true);
+            $table->integer('created_by')->nullable();
             $table->integer('category_id')->nullable();
+            $table->longText('task')->nullable();
+            $table->longText('description')->nullable();
+            $table->integer('period_reminder')->nullable();
+            $table->date('dateline')->nullable();
             $table->integer('priority_id')->nullable();
-            $table->string('todo', 255)->nullable();
-            $table->date('start_date')->nullable();
-            $table->date('end_date')->nullable();
+            $table->tinyInteger('active')->nullable();
             $table->string('remarks', 255)->nullable();
             $table->dateTime('created_at')->nullable();
             $table->dateTime('updated_at')->nullable();
             $table->primary('id');
             $table->index(['category_id'], 'category_id');
             $table->index(['priority_id'], 'priority_id');
-            $table->foreign('category_id', 'todo_list_ibfk_1')->references('id')->on('todo_categories')->restrictOnDelete()->restrictOnUpdate();
+            $table->index(['created_by'], 'created_by');
+            $table->foreign('category_id', 'todo_schedules_ibfk_1')->references('id')->on('todo_categories')->restrictOnDelete()->restrictOnUpdate();
+            $table->foreign('priority_id', 'todo_schedules_ibfk_2')->references('id')->on('todo_priorities')->restrictOnDelete()->restrictOnUpdate();
+            $table->foreign('created_by', 'todo_schedules_ibfk_3')->references('id')->on('staffs')->restrictOnDelete()->restrictOnUpdate();
+        });
+
+        Schema::create('todo_list', function (Blueprint $table) {
+            $table->integer('id', true);
+            $table->integer('schedule_id')->nullable();
+            $table->date('reminder')->nullable();
+            $table->date('dateline')->nullable();
+            $table->tinyInteger('completed')->nullable();
+            $table->longText('description')->nullable();
+            $table->integer('update_by')->nullable();
+            $table->integer('priority_id')->nullable();
+            $table->string('remarks', 255)->nullable();
+            $table->dateTime('created_at')->nullable();
+            $table->dateTime('updated_at')->nullable();
+            $table->primary('id');
+            $table->index(['schedule_id'], 'schedule_id');
+            $table->index(['priority_id'], 'priority_id');
+            $table->index(['update_by'], 'update_by');
+            $table->foreign('schedule_id', 'todo_list_ibfk_1')->references('id')->on('todo_schedules')->restrictOnDelete()->restrictOnUpdate();
             $table->foreign('priority_id', 'todo_list_ibfk_2')->references('id')->on('todo_priorities')->restrictOnDelete()->restrictOnUpdate();
+            $table->foreign('update_by', 'todo_list_ibfk_3')->references('id')->on('staffs')->restrictOnDelete()->restrictOnUpdate();
         });
 
         Schema::create('todo_staffs', function (Blueprint $table) {
             $table->integer('id', true);
+            $table->integer('schedule_id')->nullable();
             $table->integer('staff_id')->nullable();
-            $table->integer('todo_id')->nullable();
+            $table->string('remarks', 255)->nullable();
             $table->dateTime('created_at')->nullable();
             $table->dateTime('updated_at')->nullable();
             $table->primary('id');
+            $table->index(['schedule_id'], 'schedule_id');
             $table->index(['staff_id'], 'staff_id');
-            $table->index(['todo_id'], 'todo_id');
-            $table->foreign('staff_id', 'todo_staffs_ibfk_1')->references('id')->on('staffs')->restrictOnDelete()->restrictOnUpdate();
-            $table->foreign('todo_id', 'todo_staffs_ibfk_2')->references('id')->on('todo_list')->restrictOnDelete()->restrictOnUpdate();
+            $table->foreign('schedule_id', 'todo_staffs_ibfk_1')->references('id')->on('todo_schedules')->restrictOnDelete()->restrictOnUpdate();
+            $table->foreign('staff_id', 'todo_staffs_ibfk_2')->references('id')->on('staffs')->restrictOnDelete()->restrictOnUpdate();
         });
 
         // wps_customer_order_manual — dump ibfk_3 targets wps_delivery_method. That table is not
@@ -107,10 +125,13 @@ return new class extends Migration
         Schema::create('wps_com_job_scope', function (Blueprint $table) {
             $table->integer('id', true);
             $table->integer('com_id')->nullable();
-            $table->longText('description')->nullable();
-            $table->string('quantity', 255)->nullable();
-            $table->string('unit', 255)->nullable();
-            $table->decimal('rate', 65, 2)->nullable();
+            $table->integer('sort')->nullable();
+            $table->longText('description')->nullable()->comment('actually, this should be item id');
+            $table->integer('quantity')->nullable();
+            $table->string('unit', 255)->nullable()->comment('unit for the quantity');
+            $table->tinyInteger('fabricate')->nullable();
+            $table->tinyInteger('order')->nullable();
+            $table->tinyInteger('store')->nullable();
             $table->string('remarks', 255)->nullable();
             $table->dateTime('created_at')->nullable();
             $table->dateTime('updated_at')->nullable();
@@ -138,18 +159,21 @@ return new class extends Migration
 
         Schema::create('ci_staffcicategoryitemcheck', function (Blueprint $table) {
             $table->integer('id', true);
+            $table->integer('pivot_staff_item_id')->nullable();
             $table->integer('staff_id')->nullable();
             $table->integer('cicategory_item_id')->nullable();
-            $table->date('date_check')->nullable();
-            $table->date('today')->nullable();
-            $table->string('remarks', 255)->nullable();
+            $table->integer('week_id')->nullable();
             $table->dateTime('created_at')->nullable();
             $table->dateTime('updated_at')->nullable();
             $table->primary('id');
+            $table->index(['week_id'], 'week_id');
+            $table->index(['pivot_staff_item_id'], 'pivot_staff_item_id');
             $table->index(['staff_id'], 'staff_id');
             $table->index(['cicategory_item_id'], 'cicategory_item_id');
-            $table->foreign('staff_id', 'ci_staffcicategoryitemcheck_ibfk_1')->references('id')->on('staffs')->nullOnDelete()->cascadeOnUpdate();
-            $table->foreign('cicategory_item_id', 'ci_staffcicategoryitemcheck_ibfk_2')->references('id')->on('ci_category_items')->nullOnDelete()->cascadeOnUpdate();
+            $table->foreign('week_id', 'ci_staffcicategoryitemcheck_ibfk_2')->references('id')->on('option_week_dates')->nullOnDelete()->cascadeOnUpdate();
+            $table->foreign('pivot_staff_item_id', 'ci_staffcicategoryitemcheck_ibfk_3')->references('id')->on('pivot_staff_ci_category_item')->nullOnDelete()->cascadeOnUpdate();
+            $table->foreign('staff_id', 'ci_staffcicategoryitemcheck_ibfk_4')->references('id')->on('staffs')->nullOnDelete()->cascadeOnUpdate();
+            $table->foreign('cicategory_item_id', 'ci_staffcicategoryitemcheck_ibfk_5')->references('id')->on('ci_category_items')->nullOnDelete()->cascadeOnUpdate();
         });
 
         Schema::create('hr_appraisal_marks', function (Blueprint $table) {

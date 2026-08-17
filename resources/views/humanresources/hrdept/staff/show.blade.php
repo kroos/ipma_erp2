@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="col-sm-12 row justify-content-center align-items-start">
+<div class="page-humanresources-hrdept-staff-show col-sm-12 row justify-content-center align-items-start">
 	@include('humanresources.hrdept.navhr')
 	<h4 class="align-items-center">Profile {{ $staff->name }}
 		<a href="{{ route('staff.edit', $staff->id) }}" class="btn btn-sm btn-outline-secondary">
@@ -44,7 +44,7 @@
 			<dt class="col-sm-5">Phone :</dt>
 			<dd class="col-sm-7">{{ $staff->phone }}</dd>
 			<dt class="col-sm-5">Date of Birth :</dt>
-			<dd class="col-sm-7">{{ \Carbon\Carbon::parse($staff->dob)->format('j M Y') }}</dd>
+			<dd class="col-sm-7">{{ $dob_fmt }}</dd>
 			<dt class="col-sm-5">CIMB Account :</dt>
 			<dd class="col-sm-7">{{ $staff->cimb_account }}</dd>
 			<dt class="col-sm-5">EPF Account :</dt>
@@ -58,9 +58,9 @@
 			<dt class="col-sm-5">Height :</dt>
 			<dd class="col-sm-7">{{ $staff->height }} cm</dd>
 			<dt class="col-sm-5">Date Join :</dt>
-			<dd class="col-sm-7">{{ \Carbon\Carbon::parse($staff->join)->format('j M Y') }}</dd>
+			<dd class="col-sm-7">{{ $join_fmt }}</dd>
 			<dt class="col-sm-5">Date Confirmed :</dt>
-			<dd class="col-sm-7">{{ ($staff->confirmed)?\Carbon\Carbon::parse($staff->confirmed)->format('j M Y'):null }}</dd>
+			<dd class="col-sm-7">{{ $confirmed_fmt }}</dd>
 			<dt class="col-sm-5">Spouse :</dt>
 			<dd class="col-sm-7">
 				<div class="table-responsive">
@@ -100,7 +100,7 @@
 							@foreach($childrens as $sc)
 							<tr>
 								<td>{{$sc->children}}</td>
-								<td>{{ \Carbon\Carbon::parse($sc->dob)->toPeriod(now(), 1, 'year')->count() }} year/s</td>
+								<td>{{ $sc->age }} year/s</td>
 								<td>{{ $sc->belongstotaxexemptionpercentage?->tax_exemption_percentage }}</td>
 							</tr>
 							@endforeach
@@ -323,44 +323,37 @@
 	<p>&nbsp;</p>
 	<div id="calendar" class="col-sm-12"></div>
 
-	<?php
-	// $group_year + $group_month now provided by StaffProfileService
-	?>
-
 	<p>&nbsp;</p>
 	<h4 class="align-items-center">Attendance</h4>
 	<div class="table-responsive">
 
-		<form method="POST" action="{{ route('staff.show', $staff->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="" enctype="multipart/form-data">
-			@csrf
-
-		<table width="100%">
-			<tr>
-				<td></td>
-				<td width="100px">
-					<select name="year" id="year" class="form-select form-select-sm @error('year') is-invalid @enderror">
-						<option value="">Please choose</option>
-						@foreach($group_year as $k1 => $v1)
-							<option value="{{ $k1 }}" {{ (old('year', @$year) == $k1)?'selected':NULL }}>{{ $v1 }}</option>
-						@endforeach
-					</select>
-				</td>
-				<td width="5px"></td>
-				<td width="80px">
-					<select name="month" id="month" class="form-select form-select-sm @error('month') is-invalid @enderror">
-						<option value="">Please choose</option>
-						@foreach($group_month as $k1 => $v1)
-							<option value="{{ $k1 }}" {{ (old('month', @$month) == $k1)?'selected':NULL }}>{{ $v1 }}</option>
-						@endforeach
-					</select>
-				</td>
-				<td width="5px"></td>
-				<td width="70px">
-					<button type="submit" class="btn btn-sm btn-outline-secondary">Search</button>
-				</td>
-			</tr>
-		</table>
-
+		<form method="GET" action="{{ route('staff.show', $staff->id) }}" accept-charset="UTF-8" id="attendanceForm" autocomplete="off">
+			<table width="100%">
+				<tr>
+					<td></td>
+					<td width="100px">
+						<select name="year" id="year" class="form-select form-select-sm">
+							<option value="">Please choose</option>
+							@foreach($group_year as $k1 => $v1)
+								<option value="{{ $k1 }}" {{ (old('year', $year) == $k1) ? 'selected' : NULL }}>{{ $v1 }}</option>
+							@endforeach
+						</select>
+					</td>
+					<td width="5px"></td>
+					<td width="80px">
+						<select name="month" id="month" class="form-select form-select-sm">
+							<option value="">Please choose</option>
+							@foreach($group_month as $k1 => $v1)
+								<option value="{{ $k1 }}" {{ (old('month', $month) == $k1) ? 'selected' : NULL }}>{{ $v1 }}</option>
+							@endforeach
+						</select>
+					</td>
+					<td width="5px"></td>
+					<td width="70px">
+						<button type="submit" class="btn btn-sm btn-outline-secondary">Search</button>
+					</td>
+				</tr>
+			</table>
 		</form>
 
 		<table id="attendance" class="table table-hover table-sm align-middle" style="font-size:12px">
@@ -381,122 +374,6 @@
 				</tr>
 			</thead>
 			<tbody>
-				@foreach ($attendance as $attend)
-
-				<?php
-				$in = NULL;
-				$break = NULL;
-				$resume = NULL;
-				$out = NULL;
-				$work_hour = NULL;
-				$leave_id = NULL;
-				$leave_form = NULL;
-				$leave_type = NULL;
-
-				// working hour, daytype, outstation, overtime pre-computed by StaffProfileService
-				$company_hour = $companyHours[$attend->id] ?? null;
-				$daytype = $daytypes[$attend->id] ?? null;
-				$outstation = $outstations[$attend->id] ?? null;
-				$overtime = $overtimes[$attend->id] ?? null;
-
-				if ($attend->in != NULL && $attend->in != '00:00:00') {
-					$in = Carbon::parse($attend->in)->format('h:i a');
-				}
-
-				if ($attend->in > $company_hour->time_start_am) {
-					$color_in = "color:red";
-				} else {
-					$color_in = NULL;
-				}
-
-				if ($attend->break != NULL && $attend->break != '00:00:00') {
-					$break = Carbon::parse($attend->break)->format('h:i a');
-				}
-
-				if ($attend->break < $company_hour->time_end_am) {
-					$color_break = "color:red";
-				} else {
-					$color_break = NULL;
-				}
-
-				if ($attend->resume != NULL && $attend->resume != '00:00:00') {
-					$resume = Carbon::parse($attend->resume)->format('h:i a');
-				}
-
-				if ($attend->resume > $company_hour->time_start_pm) {
-					$color_resume = "color:red";
-				} else {
-					$color_resume = NULL;
-				}
-
-				if ($attend->out != NULL && $attend->out != '00:00:00') {
-					$out = Carbon::parse($attend->out)->format('h:i a');
-				}
-
-				if ($attend->out < $company_hour->time_end_pm) {
-					$color_out = "color:red";
-				} else {
-					$color_out = NULL;
-				}
-
-				if ($attend->time_work_hour != NULL && $attend->time_work_hour != '00:00:00') {
-					$work_hour = Carbon::parse($attend->time_work_hour)->format('H:i');
-				}
-
-				if ($attend->leave_id != NULL && $attend->leave_id != '') {
-					$leaveInfo = $leaveInfos[$attend->id] ?? null;
-
-					$leave_id = $leaveInfo['id'] ?? null;
-
-					$leave_form = $leaveInfo['form'] ?? null;
-
-					$leave_type = $leaveInfo['type'] ?? null;
-				}
-				?>
-
-				<tr>
-					<td class="text-center">
-						{{ ($attend->attend_date)?\Carbon\Carbon::parse($attend->attend_date)->format('j M Y'):null }}
-					</td>
-					<td class="text-center">
-						{{ $daytype->daytype }}
-					</td>
-					<td class="text-center">
-						<span style="{{ $color_in }}">{{ $in }}</span>
-					</td>
-					<td class="text-center">
-						<span style="{{ $color_break }}">{{ $break }}</span>
-					</td>
-					<td class="text-center">
-						<span style="{{ $color_resume }}">{{ $resume }}</span>
-					</td>
-					<td class="text-center">
-						<span style="{{ $color_out }}">{{ $out }}</span>
-					</td>
-					<td class="text-center">
-						{{ $work_hour }}
-					</td>
-					<td class="text-center" data-bs-toggle="tooltip" data-bs-html="true" title="{{ $overtime }}">
-						{{ $overtime }}
-					</td>
-					<td class="text-center">
-						@if ($leave_id != NULL)
-						<a href="{{ route('leave.show', $leave_id) }}" target="_blank">
-							{{ $leave_form }}
-						</a>
-						@endif
-					</td>
-					<td class="text-center">
-						{{ $leave_type }}
-					</td>
-					<td @if($attend->attend_remark) class="text-truncate" data-bs-toggle="tooltip" title="{{ $attend->attend_remark }}" @endif>
-						{{ Str::limit($attend->attend_remark, 7, ' >>') }}
-					</td>
-					<td @if($outstation) class="text-truncate" data-bs-toggle="tooltip" title="{{ $outstation }}" @endif>
-						{{ Str::limit($outstation, 7, ' >>') }}
-					</td>
-				</tr>
-				@endforeach
 			</tbody>
 		</table>
 	</div>
@@ -504,7 +381,6 @@
 	<p>&nbsp;</p>
 	<h4 class="align-items-center">Leave</h4>
 	<div class="table-responsive">
-		@if($leave_records->count())
 		<table id="leave" class="table table-sm table-hover" style="font-size:12px;">
 			<thead>
 				<tr>
@@ -520,62 +396,8 @@
 				</tr>
 			</thead>
 			<tbody>
-				@foreach($leave_records as $ls)
-				<?php
-				$dts = \Carbon\Carbon::parse($ls->date_time_start)->format('Y');
-				$dte = \Carbon\Carbon::parse($ls->date_time_end)->format('j M Y g:i a');
-				// only available if only now is before date_time_start and active is 1
-				$dtsl = \Carbon\Carbon::parse( $ls->date_time_start );
-				$dt = \Carbon\Carbon::now()->lte( $dtsl );
-
-				if ( ($ls->leave_type_id == 9) || ($ls->leave_type_id != 9 && $ls->half_type_id == 2) || ($ls->leave_type_id != 9 && $ls->half_type_id == 1) ) {
-					$dts = \Carbon\Carbon::parse($ls->date_time_start)->format('j M Y g:i a');
-					$dte = \Carbon\Carbon::parse($ls->date_time_end)->format('j M Y g:i a');
-
-					if ($ls->leave_type_id != 9) {
-						if ($ls->half_type_id == 2) {
-							$dper = $ls->period_day.' Day';
-						} elseif($ls->half_type_id == 1) {
-							$dper = $ls->period_day.' Day';
-						}
-					}elseif ($ls->leave_type_id == 9) {
-						$i = \Carbon\Carbon::parse($ls->period_time);
-						$dper = $i->hour.' hour, '.$i->minute.' minutes';
-					}
-
-				} else {
-					$dts = \Carbon\Carbon::parse($ls->date_time_start)->format('j M Y ');
-					$dte = \Carbon\Carbon::parse($ls->date_time_end)->format('j M Y ');
-					$dper = $ls->period_day.' day/s';
-				}
-				?>
-				<tr>
-					<td>HR9-{{ str_pad( $ls->leave_no, 5, "0", STR_PAD_LEFT ) }}/{{ $ls->leave_year }}</td>
-					<td>{{ $ls->belongstooptleavetype?->leave_type_code }}</td>
-					<td>{{ Carbon::parse($ls->created_at)->format('j M Y g:i a') }}</td>
-					<td>{{ $dts }}</td>
-					<td>{{ $dte }}</td>
-					<td>{{ $dper }}</td>
-					<td data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="{{ $ls->reason }}">{{ Str::limit($ls->reason, 10, '>') }}</td>
-					<td>
-						@if(is_null($ls->leave_status_id))
-						Pending
-						@else
-						{{ $ls->belongstooptleavestatus?->status }}
-						@endif
-					</td>
-					<td>
-						<a href="{{ route('hrleave.show', $ls->id) }}" class="btn btn-sm btn-outline-secondary">
-							<i class="fa-regular fa-eye"></i>
-						</a>
-					</td>
-				</tr>
-				@endforeach
 			</tbody>
 		</table>
-		@else
-		<p>No Leave Yet</p>
-		@endif
 	</div>
 
 	<p>&nbsp;</p>
@@ -603,8 +425,7 @@
 					<td class="text-center align-middle">{{ $al->annual_leave_utilize }}</td>
 					<td class="text-center align-middle">{{ $al->annual_leave_balance }}</td>
 					<td class="table-responsive">
-						<?php $leaves = $annualMap[$al->year] ?? collect(); ?>
-						@if($leaves->count())
+						@if($al->leaves->count())
 						<table class="table table-hover table-sm">
 							<thead>
 								<tr>
@@ -613,15 +434,13 @@
 								</tr>
 							</thead>
 							<tbody>
-								<?php $total = 0; ?>
-								@foreach($leaves as $key => $leave)
+								@foreach($al->leaves as $leave)
 									<tr>
 										<td>
-											<a href="{{ route('hrleave.show', $leave->id) }}" target="_blank">HR9-{{ str_pad( $leave->leave_no, 5, "0", STR_PAD_LEFT ) }}/{{ $leave->leave_year }}</a>
+											<a href="{{ route('hrleave.show', $leave->id) }}" target="_blank">{{ $leave->leave_ref }}</a>
 										</td>
 										<td>
 											{{ $leave->period_day }} day/s
-											<?php $total += $leave->period_day; ?>
 										</td>
 									</tr>
 								@endforeach
@@ -629,7 +448,7 @@
 							<tfoot>
 								<tr>
 									<td>Total</td>
-									<td>{{ $total }} day/s</td>
+									<td>{{ $al->total_days }} day/s</td>
 								</tr>
 							</tfoot>
 						</table>
@@ -670,8 +489,7 @@
 					<td class="text-center align-middle">{{ $al->mc_leave_utilize }}</td>
 					<td class="text-center align-middle">{{ $al->mc_leave_balance }}</td>
 					<td class="text-center align-middle">
-						<?php $leaves = $mcMap[$al->year] ?? collect(); ?>
-						@if($leaves->count())
+						@if($al->leaves->count())
 							<table class="table table-hover table-sm">
 								<thead>
 									<tr>
@@ -680,15 +498,13 @@
 									</tr>
 								</thead>
 								<tbody>
-									<?php $total = 0; ?>
-									@foreach($leaves as $key => $leave)
+									@foreach($al->leaves as $leave)
 										<tr>
 											<td>
-												<a href="{{ route('hrleave.show', $leave->id) }}" target="_blank">HR9-{{ str_pad( $leave->leave_no, 5, "0", STR_PAD_LEFT ) }}/{{ $leave->leave_year }}</a>
+												<a href="{{ route('hrleave.show', $leave->id) }}" target="_blank">{{ $leave->leave_ref }}</a>
 											</td>
 											<td>
 												{{ $leave->period_day }} day/s
-												<?php $total += $leave->period_day; ?>
 											</td>
 										</tr>
 									@endforeach
@@ -696,7 +512,7 @@
 								<tfoot>
 									<tr>
 										<td>Total</td>
-										<td>{{ $total }} day/s</td>
+										<td>{{ $al->total_days }} day/s</td>
 									</tr>
 								</tfoot>
 							</table>
@@ -738,8 +554,7 @@
 					<td class="text-center align-middle">{{ $al->maternity_leave_utilize }}</td>
 					<td class="text-center align-middle">{{ $al->maternity_leave_balance }}</td>
 					<td class="text-center align-middle">
-						<?php $leaves = $maternity; ?>
-						@if($leaves->count())
+						@if($al->leaves->count())
 							<table class="table table-hover table-sm">
 								<thead>
 									<tr>
@@ -748,15 +563,13 @@
 									</tr>
 								</thead>
 								<tbody>
-									<?php $total = 0; ?>
-									@foreach($leaves as $key => $leave)
+									@foreach($al->leaves as $leave)
 										<tr>
 											<td>
-												<a href="{{ route('hrleave.show', $leave->id) }}" target="_blank">HR9-{{ str_pad( $leave->leave_no, 5, "0", STR_PAD_LEFT ) }}/{{ $leave->leave_year }}</a>
+												<a href="{{ route('hrleave.show', $leave->id) }}" target="_blank">{{ $leave->leave_ref }}</a>
 											</td>
 											<td>
 												{{ $leave->period_day }} day/s
-												<?php $total += $leave->period_day; ?>
 											</td>
 										</tr>
 									@endforeach
@@ -764,7 +577,7 @@
 								<tfoot>
 									<tr>
 										<td>Total</td>
-										<td>{{ $total }} day/s</td>
+										<td>{{ $al->total_days }} day/s</td>
 									</tr>
 								</tfoot>
 							</table>
@@ -784,7 +597,6 @@
 	<p>&nbsp;</p>
 	<h4>Unpaid Leave</h4>
 	<div class="table-responsive">
-	<?php $dur = 0; ?>
 	@if($leavesupls->count())
 		<table class="table table-sm table-hover" style="font-size:12px;">
 			<thead>
@@ -800,22 +612,19 @@
 				@foreach($leavesupls as $leavesupl)
 				<tr>
 					<td class="text-center align-middle">
-						<a href="{{ route('hrleave.show', $leavesupl->id) }}" target="_blank">HR9-{{ str_pad( $leavesupl->leave_no, 5, "0", STR_PAD_LEFT ) }}/{{ $leavesupl->leave_year }}</a>
+						<a href="{{ route('hrleave.show', $leavesupl->id) }}" target="_blank">{{ $leavesupl->leave_ref }}</a>
 					</td>
 					<td class="text-center align-middle">{{ $leaveTypeMap[$leavesupl->leave_type_id] ?? '' }}</td>
-					<td class="text-center align-middle">{{ \Carbon\Carbon::parse($leavesupl->date_time_start)->format('j M Y') }}</td>
-					<td class="text-center align-middle">{{ \Carbon\Carbon::parse($leavesupl->date_time_end)->format('j M Y') }}</td>
-					<td class="text-center align-middle">
-							{{ $leavesupl->period_day }} day/s
-							<?php $dur += $leavesupl->period_day ?>
-					</td>
+					<td class="text-center align-middle">{{ $leavesupl->from_fmt }}</td>
+					<td class="text-center align-middle">{{ $leavesupl->to_fmt }}</td>
+					<td class="text-center align-middle">{{ $leavesupl->period_day }} day/s</td>
 				</tr>
 				@endforeach
 			</tbody>
 			<tfoot>
 				<tr>
 					<th colspan="4" class="text-right">Total :</th>
-					<th class="text-center">{{ $dur }} day/s</th>
+					<th class="text-center">{{ $upl_total }} day/s</th>
 				</tr>
 			</tfoot>
 		</table>
@@ -825,7 +634,6 @@
 	<p>&nbsp;</p>
 	<h4>Medical Certificate Unpaid Leave</h4>
 	<div class="table-responsive">
-	<?php $durm = 0; ?>
 	@if($leavesmcs->count())
 		<table class="table table-sm table-hover" style="font-size:12px;">
 			<thead>
@@ -841,22 +649,19 @@
 				@foreach($leavesmcs as $leavesmc)
 				<tr>
 					<td class="text-center align-middle">
-						<a href="{{ route('hrleave.show', $leavesmc->id) }}" target="_blank">HR9-{{ str_pad( $leavesmc->leave_no, 5, "0", STR_PAD_LEFT ) }}/{{ $leavesmc->leave_year }}</a>
+						<a href="{{ route('hrleave.show', $leavesmc->id) }}" target="_blank">{{ $leavesmc->leave_ref }}</a>
 					</td>
 					<td class="text-center align-middle">{{ $leaveTypeMap[$leavesmc->leave_type_id] ?? '' }}</td>
-					<td class="text-center align-middle">{{ \Carbon\Carbon::parse($leavesmc->date_time_start)->format('j M Y') }}</td>
-					<td class="text-center align-middle">{{ \Carbon\Carbon::parse($leavesmc->date_time_end)->format('j M Y') }}</td>
-					<td class="text-center align-middle">
-							{{ $leavesmc->period_day }} day/s
-							<?php $durm += $leavesmc->period_day ?>
-					</td>
+					<td class="text-center align-middle">{{ $leavesmc->from_fmt }}</td>
+					<td class="text-center align-middle">{{ $leavesmc->to_fmt }}</td>
+					<td class="text-center align-middle">{{ $leavesmc->period_day }} day/s</td>
 				</tr>
 				@endforeach
 			</tbody>
 			<tfoot>
 				<tr>
 					<th colspan="4" class="text-right">Total :</th>
-					<th class="text-center">{{ $durm }} day/s</th>
+					<th class="text-center">{{ $mcupl_total }} day/s</th>
 				</tr>
 			</tfoot>
 		</table>
@@ -866,7 +671,6 @@
 	<p>&nbsp;</p>
 	<h4 class="align-items-center">Replacement Leave</h4>
 	<div class="table-responsive">
-		@if($replacementLeaves->count())
 		<table class="table table-sm table-hover" style="font-size:12px;" id="replacementleave">
 			<thead>
 				<tr>
@@ -882,67 +686,12 @@
 				</tr>
 			</thead>
 			<tbody>
-				@foreach($replacementLeaves as $al)
-				<tr>
-					<td>{{ \Carbon\Carbon::parse($al->date_start)->format('j M Y') }}</td>
-					<td>{{ \Carbon\Carbon::parse($al->date_end)->format('j M Y') }}</td>
-					<td>{{ $al->belongstocustomer?->customer }}</td>
-					<td>{{ $al->reason }}</td>
-					<td>{{ $al->leave_total }}</td>
-					<td>{{ $al->leave_utilize }}</td>
-					<td>{{ $al->leave_balance }}</td>
-					<td class="table-responsive">
-						<?php $leaves = $replacementMap[$al->id] ?? collect(); ?>
-						@if($leaves->count())
-							<table class="table table-hover table-sm">
-								<thead>
-									<tr>
-										<th>Leave ID</th>
-										<th>Duration</th>
-									</tr>
-								</thead>
-								<tbody>
-									<?php $total = 0; ?>
-									@foreach($leaves as $key => $leave)
-										<tr>
-											<td>
-												<a href="{{ route('hrleave.show', $leave->id) }}" target="_blank">
-													HR9-{{ str_pad( $leave->leave_no, 5, "0", STR_PAD_LEFT ) }}/{{ $leave->leave_year }}
-												</a>
-											</td>
-											<td>
-												{{ $leave->period_day }} day/s
-												<?php $total += $leave->period_day; ?>
-											</td>
-										</tr>
-									@endforeach
-								</tbody>
-								<tfoot>
-									<tr>
-										<th>Total</th>
-										<th>{{ $total }} day/s</th>
-									</tr>
-								</tfoot>
-							</table>
-						@endif
-					</td>
-					<td>
-						<a href="{{ route('rleave.edit', $al->id) }}" class="btn btn-sm btn-outline-secondary">
-							<i class="fa-regular fa-pen-to-square"></i>
-						</a>
-					</td>
-				</tr>
-				@endforeach
 			</tbody>
 		</table>
-		@else
-		<p>No Leave Yet</p>
-		@endif
 	</div>
 	<p>&nbsp;</p>
 	<h4 class="align-items-center">Disciplinary</h4>
 	<div class="table-responsive">
-		@if($disciplinaries->count())
 		<table class="table table-sm table-hover" style="font-size:12px;" id="disc">
 			<thead>
 				<tr>
@@ -955,35 +704,8 @@
 				</tr>
 			</thead>
 			<tbody>
-				@foreach($disciplinaries as $al)
-				<tr>
-					<td>{{ $al->belongstooptdisciplinaryaction->disciplinary_action }}</td>
-					<td>{{ $al->belongstooptviolation->violation }}</td>
-					<td data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="{{ $al->reason }}">
-						{{ Str::limit($al->reason, 10, '>') }}
-					</td>
-					<td>{{ \Carbon\Carbon::parse($al->misconduct_date)->format('j M Y') }}</td>
-					<td>
-						@if($al->softcopy)
-						<a href="{{ asset('storage/disciplinary/' . $al->softcopy) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
-							<i class="bi bi-file-text" style="font-size: 15px;"></i>
-						</a>
-						@endif
-					</td>
-					<td>
-						<a href="{{ route('discipline.edit', $al->id) }}" class="btn btn-sm btn-outline-secondary"><i class="fa-regular fa-pen-to-square"></i></a>
-						&nbsp;
-						<button type="button" class="btn btn-sm btn-outline-secondary delete_discipline" data-id="{{ $al->id }}" data-softcopy="{{ $al->softcopy }}" data-table="discipline">
-							<i class="fa-regular fa-trash-can"></i>
-						</button>
-					</td>
-				</tr>
-				@endforeach
 			</tbody>
 		</table>
-		@else
-		<p>No Disciplinary Action</p>
-		@endif
 	</div>
 </div>
 @endsection
@@ -997,7 +719,13 @@ window.data = {
 		discipline: '{{ url('discipline') }}',
 		staffindex: '{{ route('staff.index') }}',
 	},
-	url: {},
+	url: {
+		attendance: '{{ route('api.staff.attendance', $staff->id) }}',
+		leaves: '{{ route('api.staff.leaves', $staff->id) }}',
+		replacement: '{{ route('api.staff.replacement', $staff->id) }}',
+		disciplinaries: '{{ route('api.staff.discipline', $staff->id) }}',
+		staffshow: '{{ route('staff.show', $staff->id) }}',
+	},
 	old: {
 		staffId: '{{ $staff->id }}',
 		staffName: '{{ $staff->name }}',
