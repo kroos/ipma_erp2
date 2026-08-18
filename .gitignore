@@ -38,11 +38,11 @@ yarn-error.log
 .aider*
 
 
-.claude-flow
-.openclaude
-.tools
-ai-multiagents
-docs
+/.claude-flow
+/.openclaude
+./tools
+/ai-multiagents
+/docs
 audit_report.json
 casts_remaining.json
 report.json
@@ -64,3 +64,12 @@ build_plan_tmp.py
 casts_check_tmp.py
 generate_summary_pdf.ts
 summary_changes.ts
+/report.json
+/test_report.json
+/todo.json
+/.nvmrc
+/ipmaerp-migration.sql
+/.claude-flow
+/ai-multiagents
+/docs
+/audit_report.json
