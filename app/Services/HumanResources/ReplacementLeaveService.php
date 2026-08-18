@@ -5,6 +5,7 @@ namespace App\Services\HumanResources;
 use App\Models\Staff;
 use App\Models\Customer;
 use Illuminate\Database\Eloquent\Collection;
+use Carbon\Carbon;
 
 /**
  * Replacement-leave form options.
@@ -42,5 +43,25 @@ class ReplacementLeaveService
 		$options = Customer::pluck('customer', 'id');
 
 		return ($sortKeys ? $options->sortKeys() : $options)->toArray();
+	}
+
+	/**
+	 * Decorate replacement-leave rows for the index table: username, formatted
+	 * dates and the linked HR9 leave refs (were inline queries + Carbon in the
+	 * blade).
+	 */
+	public function indexRows(Collection $replacements): Collection
+	{
+		return $replacements->map(function ($replacement) {
+			$replacement->username = $replacement->belongstostaff?->hasmanylogin()?->where('active', 1)->first()?->username;
+			$replacement->date_start_fmt = Carbon::parse($replacement->date_start)->format('j M Y');
+			$replacement->date_end_fmt = Carbon::parse($replacement->date_end)->format('j M Y');
+
+			$replacement->leave_refs = $replacement->belongstomanyleave()->get()->map(function ($val) {
+				return '<a href="' . route('hrleave.show', $val->id) . '">HR9-' . str_pad($val->leave_no, 5, '0', STR_PAD_LEFT) . '/' . $val->leave_year . '</a><br />';
+			});
+
+			return $replacement;
+		});
 	}
 }

@@ -108,14 +108,14 @@
 
             <div class="table">
               <div class="table-row">
-                <div class="table-cell-top" style="width: 50%;"><span id="left-detail">LEAVE NO</span>:<span id="right-detail">HR9-{{ @str_pad($leav->leave_no,5,'0',STR_PAD_LEFT) }}/{{ $leav->leave_year }}</span></div>
+                <div class="table-cell-top" style="width: 50%;"><span id="left-detail">LEAVE NO</span>:<span id="right-detail">{{ $leav->leave_ref }}</span></div>
                 <div class="table-cell-top text-wrap" style="width: 50%;"><span id="left-detail">LEAVE TYPE</span>:<span id="right-detail">{{ $leave_type_code }} ({{ $leavtype?->leave_type }})</span></div>
               </div>
             </div>
 
             <div class="table">
               <div class="table-row">
-                <div class="table-cell-top" style="width: 50%;"><span id="left-detail">DATE CREATE | DATE LEAVE</span>:<span id="right-detail">({{ \Carbon\Carbon::parse($leav->created_at ?? now())->format('d-m-Y') }}) {{ $dts }} - {{ $dte }}</span></div>
+                <div class="table-cell-top" style="width: 50%;"><span id="left-detail">DATE CREATE | DATE LEAVE</span>:<span id="right-detail">({{ $leav->created_fmt }}) {{ $dts }} - {{ $dte }}</span></div>
                 <div class="table-cell-top" style="width: 50%;"><span id="left-detail">TOTAL</span>:<span id="right-detail">{{ $dper }}</span></div>
               </div>
             </div>
@@ -124,7 +124,7 @@
               <div class="table-row">
                 <div class="table-cell-top text-wrap" style="width: 50%;"><span id="left-detail">BACKUP</span>:<span id="right-detail">{!! $bapp !!}</span></div>
                 <div class="table-cell-top" style="width: 50%;">
-                  <span id="left-detail">BACKUP DATE APPROVED</span>:<span id="right-detail">{{ ($backup->first()?->created_at)?\Carbon\Carbon::parse($backup->first()?->created_at)->format('j M Y'):null }}</span>
+                  <span id="left-detail">BACKUP DATE APPROVED</span>:<span id="right-detail">{{ $backup->first()?->created_fmt }}</span>
                 </div>
               </div>
             </div>
@@ -150,7 +150,7 @@
             <div class="table">
               @foreach($amend as $key => $value1)
               <div class="table-row">
-                <div class="table-cell-top" style="width: 100%;"><span id="left-detail">EDIT LEAVE REMARKS</span>:<span id="right-detail">{{ $value1->amend_note }} on {{ \Carbon\Carbon::parse($value1->created_at)->format('d-m-Y') }}</span></div>
+                <div class="table-cell-top" style="width: 100%;"><span id="left-detail">EDIT LEAVE REMARKS</span>:<span id="right-detail">{{ $value1->amend_note }} on {{ $value1->created_fmt }}</span></div>
               </div>
               @endforeach
             </div>
@@ -174,7 +174,7 @@
             <div class="table">
               <div class="table-row">
                 <div class="table-cell">
-                  <span id="left-detail">Entitlement Year {{ \Carbon\Carbon::parse($leav->date_time_start)->format('Y') }}</span>
+                  <span id="left-detail">Entitlement Year {{ $leav->entitlement_year }}</span>
                 </div>
               </div>
             </div>

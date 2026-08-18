@@ -40,13 +40,7 @@ class AbsentController extends Controller
 	 */
 	public function index(): View
 	{
-		$absents = HRAttendance::groupByRaw('YEAR(attend_date)')
-						->selectRaw('YEAR(attend_date) as ayear')
-						->whereIn('attendance_type_id', [1,2])
-
-						->orderBy('ayear', 'DESC')
-						->get();
-						// ->ddrawsql();
+		$absents = app(\App\Services\HumanResources\DisciplineService::class)->absentReport();
 		return view('humanresources.hrdept.discipline.absent.index', ['absents' => $absents]);
 	}
 

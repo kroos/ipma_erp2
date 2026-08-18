@@ -37,22 +37,8 @@
   <table height="15px"></table>
 
   @foreach ($appraisals as $appraisal)
-  <?php
-  $sections = App\Models\HumanResources\HRAppraisalSection::where('id', $appraisal->section_id)
-  ->orderBy('sort', 'ASC')
-  ->orderBy('id', 'ASC')
-  ->get();
-  ?>
-
-  @foreach ($sections as $section)
-  <?php
-  $no = 1;
-  $section_subs = App\Models\HumanResources\HRAppraisalSectionSub::where('section_id', $section->id)
-  ->orderBy('section_id', 'ASC')
-  ->orderBy('sort', 'ASC')
-  ->orderBy('id', 'ASC')
-  ->get();
-  ?>
+  @foreach ($appraisal->sections as $section)
+  <?php $no = 1; ?>
 
 
 
@@ -115,15 +101,8 @@
       </td>
     </tr>
 
-    @foreach ($section_subs as $section_sub)
-    <?php
-    $no_sub = 'a';
-    $main_questions = App\Models\HumanResources\HRAppraisalMainQuestion::where('section_sub_id', $section_sub->id)
-    ->orderBy('section_sub_id', 'ASC')
-    ->orderBy('mark', 'ASC')
-    ->orderBy('sort', 'ASC')
-    ->get();
-    ?>
+    @foreach ($section->section_subs as $section_sub)
+    <?php $no_sub = 'a'; ?>
 
     <tr>
       <td align="center" class="td-border-left-right">
@@ -173,14 +152,7 @@
       </td>
     </tr>
 
-    @foreach ($main_questions as $main_question)
-    <?php
-    $questions = App\Models\HumanResources\HRAppraisalQuestion::where('main_question_id', $main_question->id)
-    ->orderBy('main_question_id', 'ASC')
-    ->orderBy('mark', 'ASC')
-    ->orderBy('sort', 'ASC')
-    ->get();
-    ?>
+    @foreach ($section_sub->main_questions as $main_question)
 
     <tr>
       <td align="center" class="td-border-left-right" style="vertical-align:text-top;">
@@ -233,7 +205,7 @@
       </td>
     </tr>
 
-    @foreach ($questions as $question)
+    @foreach ($main_question->questions as $question)
     <tr>
       <td class="td-border-left-right"></td>
       <td align="center" width="40px" style="vertical-align:text-top;">
@@ -538,7 +510,7 @@
       </td>
     </tr>
 
-    @foreach ($section_subs as $section_sub)
+    @foreach ($section->section_subs as $section_sub)
     <tr class="tr-td-border">
       <td align="center">
         {{ $no }}
@@ -707,7 +679,7 @@
   </table>
 
   <table width="100%">
-    @foreach ($section_subs as $section_sub)
+    @foreach ($section->section_subs as $section_sub)
     <tr>
       <td width="30px">
         {{ $no }})
@@ -868,14 +840,7 @@
   </table>
 
   <table width="100%">
-    @foreach ($section_subs as $section_sub)
-    <?php
-    $main_questions = App\Models\HumanResources\HRAppraisalMainQuestion::where('section_sub_id', $section_sub->id)
-    ->orderBy('section_sub_id', 'ASC')
-    ->orderBy('mark', 'ASC')
-    ->orderBy('sort', 'ASC')
-    ->get();
-    ?>
+    @foreach ($section->section_subs as $section_sub)
 
     <tr>
       <td width="30px">
@@ -925,7 +890,7 @@
       </td>
     </tr>
 
-    @foreach ($main_questions as $main_question)
+    @foreach ($section_sub->main_questions as $main_question)
     <tr>
       <td></td>
       <td width="40px">

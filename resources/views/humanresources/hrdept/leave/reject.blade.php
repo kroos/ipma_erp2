@@ -28,39 +28,17 @@
 			</thead>
 			<tbody>
 				@foreach($reject as $ul)
-<?php
-if ( ($ul->leave_type_id == 9) || ($ul->leave_type_id != 9 && $ul->half_type_id == 2) || ($ul->leave_type_id != 9 && $ul->half_type_id == 1) ) {
-	$dts = \Carbon\Carbon::parse($ul->date_time_start)->format('j M Y g:i a');
-	$dte = \Carbon\Carbon::parse($ul->date_time_end)->format('j M Y g:i a');
-
-	if ($ul->leave_type_id != 9) {
-		if ($ul->half_type_id == 2) {
-			$dper = $ul->period_day.' Day';
-		} elseif($ul->half_type_id == 1) {
-			$dper = $ul->period_day.' Day';
-		}
-	}elseif ($ul->leave_type_id == 9) {
-		$i = \Carbon\Carbon::parse($ul->period_time);
-		$dper = $i->hour.' hour, '.$i->minute.' minutes';
-	}
-
-} else {
-	$dts = \Carbon\Carbon::parse($ul->date_time_start)->format('j M Y ');
-	$dte = \Carbon\Carbon::parse($ul->date_time_end)->format('j M Y ');
-	$dper = $ul->period_day.' day/s';
-}
-?>
 						<tr>
 							<td><a href="{{ route('staff.show', $ul->staff_id) }}" target="_blank">{{ $ul->username }}</a></td>
 							<td @if($ul->staff_id) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $ul->belongstostaff?->name }}" @endif>
 								{{ Str::words($ul->belongstostaff?->name, 3, ' >') }}
 							</td>
-							<td><a href="{{ route('hrleave.show', $ul->id) }}" target="_blank">HR9-{{ str_pad( $ul->leave_no, 5, "0", STR_PAD_LEFT ) }}/{{ $ul->leave_year }}</a></td>
+							<td><a href="{{ route('hrleave.show', $ul->id) }}" target="_blank">{{ $ul->leave_ref }}</a></td>
 							<td>{{ $ul->belongstooptleavetype?->leave_type_code }}</td>
-							<td>{{ \Carbon\Carbon::parse($ul->created_at)->format('j M Y') }}</td>
-							<td>{{ $dts }}</td>
-							<td>{{ $dte }}</td>
-							<td>{{ $dper }}</td>
+							<td>{{ $ul->applied_fmt }}</td>
+							<td>{{ $ul->dts }}</td>
+							<td>{{ $ul->dte }}</td>
+							<td>{{ $ul->dper }}</td>
 							<td @if($ul->reason) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $ul->reason }}" @endif>
 								{{ Str::limit($ul->reason, 10, ' >') }}
 							</td>

@@ -6,22 +6,12 @@
 
     <h4>Appraisal Form : {{ $category->category }} Version {{ $pivotappraisal->version }}</h4>
 
-    <table height="15px"></table>
-
-    @foreach ($appraisals as $appraisal)
-      <?php
-      $sections = App\Models\HumanResources\HRAppraisalSection::where('id', $appraisal->section_id)->get();
-      ?>
-
-      @foreach ($sections as $section)
+    <table height="15px"></table>	@foreach ($appraisals as $appraisal)
+      @foreach ($appraisal->sections as $section)
         <?php
         $no = 1;
-        $section_subs = App\Models\HumanResources\HRAppraisalSectionSub::where('section_id', $section->id)
-            ->orderBy('section_id', 'ASC')
-            ->orderBy('sort', 'ASC')
-            ->orderBy('id', 'ASC')
-            ->get();
         ?>
+
 
 
 
@@ -43,17 +33,11 @@
               <td align="center" colspan="3" style="background-color: #e6e6e6;">
                 <b>PENERANGAN</b>
               </td>
-            </tr>
-
-            @foreach ($section_subs as $section_sub)
+            </tr>			@foreach ($section->section_subs as $section_sub)
               <?php
               $no_sub = 'a';
-              $main_questions = App\Models\HumanResources\HRAppraisalMainQuestion::where('section_sub_id', $section_sub->id)
-                  ->orderBy('section_sub_id', 'ASC')
-                  ->orderBy('mark', 'ASC')
-                  ->orderBy('sort', 'ASC')
-                  ->get();
               ?>
+
 
               <tr>
                 <td align="center" class="td-border-left-right">
@@ -62,16 +46,8 @@
                 <td colspan="3" class="td-border-right">
                   {{ $section_sub->section_sub }}
                 </td>
-              </tr>
+              </tr>				@foreach ($section_sub->main_questions as $main_question)
 
-              @foreach ($main_questions as $main_question)
-                <?php
-                $questions = App\Models\HumanResources\HRAppraisalQuestion::where('main_question_id', $main_question->id)
-                    ->orderBy('main_question_id', 'ASC')
-                    ->orderBy('mark', 'ASC')
-                    ->orderBy('sort', 'ASC')
-                    ->get();
-                ?>
 
                 <tr>
                   <td align="center" class="td-border-left-right" style="vertical-align:text-top;">
@@ -80,9 +56,7 @@
                   <td colspan="3" class="td-border-right">
                     {{ $main_question->main_question }}
                   </td>
-                </tr>
-
-                @foreach ($questions as $question)
+                </tr>				@foreach ($main_question->questions as $question)
                   <tr>
                     <td class="td-border-left-right"></td>
                     <td align="center" width="40px" style="vertical-align:text-top;">
@@ -155,9 +129,7 @@
               <td align="center" style="background-color: #e6e6e6;" width="50px">
                 <b>5</b>
               </td>
-            </tr>
-
-            @foreach ($section_subs as $section_sub)
+            </tr>			@foreach ($section->section_subs as $section_sub)
               <tr class="tr-td-border">
                 <td align="center">
                   {{ $no }}
@@ -198,8 +170,7 @@
             </tr>
           </table>
 
-          <table width="100%">
-            @foreach ($section_subs as $section_sub)
+          <table width="100%">			@foreach ($section->section_subs as $section_sub)
               <tr>
                 <td width="30px">
                   {{ $no }})
@@ -231,15 +202,7 @@
             </tr>
           </table>
 
-          <table width="100%">
-            @foreach ($section_subs as $section_sub)
-              <?php
-              $main_questions = App\Models\HumanResources\HRAppraisalMainQuestion::where('section_sub_id', $section_sub->id)
-                  ->orderBy('section_sub_id', 'ASC')
-                  ->orderBy('mark', 'ASC')
-                  ->orderBy('sort', 'ASC')
-                  ->get();
-              ?>
+          <table width="100%">			@foreach ($section->section_subs as $section_sub)
 
               <tr>
                 <td width="30px">
@@ -250,7 +213,8 @@
                 </td>
               </tr>
 
-              @foreach ($main_questions as $main_question)
+              @foreach ($section_sub->main_questions as $main_question)
+
                 <tr>
                   <td></td>
                   <td width="40px">

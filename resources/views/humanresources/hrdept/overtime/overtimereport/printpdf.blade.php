@@ -53,24 +53,10 @@
     font-family: 'Arial', sans-serif;
 }
 </style>
-<?php
-
-use Carbon\Carbon;
-
-$no = 1;
-$total_col = 0;
-$total_hour = '0';
-
-if ($date_start != NULL && $date_end != NULL) {
-  $startDate = Carbon::parse($date_start);
-  $endDate = Carbon::parse($date_end);
-}
-?>
-
 <table class="theme">
   <tr>
     <td align="center">
-      Overtime Claim Form {{Carbon::parse($date_start)->format('j')}} - {{Carbon::parse($date_end)->format('j')}} {{Carbon::parse($date_end)->format('F')}} {{Carbon::parse($date_end)->format('Y') }} ({{ $title }} of {{ $month }} {{ $year }}) </td>
+      {{ $report['claim_form_title'] }} ({{ $title }} of {{ $month }} {{ $year }}) </td>
   </tr>
 </table>
 
@@ -89,78 +75,42 @@ if ($date_start != NULL && $date_end != NULL) {
     </td>
     <td align="center" style="width: 70px;">
       DEPT
-    </td>
-    @for ($date = $startDate; $date->lte($endDate); $date->addDay())
+    </td>	@foreach ($report['columns'] as $column)
     <td align="center" style="width: 30px;">
-      <?php
-      $total_col++;
-      $rows[] = $date->format('Y-m-d');
-      echo $formattedDate = $date->format('d/m');
-      ?>
+      {{ $column['label'] }}
     </td>
-    @endfor
+    @endforeach
     <td align="center" style="width: 50px;">
       TOTAL<br />HOURS
     </td>
     <td align="center" style="width: 60px;">
       SIGNATURE
     </td>
-  </tr>
-
-  @foreach ($overtimes as $overtime)
-  <?php $total_hour_per_person = '0'; ?>
+  </tr>	@foreach ($report['rows'] as $index => $overtime)
   <tr>
     <td align="center">
-      {{ $no++ }}
+      {{ $index + 1 }}
     </td>
     <td align="center">
-      {{ $overtime->username }}
+      {{ $overtime['username'] }}
     </td>
     <td>
       <div class="overflow" style="max-width: 250px;">
-        &nbsp;{{ $overtime->name }}
+        &nbsp;{{ $overtime['name'] }}
       </div>
     </td>
     <td>
       <div class="overflow" style="width: 65px">
-        &nbsp;{{ $overtime->department }}
+        &nbsp;{{ $overtime['department'] }}
       </div>
     </td>
-    @foreach ($rows as $row)
-    <?php
-    $ot = $otMap[$overtime->staff_id][$row] ?? null;
-
-    $background = "";
-
-    if ($ot) {
-      $department_id = $ot->belongstoassignstaff->belongstomanydepartment()->first()->department_id;
-
-      if ($department_id == '14' || $department_id == '15') {
-        $background = "background-color: #d9d9d9";
-      }
-    }
-    ?>
-    <td align="center" style="<?php echo $background; ?>">
-      <?php
-      if ($ot) {
-        echo $timeString_per_person = (Carbon::parse($ot->belongstoovertimerange?->total_time))->format('H:i');
-
-        // Explode the time string into an array of hours, minutes, and seconds
-        $timeArray_per_person = explode(':', $timeString_per_person);
-
-        // Calculate the total minutes
-        $totalMinutes_per_person = ($timeArray_per_person[0] * 60) + $timeArray_per_person[1];
-        $total_hour_per_person = $total_hour_per_person + $totalMinutes_per_person;
-      }
-      ?>
+    @foreach ($overtime['cells'] as $cell)
+    <td align="center" style="{{ $cell['background'] }}">
+      {{ $cell['time'] }}
     </td>
     @endforeach
     <td align="right">
-      <?php
-      $total_hour = $total_hour + $total_hour_per_person;
-
-      echo (sprintf('%02d', intdiv($total_hour_per_person, 60)) . ':' . sprintf('%02d', ($total_hour_per_person % 60)));
-      ?>
+      {{ $overtime['total'] }}
       &nbsp;
     </td>
     <td></td>
@@ -168,13 +118,11 @@ if ($date_start != NULL && $date_end != NULL) {
   @endforeach
 
   <tr>
-    <td align="right" colspan="{{ $total_col+4 }}">
+    <td align="right" colspan="{{ $report['total_col'] + 4 }}">
       TOTAL HOURS&nbsp;&nbsp;
     </td>
     <td align="right">
-      <?php
-      echo (sprintf('%02d', intdiv($total_hour, 60)) . ':' . sprintf('%02d', ($total_hour % 60)));
-      ?>
+      {{ $report['grand_total'] }}
       &nbsp;
     </td>
     <td></td>

@@ -3,22 +3,6 @@
 
 @section('content')
 
-<?php
-
-use \App\Models\Staff;
-use \App\Models\HumanResources\OptAppraisalCategories;
-use \App\Models\HumanResources\AppraisalPivot;
-
-$newest_year = AppraisalPivot::orderBy('year', 'desc')->first();
-
-$staffs = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
-  ->select('logins.username', 'staffs.name', 'staffs.id')
-  ->where('staffs.active', 1)
-  ->where('logins.active', 1)
-  ->orderBy('logins.username', 'ASC')
-  ->get();
-?>
-
 <div class="page-humanresources-hrdept-appraisal-list-index container">
   @include('humanresources.hrdept.navhr')
 
@@ -50,20 +34,6 @@ $staffs = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
       <tbody>
         @foreach ($staffs as $staff)
 
-        <?php
-        $markers = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
-          ->join('pivot_apoint_appraisals', 'staffs.id', '=', 'evaluator_id')
-          ->select('logins.username', 'staffs.name', 'pivot_apoint_appraisals.id', 'pivot_apoint_appraisals.appraisal_category_id', 'pivot_apoint_appraisals.finalise_date')
-          ->where('staffs.active', 1)
-          ->where('logins.active', 1)
-          ->whereNull('pivot_apoint_appraisals.deleted_at')
-          ->where('pivot_apoint_appraisals.evaluatee_id', $staff->id)
-          ->where('pivot_apoint_appraisals.year', $newest_year->year)
-          //->whereNull('pivot_apoint_appraisals.finalise_date')
-          ->orderBy('logins.username', 'ASC')
-          ->get();
-        ?>
-
         <tr>
           <td class="text-center">
             {{ $staff->username }}
@@ -78,7 +48,7 @@ $staffs = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
 
           </td>
 
-          @foreach ($markers as $marker)
+          @foreach ($staff->markers as $marker)
           <td data-toggle="tooltip" title="{{ $marker->name }}">
             @if(is_null($marker->finalise_date))
             <input type="text" readonly value="{{ $marker->name }}" style="border-style:none; outline:none; background-color:transparent; width:95%; height:100%; color:red;" />
@@ -88,7 +58,7 @@ $staffs = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
           </td>
           @endforeach
 
-          @for ($a=count($markers); $a<'4'; $a++)
+          @for ($a = $staff->markers->count(); $a < 4; $a++)
             <td>
             </td>
             @endfor

@@ -41,4 +41,18 @@ protected $casts = [
 	'staff_id' => 'integer',
 	'year' => 'integer',
 ];
+
+/////////////////////////////////////////////////////////////////////////////////////////
+	// db relation belongsToMany
+	public function belongstomanyleave(): BelongsToMany
+	{
+		return $this->belongsToMany(\App\Models\HumanResources\HRLeave::class, 'pivot_leave_maternities', 'leave_maternity_id', 'leave_id')->withTimestamps();
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////
+	//belongsto relationship
+	public function belongstostaff(): BelongsTo
+	{
+		return $this->belongsTo(\App\Models\Staff::class, 'staff_id');
+	}
 }

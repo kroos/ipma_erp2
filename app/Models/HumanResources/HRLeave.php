@@ -145,22 +145,22 @@ protected $fillable = [
 
 	public function belongstomanyleaveannual(): BelongsToMany
 	{
-		return $this->BelongsToMany(\App\Models\HumanResources\HRLeaveAnnual::class, 'pivot_leave_annuals', 'leave_id', 'hr_leave_annual_id');
+		return $this->BelongsToMany(\App\Models\HumanResources\HRLeaveAnnual::class, 'pivot_leave_annuals', 'leave_id', 'leave_annual_id');
 	}
 
 	public function belongstomanyleavemc(): BelongsToMany
 	{
-		return $this->BelongsToMany(\App\Models\HumanResources\HRLeaveMC::class, 'pivot_leave_mc', 'leave_id', 'hr_leave_mc_id');
+		return $this->BelongsToMany(\App\Models\HumanResources\HRLeaveMC::class, 'pivot_leave_mc', 'leave_id', 'leave_mc_id');
 	}
 
 	public function belongstomanyleavematernity(): BelongsToMany
 	{
-		return $this->BelongsToMany(\App\Models\HumanResources\HRLeaveMaternity::class, 'pivot_leave_maternities', 'leave_id', 'hr_leave_maternity_id');
+		return $this->BelongsToMany(\App\Models\HumanResources\HRLeaveMaternity::class, 'pivot_leave_maternities', 'leave_id', 'leave_maternity_id');
 	}
 
 	public function belongstomanyleavereplacement(): BelongsToMany
 	{
-		return $this->BelongsToMany(\App\Models\HumanResources\HRLeaveReplacement::class, 'pivot_leave_replacements', 'leave_id', 'hr_leave_replacement_id');
+		return $this->BelongsToMany(\App\Models\HumanResources\HRLeaveReplacement::class, 'pivot_leave_replacements', 'leave_id', 'leave_replacement_id');
 	}
 
 	public function hasoneleaveapprovalbackup(): HasOne

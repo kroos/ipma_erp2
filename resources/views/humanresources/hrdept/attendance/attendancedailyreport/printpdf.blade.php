@@ -44,11 +44,6 @@
 	}
 </style>
 
-<?php
-use \Carbon\Carbon;
-
-
-?>
 
 <span style="font-size:18px;">DAILY ATTENDANCE</span>
 

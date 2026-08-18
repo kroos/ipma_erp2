@@ -1,13 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-use \Carbon\Carbon;
-
-// load array helper
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-?>
 <div class="container row align-items-start justify-content-center">
 	@include('humanresources.hrdept.navhr')
 	<h4>Outstation List&nbsp;<a class="btn btn-sm btn-outline-secondary" href="{{ route('outstation.create') }}"><i class="fa-solid fa-person-digging fa-beat"></i> Add Outstation</a></h4>
@@ -34,9 +27,9 @@ use Illuminate\Support\Str;
 						<td>{{ $usernames[$outstation->staff_id] ?? '' }}</td>
 						<td>{{ $staffNames[$outstation->staff_id] ?? '' }}</td>
 						<td>{{ $outstation->belongstocustomer?->customer }}</td>
-						<td>{{ Carbon::parse($outstation->date_from)->format('D, j M Y') }}</td>
-						<td>{{ Carbon::parse($outstation->date_to)->format('D, j M Y') }}</td>
-						<!-- <td>{{ Carbon::parse($outstation->date_from)->toPeriod($outstation->date_to, 1, 'day')->count() }} day/s</td> -->
+						<td>{{ $outstation->date_from_fmt }}</td>
+						<td>{{ $outstation->date_to_fmt }}</td>
+						<!-- duration day/s (decorated server-side in OutstationController::index) -->
 						<td @if($outstation->remarks) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $outstation->remarks }}" @endif>
 							{{ Str::limit($outstation->remarks, 7, ' >') }}
 						</td>
@@ -72,9 +65,9 @@ use Illuminate\Support\Str;
 						<td>{{ $usernames[$outstation->staff_id] ?? '' }}</td>
 						<td>{{ $staffNames[$outstation->staff_id] ?? '' }}</td>
 						<td>{{ $outstation->belongstocustomer?->customer }}</td>
-						<td>{{ Carbon::parse($outstation->date_from)->format('D, j M Y') }}</td>
-						<td>{{ Carbon::parse($outstation->date_to)->format('D, j M Y') }}</td>
-						<!-- <td>{{ Carbon::parse($outstation->date_from)->toPeriod($outstation->date_to, 1, 'day')->count() }} day/s</td> -->
+						<td>{{ $outstation->date_from_fmt }}</td>
+						<td>{{ $outstation->date_to_fmt }}</td>
+						<!-- duration day/s (decorated server-side in OutstationController::index) -->
 						<td @if($outstation->remarks) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $outstation->remarks }}" @endif>
 							{{ Str::limit($outstation->remarks, 7, ' >') }}
 						</td>

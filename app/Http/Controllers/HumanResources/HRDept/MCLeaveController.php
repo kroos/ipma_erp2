@@ -43,7 +43,36 @@ class MCLeaveController extends Controller
 	 */
 	public function index(): View
 	{
-		return view('humanresources.hrdept.setting.mcleave.index');
+		$years = HRLeaveMC::groupBy('year')->select('year')->orderBy('year', 'DESC')->get();
+
+		$makeRow = function ($t, bool $active) {
+			return (object) [
+				'id' => $t->id,
+				'username' => $active
+					? $t->belongstostaff?->hasmanylogin()?->where('active', 1)->first()?->username
+					: $t->belongstostaff?->hasmanylogin()?->first()?->username,
+				'name' => $t->belongstostaff?->name,
+				'entitlement_fmt' => $t->mc_leave . ' day/s',
+				'adjustment_fmt' => $t->mc_leave_adjustment . ' day/s',
+				'utilize_fmt' => $t->mc_leave_utilize . ' day/s',
+				'balance_fmt' => $t->mc_leave_balance . ' day/s',
+				'remarks' => $t->remarks,
+			];
+		};
+
+		$activeRows = [];
+		$inactiveRows = [];
+		foreach ($years as $tp) {
+			$rows = HRLeaveMC::where('year', $tp->year)->orderBy('year', 'DESC')->get();
+			$activeRows[$tp->year] = $rows->filter(fn ($t) => $t->belongstostaff?->active == 1)->map(fn ($t) => $makeRow($t, true))->values();
+			$inactiveRows[$tp->year] = $rows->filter(fn ($t) => $t->belongstostaff?->active != 1)->map(fn ($t) => $makeRow($t, false))->values();
+		}
+
+		return view('humanresources.hrdept.setting.mcleave.index', [
+			'years' => $years,
+			'activeRows' => $activeRows,
+			'inactiveRows' => $inactiveRows,
+		]);
 	}
 
 	/**

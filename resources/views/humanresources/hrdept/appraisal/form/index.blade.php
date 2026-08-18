@@ -11,23 +11,21 @@
 
   @foreach ($categories as $category)
 
-  <?php $form_versions = $formVersions[$category->id] ?? collect(); ?>
-
   <div class="row mb-2" style="background-color: #f0f0f0; font-size: 20px;">
     <div class="col-sm-12 ">
-      <a class="btn btn-primary btn-sm" href="{{ route('appraisalform.create', ['id' => $category->id]) }}" role="button">+</a>
-      {{ $category->category }}
+      <a class="btn btn-primary btn-sm" href="{{ route('appraisalform.create', ['id' => $category->category->id] ) }}" role="button">+</a>
+      {{ $category->category->category }}
     </div>
   </div>
 
-  @foreach ($form_versions as $form_version)
+  @foreach ($category->form_versions as $form_version)
   @if ($form_version->version != NULL)
   <div class="row mb-2">
     <div align="right" style="width: 75px;">
       <i class="bi bi-caret-right-fill"></i>
     </div>
     <div class="col-sm-9" style="font-size: 18px;">
-      {{ $category->category }} Version {{ $form_version->version }}
+      {{ $category->category->category }} Version {{ $form_version->version }}
     </div>
     <div align="center" style="width: 60px;">
       <a href="{{ route('appraisalform.show', ['appraisalform' => $form_version->id]) }}">

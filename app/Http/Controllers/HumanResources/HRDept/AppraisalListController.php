@@ -50,12 +50,33 @@ class AppraisalListController extends Controller
 
   /**
    * Display a listing of the resource.
-   */
-  public function index(): View
+   */	public function index(): View
   {
     $departments = DepartmentPivot::all();
 
-    return view('humanresources.hrdept.appraisal.list.index', ['departments' => $departments]);
+    $newest_year = AppraisalPivot::orderBy('year', 'desc')->first();
+
+    $staffs = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
+      ->select('logins.username', 'staffs.name', 'staffs.id')
+      ->where('staffs.active', 1)
+      ->where('logins.active', 1)
+      ->orderBy('logins.username', 'ASC')
+      ->get()
+      ->map(function ($staff) use ($newest_year) {
+          $staff->markers = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
+            ->join('pivot_apoint_appraisals', 'staffs.id', '=', 'evaluator_id')
+            ->select('logins.username', 'staffs.name', 'pivot_apoint_appraisals.id', 'pivot_apoint_appraisals.appraisal_category_id', 'pivot_apoint_appraisals.finalise_date')
+            ->where('staffs.active', 1)
+            ->where('logins.active', 1)
+            ->whereNull('pivot_apoint_appraisals.deleted_at')
+            ->where('pivot_apoint_appraisals.evaluatee_id', $staff->id)
+            ->where('pivot_apoint_appraisals.year', $newest_year?->year)
+            ->orderBy('logins.username', 'ASC')
+            ->get();
+          return $staff;
+      });
+
+    return view('humanresources.hrdept.appraisal.list.index', ['departments' => $departments, 'staffs' => $staffs]);
   }
 
   /**

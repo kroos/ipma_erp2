@@ -1,15 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-
-$staff = $discipline->belongstostaff->name;
-$supervisor = $discipline->belongstosupervisor->name;
-$disciplinary_action = $discipline->belongstooptdisciplinaryaction->disciplinary_action;
-$violation = $discipline->belongstooptviolation()->select('violation', 'remarks')->first();
-$infraction = $discipline->belongstooptinfractions()->select('infraction', 'remarks')->first();
-?>
-
 <div class="page-humanresources-hrdept-discipline-show container">
   @include('humanresources.hrdept.navhr')
   <h4>Show Discipline</h4>
@@ -19,7 +10,7 @@ $infraction = $discipline->belongstooptinfractions()->select('infraction', 'rema
       <label for="name" class="col-form-label col-sm-2">Name : </label>
     </div>
     <div class="col-md-10">
-      <input type="text" name="staff_id" value="{{ old('name', @$staff) }}" id="name" class="form-control form-control-sm col-sm-12 @error('staff_id') is-invalid @enderror" placeholder="Name" readonly>
+      <input type="text" name="staff_id" value="{{ old('name', $staff) }}" id="name" class="form-control form-control-sm col-sm-12 @error('staff_id') is-invalid @enderror" placeholder="Name" readonly>
     </div>
   </div>
 
@@ -28,7 +19,7 @@ $infraction = $discipline->belongstooptinfractions()->select('infraction', 'rema
       <label for="supervisor" class="col-form-label col-sm-2">Supervisor Incharge : </label>
     </div>
     <div class="col-md-10">
-      <input type="supervisor_id" name="staff_id" value="{{ old('name', @$supervisor) }}" id="supervisor" class="form-control form-control-sm col-sm-12 @error('staff_id') is-invalid @enderror" readonly>
+      <input type="supervisor_id" name="staff_id" value="{{ old('name', $supervisor) }}" id="supervisor" class="form-control form-control-sm col-sm-12 @error('staff_id') is-invalid @enderror" readonly>
     </div>
   </div>
 
@@ -37,7 +28,7 @@ $infraction = $discipline->belongstooptinfractions()->select('infraction', 'rema
       <label for="disciplinary_action" class="col-form-label col-sm-2">Disciplinary Action : </label>
     </div>
     <div class="col-md-10">
-      <input type="text" name="disciplinary_action_id" value="{{ old('name', @$disciplinary_action) }}" id="name" class="form-control form-control-sm col-sm-12 @error('staff_id') is-invalid @enderror" readonly>
+      <input type="text" name="disciplinary_action_id" value="{{ old('name', $disciplinary_action) }}" id="name" class="form-control form-control-sm col-sm-12 @error('staff_id') is-invalid @enderror" readonly>
     </div>
   </div>
 
@@ -46,7 +37,7 @@ $infraction = $discipline->belongstooptinfractions()->select('infraction', 'rema
       <label for="violation" class="col-form-label col-sm-2">Violation : </label>
     </div>
     <div class="col-md-10">
-      <input type="text" name="violation_id" value="{{ old('name', @$violation->violation.' - '.$violation->remarks) }}" id="name" class="form-control form-control-sm col-sm-12 @error('staff_id') is-invalid @enderror" readonly>
+      <input type="text" name="violation_id" value="{{ old('name', $violation_text) }}" id="name" class="form-control form-control-sm col-sm-12 @error('staff_id') is-invalid @enderror" readonly>
     </div>
   </div>
 
@@ -55,7 +46,7 @@ $infraction = $discipline->belongstooptinfractions()->select('infraction', 'rema
       <label for="infraction" class="col-form-label col-sm-2">Infraction Level : </label>
     </div>
     <div class="col-md-10">
-      <input type="text" name="infraction_id" value="{{ old('name', @$infraction->infraction.' - '.$infraction->remarks) }}" id="name" class="form-control form-control-sm col-sm-12 @error('infraction_id') is-invalid @enderror" readonly>
+      <input type="text" name="infraction_id" value="{{ old('name', $infraction_text) }}" id="name" class="form-control form-control-sm col-sm-12 @error('infraction_id') is-invalid @enderror" readonly>
     </div>
   </div>
 

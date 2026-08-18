@@ -17,22 +17,6 @@ function hasErr(key) {
 	return errors[key] ? 'has-error' : '';
 }
 
-// highest row index currently in the DOM for a given field prefix (e.g. 'staffspouse[')
-// — used after row removal so the add-counter never collides with a surviving row's index
-function maxRowIndex(rowsSel, prefix) {
-	var max = 0;
-	$(rowsSel).find('[name^="' + prefix + '"]').each(function () {
-		var m = this.name.match(/\[(\d+)\]/);
-		if (m) {
-			var n = parseInt(m[1], 10);
-			if (n > max) {
-				max = n;
-			}
-		}
-	});
-	return max;
-}
-
 // shared datetimepicker icons
 const dtpIcons = {
 	time: "fas fas-regular fa-clock fa-beat",
@@ -163,423 +147,266 @@ if (isEdit) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// EDIT ONLY : delete handlers
-if (isEdit) {
-
-	// delete spouse
-	$(document).on('click', '.spouse_delete', function (e) {
-		var spouseId = $(this).data('id');
-		SwalDelete(spouseId);
-		e.preventDefault();
-	});
-
-	function SwalDelete(spouseId) {
-		swal.fire({ ...config.swal,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    preConfirm: function () {
-				return new Promise(function (resolve) {
-					$.ajax({
-						type: 'DELETE',
-						url: url.spouse + '/' + spouseId,
-						data: {
-							id: spouseId,
-						},
-						dataType: 'json'
-					})
-						.done(function (response) {
-							swal.fire('Deleted!', response.message, response.status)
-								.then(function () {
-									window.location.reload(true);
-								});
-						})
-						.fail(function () {
-							swal.fire('Oops...', 'Something went wrong with ajax !', 'error');
-						})
-				});
-			},
-})
-			.then((result) => {
-				if (result.dismiss === swal.DismissReason.cancel) {
-					swal.fire('Cancelled', 'Your data is safe from delete', 'info')
+// add spouse : addRemRow plugin (validator + swal2 + ajax delete)
+$('.spouse_wrap').addRemRow({
+	addBtn: '.spouse_add',
+	maxRows: 4,
+	startRow: 1,
+	fieldName: 'staffspouse',
+	rowSelector: 'spouse_row',
+	removeClass: 'spouse_remove',
+	swal: {
+		options: { ...config.swal },
+		ajax: {
+			url: url.spouse,
+			method: 'DELETE',
+			dataType: 'json',
+			data: {},
+		},
+	},
+	validator: {
+		form: '#form',
+		fields: {
+			'[spouse]': {
+				validators: {
+					regexp: {
+						regexp: /^[a-z\s'@]+$/i,
+						message: "The full name can consist of alphabetical characters, ', @ and spaces only"
+					}
 				}
-			});
-	}
-
-	// delete children
-	$(document).on('click', '.children_delete', function (e) {
-		var childrenId = $(this).data('id');
-		SwalChildDelete(childrenId);
-		e.preventDefault();
-	});
-
-	function SwalChildDelete(childrenId) {
-		swal.fire({ ...config.swal,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    preConfirm: function () {
-				return new Promise(function (resolve) {
-					$.ajax({
-						type: 'DELETE',
-						url: url.children + '/' + childrenId,
-						data: {
-							id: childrenId,
-						},
-						dataType: 'json'
-					})
-						.done(function (response) {
-							swal.fire('Deleted!', response.message, response.status)
-								.then(function () {
-									window.location.reload(true);
-								});
-						})
-						.fail(function () {
-							swal.fire('Oops...', 'Something went wrong with ajax !', 'error');
-						})
-				});
 			},
-})
-			.then((result) => {
-				if (result.dismiss === swal.DismissReason.cancel) {
-					swal.fire('Cancelled', 'Your data is safe from delete', 'info')
+			'[phone]': {
+				validators: {
+					digits: {
+						message: isEdit ? 'Only numbers. ' : 'Please insert valid phone number '
+					}
 				}
-			});
-	}
-
-	// delete emergency contact
-	$(document).on('click', '.emergency_delete', function (e) {
-		var emergencyId = $(this).data('id');
-		SwalEmergDelete(emergencyId);
-		e.preventDefault();
-	});
-
-	function SwalEmergDelete(emergencyId) {
-		swal.fire({ ...config.swal,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    preConfirm: function () {
-				return new Promise(function (resolve) {
-					$.ajax({
-						type: 'DELETE',
-						url: url.emergencycontact + '/' + emergencyId,
-						data: {
-							id: emergencyId,
-						},
-						dataType: 'json'
-					})
-						.done(function (response) {
-							swal.fire('Deleted!', response.message, response.status)
-								.then(function () {
-									window.location.reload(true);
-								});
-						})
-						.fail(function () {
-							swal.fire('Oops...', 'Something went wrong with ajax !', 'error');
-						})
-				});
-			},
-})
-			.then((result) => {
-				if (result.dismiss === swal.DismissReason.cancel) {
-					swal.fire('Cancelled', 'Your data is safe from delete', 'info')
-				}
-			});
-	}
-
-	// delete crossbackup
-	$(document).on('click', '.crossbackup_delete', function (e) {
-		var crossbackupId = $(this).data('id');
-		DeleteCrossBackUp(crossbackupId);
-		e.preventDefault();
-	});
-
-	function DeleteCrossBackUp(crossbackupId) {
-		swal.fire({ ...config.swal,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    preConfirm: function () {
-				return new Promise(function (resolve) {
-					$.ajax({
-						type: 'DELETE',
-						url: url.deletecrossbackup + '/' + data.staffId,
-						data: {
-							id: crossbackupId,
-						},
-						dataType: 'json'
-					})
-						.done(function (response) {
-							swal.fire('Deleted!', response.message, response.status)
-								.then(function () {
-									window.location.reload(true);
-								});
-						})
-						.fail(function () {
-							swal.fire('Oops...', 'Something went wrong with ajax !', 'error');
-						})
-				});
-			},
-})
-			.then((result) => {
-				if (result.dismiss === swal.DismissReason.cancel) {
-					swal.fire('Cancelled', 'Your data is safe from delete', 'info')
-				}
-			});
-	}
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// add spouse : add and remove row
-
-var max_fields = 4;							//maximum input boxes allowed
-var add_buttons = $(".spouse_add");
-var wrappers = $(".spouse_wrap");
-
-var xs = isEdit ? data.spouseCount : 0;
-$(add_buttons).click(function () {
-
-	//max input box allowed
-	if (xs < max_fields) {
-		xs++;
-		wrappers.append(
-
-			'<div class="row m-1 spouse_row">' +
-				'<div class="col-sm-1">' +
-					'<button class="btn btn-sm btn-outline-secondary spouse_remove" type="button">' +
-						'<i class="fas fa-trash" aria-hidden="true"></i>' +
-					'</button>' +
-				'</div>' +
-				'<div class="col-sm-11 form-group ' + hasErr('staffspouse.*.spouse') + '">' +
-					(isEdit ? '<input type="hidden" name="staffspouse[' + xs + '][id]" value="">' : '') +
-					'<input type="text" name="staffspouse[' + xs + '][spouse]" id="spo" class="form-control form-control-sm" placeholder="' + (isEdit ? 'Spouse' : 'Spouse Name') + '">' +
-				'</div>' +
-				'<div class="col-sm-1"></div>' +
-				'<div class="col-sm-5 form-group ' + hasErr('staffspouse.*.phone') + '">' +
-					'<input type="text" name="staffspouse[' + xs + '][phone]" id="pho" class="form-control form-control-sm" placeholder="Spouse Phone">' +
-				'</div>' +
-				'<div class="col-sm-6 form-group ' + hasErr('staffspouse.*.profession') + '">' +
-					'<input type="text" name="staffspouse[' + xs + '][profession]" id="pro" class="form-control form-control-sm" placeholder="Spouse Profession">' +
-				'</div>' +
-			'</div>'
-
-		); //add input box
-
-		//bootstrap validate
-		$('#form').bootstrapValidator('addField', $('.spouse_row').find('[name="staffspouse[' + xs + '][spouse]"]'));
-		$('#form').bootstrapValidator('addField', $('.spouse_row').find('[name="staffspouse[' + xs + '][phone]"]'));
-		$('#form').bootstrapValidator('addField', $('.spouse_row').find('[name="staffspouse[' + xs + '][profession]"]'));
-	}
-})
-
-$(wrappers).on("click", ".spouse_remove", function (e) {
-	//user click on remove text
-	e.preventDefault();
-	var $row = $(this).closest('.spouse_row');
-	// use the row's own fields (not the global counter) so removing an
-	// earlier row always removes the right inputs/validators
-	var $fields = $row.find('[name^="staffspouse["]').filter(':not([type="hidden"])');
-	$row.remove();
-
-	$fields.each(function () {
-		$('#form').bootstrapValidator('removeField', $(this));
-	});
-	xs = maxRowIndex('.spouse_row', 'staffspouse[');
-})
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// add children : add and remove row
-
-var cmax_fields = 12;						//maximum input boxes allowed
-var cadd_buttons = $(".children_add");
-var cwrappers = $(".children_wrap");
-
-var xc = isEdit ? data.childrenCount : 0;
-$(cadd_buttons).click(function () {
-
-	//max input box allowed
-	if (xc < cmax_fields) {
-		xc++;
-		cwrappers.append(
-			'<div class="row m-1 children_row">' +
-				'<div class="col-sm-1">' +
-					'<button class="btn btn-sm btn-outline-secondary children_remove" type="button">' +
-						'<i class="fas fa-trash" aria-hidden="true"></i>' +
-					'</button>' +
-				'</div>' +
-				'<div class="col-sm-11 form-group ' + hasErr('staffchildren.*.children') + '">' +
-					(isEdit ? '<input type="hidden" name="staffchildren[' + xc + '][id]" value="">' : '') +
-					'<input type="text" name="staffchildren[' + xc + '][children]" id="chi_' + xc + '" class="form-control form-control-sm" placeholder="' + (isEdit ? 'Children' : 'Children Name') + '">' +
-				'</div>' +
-				'<div class="col-sm-1"></div>' +
-				'<div class="col-sm-7 form-group ' + hasErr('staffchildren.*.dob') + '" style="position: relative">' +
-					'<input type="text" name="staffchildren[' + xc + '][dob]" value="" id="cdo_' + xc + '" class="form-control form-control-sm" placeholder="Date Of Birth">' +
-				'</div>' +
-				'<div class="col-sm-4 form-group ' + hasErr('staffchildren.*.gender_id') + '">' +
-					'<select name="staffchildren[' + xc + '][gender_id]" id="cge_' + xc + '" class="form-select form-select-sm" placeholder="Gender"></select>' +
-				'</div>' +
-				'<div class="col-sm-1"></div>' +
-				'<div class="col-sm-7 form-group ' + hasErr('staffchildren.*.education_level_id') + '">' +
-					'<select name="staffchildren[' + xc + '][education_level_id]" id="cel_' + xc + '" class="form-select form-select-sm" placeholder="Education Level"></select>' +
-				'</div>' +
-				'<div class="col-sm-4 form-group ' + hasErr('staffchildren.*.health_status_id') + '">' +
-					'<select name="staffchildren[' + xc + '][health_status_id]" id="chs_' + xc + '" class="form-select form-select-sm" placeholder="Health Status"></select>' +
-				'</div>' +
-				'<div class="col-sm-1"></div>' +
-				'<div class="col-sm-5 form-group form-check ' + hasErr('staffchildren.*.tax_exemption') + '">' +
-					'<input type="hidden" name="staffchildren[' + xc + '][tax_exemption]" class="form-check-input" value="0">' +
-					'<input type="checkbox" name="staffchildren[' + xc + '][tax_exemption]" class="form-check-input" value="1" id="cte_' + xc + '">' +
-					'<label class="form-check-label" for="cte_' + xc + '">Valid for Tax Exemption?</label>' +
-				'</div>' +
-				'<div class="col-sm-6 form-group ' + hasErr('staffchildren.*.tax_exemption_percentage_id') + '">' +
-					'<select name="staffchildren[' + xc + '][tax_exemption_percentage_id]" id="ctep_' + xc + '" class="form-select form-select-sm" placeholder="Tax Exemption Percentage"></select>' +
-				'</div>' +
-			'</div>'
-		); //add input box
-
-		$('#cge_' + xc + '').select2(ajaxSelect2(route.gender));
-		$('#cel_' + xc + '').select2(ajaxSelect2(route.educationlevel));
-		$('#chs_' + xc + '').select2(ajaxSelect2(route.healthstatus));
-		$('#ctep_' + xc + '').select2(ajaxSelect2(route.taxexemptionpercentage));
-
-		$('#cdo_' + xc).datetimepicker({ ...config.datetimepicker,
-    useCurrent: true,
+			}
+		}
+	},
+	rowTemplate: (i, name) => `
+		<div class="row m-1 spouse_row" id="spouse_row_${i}">
+			<div class="col-sm-1">
+				<button class="btn btn-sm btn-outline-secondary spouse_remove" data-index="${i}" type="button">
+					<i class="fas fa-trash" aria-hidden="true"></i>
+				</button>
+			</div>
+			<div class="col-sm-11 form-group ${hasErr('staffspouse.*.spouse')}">
+				<input type="hidden" name="${name}[${i}][id]" value="">
+				<input type="text" name="${name}[${i}][spouse]" id="spo_${i}" class="form-control form-control-sm" placeholder="${isEdit ? 'Spouse' : 'Spouse Name'}">
+			</div>
+			<div class="col-sm-1"></div>
+			<div class="col-sm-5 form-group ${hasErr('staffspouse.*.phone')}">
+				<input type="text" name="${name}[${i}][phone]" id="pho_${i}" class="form-control form-control-sm" placeholder="Spouse Phone">
+			</div>
+			<div class="col-sm-6 form-group ${hasErr('staffspouse.*.profession')}">
+				<input type="text" name="${name}[${i}][profession]" id="pro_${i}" class="form-control form-control-sm" placeholder="Spouse Profession">
+			</div>
+		</div>
+	`,
 });
 
-		//bootstrap validate
-		$('#form').bootstrapValidator('addField', $('.children_row').find('[name="staffchildren[' + xc + '][children]"]'));
-		$('#form').bootstrapValidator('addField', $('.children_row').find('[name="staffchildren[' + xc + '][gender_id]"]'));
-		$('#form').bootstrapValidator('addField', $('.children_row').find('[name="staffchildren[' + xc + '][education_level_id]"]'));
-		$('#form').bootstrapValidator('addField', $('.children_row').find('[name="staffchildren[' + xc + '][health_status_id]"]'));
-		$('#form').bootstrapValidator('addField', $('.children_row').find('[name="staffchildren[' + xc + '][tax_exemption]"]'));
-		$('#form').bootstrapValidator('addField', $('.children_row').find('[name="staffchildren[' + xc + '][tax_exemption_percentage_id]"]'));
-	}
-})
-
-$(cwrappers).on("click", ".children_remove", function (e) {
-	//user click on remove text
-	e.preventDefault();
-	var $row = $(this).closest('.children_row');
-	// use the row's own fields (not the global counter) so removing an
-	// earlier row always removes the right inputs/validators
-	var $fields = $row.find('[name^="staffchildren["]').filter(':not([type="hidden"])');
-	$row.remove();
-
-	$fields.each(function () {
-		$('#form').bootstrapValidator('removeField', $(this));
-	});
-	xc = maxRowIndex('.children_row', 'staffchildren[');
-})
+/////////////////////////////////////////////////////////////////////////////////////////
+// add children : addRemRow plugin (validator + swal2 + ajax delete)
+$('.children_wrap').addRemRow({
+	addBtn: '.children_add',
+	maxRows: 12,
+	startRow: 1,
+	fieldName: 'staffchildren',
+	rowSelector: 'children_row',
+	removeClass: 'children_remove',
+	swal: {
+		options: { ...config.swal },
+		ajax: {
+			url: url.children,
+			method: 'DELETE',
+			dataType: 'json',
+			data: {},
+		},
+	},
+	validator: {
+		form: '#form',
+		fields: {
+			'[children]': {
+				validators: {
+					regexp: {
+						regexp: /^[a-z\s'@]+$/i,
+						message: "The full name can consist of alphabetical characters, ', @ and spaces only"
+					}
+				}
+			}
+		}
+	},
+	rowTemplate: (i, name) => `
+		<div class="row m-1 children_row" id="children_row_${i}">
+			<div class="col-sm-1">
+				<button class="btn btn-sm btn-outline-secondary children_remove" data-index="${i}" type="button">
+					<i class="fas fa-trash" aria-hidden="true"></i>
+				</button>
+			</div>
+			<div class="col-sm-11 form-group ${hasErr('staffchildren.*.children')}">
+				<input type="hidden" name="${name}[${i}][id]" value="">
+				<input type="text" name="${name}[${i}][children]" id="chi_${i}" class="form-control form-control-sm" placeholder="${isEdit ? 'Children' : 'Children Name'}">
+			</div>
+			<div class="col-sm-1"></div>
+			<div class="col-sm-7 form-group ${hasErr('staffchildren.*.dob')}" style="position: relative">
+				<input type="text" name="${name}[${i}][dob]" value="" id="cdo_${i}" class="form-control form-control-sm" placeholder="Date Of Birth">
+			</div>
+			<div class="col-sm-4 form-group ${hasErr('staffchildren.*.gender_id')}">
+				<select name="${name}[${i}][gender_id]" id="cge_${i}" class="form-select form-select-sm" placeholder="Gender"></select>
+			</div>
+			<div class="col-sm-1"></div>
+			<div class="col-sm-7 form-group ${hasErr('staffchildren.*.education_level_id')}">
+				<select name="${name}[${i}][education_level_id]" id="cel_${i}" class="form-select form-select-sm" placeholder="Education Level"></select>
+			</div>
+			<div class="col-sm-4 form-group ${hasErr('staffchildren.*.health_status_id')}">
+				<select name="${name}[${i}][health_status_id]" id="chs_${i}" class="form-select form-select-sm" placeholder="Health Status"></select>
+			</div>
+			<div class="col-sm-1"></div>
+			<div class="col-sm-5 form-group form-check ${hasErr('staffchildren.*.tax_exemption')}">
+				<input type="hidden" name="${name}[${i}][tax_exemption]" class="form-check-input" value="0">
+				<input type="checkbox" name="${name}[${i}][tax_exemption]" class="form-check-input" value="1" id="cte_${i}">
+				<label class="form-check-label" for="cte_${i}">Valid for Tax Exemption?</label>
+			</div>
+			<div class="col-sm-6 form-group ${hasErr('staffchildren.*.tax_exemption_percentage_id')}">
+				<select name="${name}[${i}][tax_exemption_percentage_id]" id="ctep_${i}" class="form-select form-select-sm" placeholder="Tax Exemption Percentage"></select>
+			</div>
+		</div>
+	`,
+	onAdd: (i, e, $row, name) => {
+		$('#cge_' + i).select2(ajaxSelect2(route.gender));
+		$('#cel_' + i).select2(ajaxSelect2(route.educationlevel));
+		$('#chs_' + i).select2(ajaxSelect2(route.healthstatus));
+		$('#ctep_' + i).select2(ajaxSelect2(route.taxexemptionpercentage));
+		$('#cdo_' + i).datetimepicker({ ...config.datetimepicker, useCurrent: true });
+	},
+});
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// add emergency : add and remove row
-
-var emax_fields = 3;						//maximum input boxes allowed
-var eadd_buttons = $(".emergency_add");
-var ewrappers = $(".emergency_wrap");
-
-var xe = isEdit ? data.emergencyCount : 1;
-$(eadd_buttons).click(function () {
-
-	//max input box allowed
-	if (xe < emax_fields) {
-		xe++;
-		ewrappers.append(
-			'<div class="row m-1 emergency_row">' +
-				'<div class="col-sm-1">' +
-					'<button class="btn btn-sm btn-outline-secondary emergency_remove" type="button">' +
-						'<i class="fas fa-trash" aria-hidden="true"></i>' +
-					'</button>' +
-				'</div>' +
-				'<div class="col-sm-11 form-group ' + hasErr('staffemergency.*.contact_person') + '">' +
-					(isEdit ? '<input type="hidden" name="staffemergency[' + xe + '][id]" value="">' : '') +
-					'<input type="text" name="staffemergency[' + xe + '][contact_person]" id="ecp_' + xe + '" class="form-control form-control-sm" placeholder="' + (isEdit ? 'Emergency Contact' : 'Name') + '">' +
-				'</div>' +
-				'<div class="col-sm-1"></div>' +
-				'<div class="col-sm-5 form-group ' + hasErr('staffemergency.*.phone') + '">' +
-					'<input type="text" name="staffemergency[' + xe + '][phone]" id="epp_' + xe + '" class="form-control form-control-sm" placeholder="Phone">' +
-				'</div>' +
-				'<div class="col-sm-6 form-group ' + hasErr('staffemergency.*.relationship_id') + '">' +
-					'<select name="staffemergency[' + xe + '][relationship_id]" id="ere_' + xe + '" class="form-select form-select-sm" placeholder="Relationship"></select>' +
-				'</div>' +
-				'<div class="col-sm-1"></div>' +
-				'<div class="col-sm-11 form-group ' + hasErr('staffemergency.*.address') + '">' +
-					'<input type="textarea" name="staffemergency[' + xe + '][address]" id="ead_' + xe + '" class="form-control form-control-sm" placeholder="Address">' +
-				'</div>' +
-			'</div>'
-		); //add input box
-
-		$('#ere_' + xe + '').select2(ajaxSelect2(route.relationship));
-
-		//bootstrap validate
-		$('#form').bootstrapValidator('addField', $('.emergency_row').find('[name="staffemergency[' + xe + '][contact_person]"]'));
-		$('#form').bootstrapValidator('addField', $('.emergency_row').find('[name="staffemergency[' + xe + '][phone]"]'));
-		$('#form').bootstrapValidator('addField', $('.emergency_row').find('[name="staffemergency[' + xe + '][relationship_id]"]'));
-		$('#form').bootstrapValidator('addField', $('.emergency_row').find('[name="staffemergency[' + xe + '][address]"]'));
-	}
-})
-
-$(ewrappers).on("click", ".emergency_remove", function (e) {
-	//user click on remove text
-	e.preventDefault();
-	var $row = $(this).closest('.emergency_row');
-	// use the row's own fields (not the global counter) so removing an
-	// earlier row always removes the right inputs/validators
-	var $fields = $row.find('[name^="staffemergency["]').filter(':not([type="hidden"])');
-	$row.remove();
-
-	$fields.each(function () {
-		$('#form').bootstrapValidator('removeField', $(this));
-	});
-	xe = maxRowIndex('.emergency_row', 'staffemergency[');
-})
+// add emergency contact : addRemRow plugin (validator + swal2 + ajax delete)
+$('.emergency_wrap').addRemRow({
+	addBtn: '.emergency_add',
+	maxRows: 3,
+	startRow: 1,
+	fieldName: 'staffemergency',
+	rowSelector: 'emergency_row',
+	removeClass: 'emergency_remove',
+	swal: {
+		options: { ...config.swal },
+		ajax: {
+			url: url.emergencycontact,
+			method: 'DELETE',
+			dataType: 'json',
+			data: {},
+		},
+	},
+	validator: {
+		form: '#form',
+		fields: {
+			'[contact_person]': {
+				validators: {
+					...(isEdit ? {} : { notEmpty: { message: 'Please insert emergency contact person ' } }),
+					regexp: {
+						regexp: /^[a-z\s'@]+$/i,
+						message: "The full name can consist of alphabetical characters, ', @ and spaces only"
+					}
+				}
+			},
+			'[phone]': {
+				validators: {
+					...(isEdit ? {} : { notEmpty: { message: 'Please insert emergency contact person phone. ' } }),
+					digits: {
+						message: 'Please insert valid phone number '
+					}
+				}
+			},
+			'[relationship_id]': {
+				validators: {
+					...(isEdit ? {} : { notEmpty: { message: 'Please insert emergency contact person profession. ' } }),
+				}
+			}
+		}
+	},
+	rowTemplate: (i, name) => `
+		<div class="row m-1 emergency_row" id="emergency_row_${i}">
+			<div class="col-sm-1">
+				<button class="btn btn-sm btn-outline-secondary emergency_remove" data-index="${i}" type="button">
+					<i class="fas fa-trash" aria-hidden="true"></i>
+				</button>
+			</div>
+			<div class="col-sm-11 form-group ${hasErr('staffemergency.*.contact_person')}">
+				<input type="hidden" name="${name}[${i}][id]" value="">
+				<input type="text" name="${name}[${i}][contact_person]" id="ecp_${i}" class="form-control form-control-sm" placeholder="${isEdit ? 'Emergency Contact' : 'Name'}">
+			</div>
+			<div class="col-sm-1"></div>
+			<div class="col-sm-5 form-group ${hasErr('staffemergency.*.phone')}">
+				<input type="text" name="${name}[${i}][phone]" id="epp_${i}" class="form-control form-control-sm" placeholder="Phone">
+			</div>
+			<div class="col-sm-6 form-group ${hasErr('staffemergency.*.relationship_id')}">
+				<select name="${name}[${i}][relationship_id]" id="ere_${i}" class="form-select form-select-sm" placeholder="Relationship"></select>
+			</div>
+			<div class="col-sm-1"></div>
+			<div class="col-sm-11 form-group ${hasErr('staffemergency.*.address')}">
+				<input type="textarea" name="${name}[${i}][address]" id="ead_${i}" class="form-control form-control-sm" placeholder="Address">
+			</div>
+		</div>
+	`,
+	onAdd: (i, e, $row, name) => {
+		$('#ere_' + i).select2(ajaxSelect2(route.relationship));
+	},
+});
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// add cross backup : add and remove row
+// add cross backup : addRemRow plugin (validator + swal2 + ajax delete)
+// NB: the delete endpoint needs the STAFF id in the URL and the crossbackup id in the body,
+// so the confirm + ajax run in onRemove instead of the plugin's built-in swal.ajax flow.
+$('.crossbackup_wrap').addRemRow({
+	addBtn: '.crossbackup_add',
+	maxRows: 5,
+	startRow: 1,
+	fieldName: 'crossbackup',
+	rowSelector: 'crossbackup_row',
+	removeClass: 'crossbackup_remove',
+	rowTemplate: (i, name) => `
+		<div class="row m-1 p-0 crossbackup_row" id="crossbackup_row_${i}">
+			<div class="col-sm-1">
+				<button class="btn btn-sm btn-outline-secondary crossbackup_remove" data-index="${i}" type="button">
+					<i class="fas fa-trash" aria-hidden="true"></i>
+				</button>
+			</div>
+			<div class="col-sm-10 form-group ${hasErr('crossbackup.*.backup_staff_id')}">
+				${isEdit ? '' : `<input type="hidden" name="${name}[${i}][active]" value="1">`}
+				<input type="hidden" name="${name}[${i}][id]" value="">
+				<select name="${name}[${i}][backup_staff_id]" id="sta_${i}" class="form-select form-select-sm" placeholder="Cross Backup Personnel"></select>
+			</div>
+		</div>
+	`,
+	onAdd: (i, e, $row, name) => {
+		$('#sta_' + i).select2(ajaxSelect2(route.crossbackup));
+	},
+	onRemove: async (i, e, $row, name) => {
+		const dbId = $row.find('[name="crossbackup[' + i + '][id]"]').val();
+		if (!dbId) return;
 
-var crb_max_fields = 5;						//maximum input boxes allowed
-var crb_add_buttons = $(".crossbackup_add");
-var crb_wrappers = $(".crossbackup_wrap");
+		const result = await swal.fire({ ...config.swal, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33' });
+		if (result.dismiss === swal.DismissReason.cancel) {
+			await swal.fire('Cancelled', 'Your data is safe from delete', 'info');
+			return false;
+		}
 
-var xcrb = isEdit ? data.crossbackupCount : 1;
-$(crb_add_buttons).click(function () {
-
-	//max input box allowed
-	if (xcrb < crb_max_fields) {
-		xcrb++;
-		crb_wrappers.append(
-			'<div class="row m-1 p-0 crossbackup_row">' +
-					'<div class="col-sm-1">' +
-						'<button class="btn btn-sm btn-outline-secondary crossbackup_remove" type="button">' +
-							'<i class="fas fa-trash" aria-hidden="true"></i>' +
-						'</button>' +
-					'</div>' +
-					'<div class="col-sm-10 form-group ' + hasErr('crossbackup.*.backup_staff_id') + '">' +
-						(!isEdit ? '<input type="hidden" name="crossbackup[' + xcrb + '][active]" value="1">' : '') +
-						'<select name="crossbackup[' + xcrb + '][backup_staff_id]" id="sta_' + xcrb + '" class="form-select form-select-sm" placeholder="Cross Backup Personnel"></select>' +
-					'</div>' +
-				'</div>'
-		);
-
-		$('#sta_' + xcrb).select2(ajaxSelect2(route.crossbackup));
-
-		//bootstrap validate
-		$('#form').bootstrapValidator('addField', $('.crossbackup_row').find('[name="crossbackup[' + xcrb + '][backup_staff_id]"]'));
-	}
-})
-
-$(crb_wrappers).on("click", ".crossbackup_remove", function (e) {
-	//user click on remove text
-	e.preventDefault();
-	var $row = $(this).closest('.crossbackup_row');
-	// use the row's own fields (not the global counter) so removing an
-	// earlier row always removes the right inputs/validators
-	var $fields = $row.find('[name^="crossbackup["]').filter(':not([type="hidden"])');
-	$row.remove();
-
-	$fields.each(function () {
-		$('#form').bootstrapValidator('removeField', $(this));
-	});
-	xcrb = maxRowIndex('.crossbackup_row', 'crossbackup[');
-})
+		try {
+			await $.ajax({
+				type: 'DELETE',
+				url: url.deletecrossbackup + '/' + data.staffId,
+				data: { id: dbId },
+				dataType: 'json',
+			});
+		} catch (err) {
+			await swal.fire('Oops...', 'Something went wrong with ajax !', 'error');
+			return false;
+		}
+	},
+});
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // bootstrap validator

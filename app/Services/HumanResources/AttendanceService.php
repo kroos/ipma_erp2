@@ -4088,6 +4088,15 @@ class AttendanceService
 				'ot_total' => $o?->belongstoovertimerange?->where('active', 1)->first()->total_time,
 				'os_customer' => $os?->first()?->belongstocustomer?->customer,
 				'out_class' => $outClass,
+				// pre-formatted display values (were inline Carbon::parse in the blade)
+				'date_fmt' => Carbon::parse($s->attend_date)->format('j M Y'),
+				'in_class' => $in ? 'text-info' : (($wh && Carbon::parse($s->in)->gt($wh->time_start_am)) ? 'text-danger' : ''),
+				'break_class' => $break ? 'text-info' : (($wh && Carbon::parse($s->break)->lt($wh->time_end_am)) ? 'text-danger' : ''),
+				'resume_class' => $resume ? 'text-info' : (($wh && Carbon::parse($s->resume)->gt($wh->time_start_pm)) ? 'text-danger' : ''),
+				'in_fmt' => $in ? '' : Carbon::parse($s->in)->format('g:i a'),
+				'break_fmt' => $break ? '' : Carbon::parse($s->break)->format('g:i a'),
+				'resume_fmt' => $resume ? '' : Carbon::parse($s->resume)->format('g:i a'),
+				'out_fmt' => $out ? '' : Carbon::parse($s->out)->format('g:i a'),
 			];
 		}
 

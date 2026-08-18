@@ -1,14 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-use \Carbon\Carbon;
-
-// load array helper
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-
-?>
 <div class="col-sm-12 row align-items-start justify-content-center">
 	@include('humanresources.hrdept.navhr')
 	<h4>Outstation Attendance List&nbsp;<a class="btn btn-sm btn-outline-secondary" href="{{ route('hroutstationattendance.create') }}"><i class="fa-solid fa-person-digging fa-beat"></i> Add Outstation Attendance</a></h4>
@@ -52,15 +44,15 @@ use Illuminate\Support\Str;
 						<td @if($v->outstation_id) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $outstationCustomers[$v->outstation_id] ?? '' }}" @endif>
 							{{ Str::limit($outstationCustomers[$v->outstation_id] ?? '', 7, ' >>') }}
 						</td>
-						<td>{{ ($v->date_attend)?Carbon::parse($v->date_attend)->format('j M Y'):NULL }}</td>
-						<td>{{ ($v->in)?Carbon::parse($v->in)->format('g:i a'):NULL }}</td>
+						<td>{{ $v->date_attend_fmt }}</td>
+						<td>{{ $v->in_fmt }}</td>
 						{{-- <td>{{ $v->in_regionName }}</td>
 						<td>{{ $v->in_cityName }}</td> --}}
-						<td>{{ ($v->out)?Carbon::parse($v->out)->format('g:i a'):NULL }}</td>
+						<td>{{ $v->out_fmt }}</td>
 						{{-- <td>{{ $v->out_regionName }}</td>
 						<td>{{ $v->out_cityName }}</td> --}}
 						<td>{{ ($v->confirm)?'Sended':'Not Sended' }}</td>
-						<td>{{ ($v->date_confirm)?Carbon::parse($v->date_confirm)->format('j M Y'):null }}</td>
+						<td>{{ $v->date_confirm_fmt }}</td>
 						<td @if($v->remarks) data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-title="{{ $v->remarks }}" @endif>
 							{{ Str::limit($v->remarks, 8, ' >') }}
 						</td>

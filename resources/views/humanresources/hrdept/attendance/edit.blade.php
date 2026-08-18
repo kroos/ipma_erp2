@@ -1,15 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-// day_type, tcms, staff, login, time_work_hour, leaves, leave now provided by AttendanceController
-
-$time_start_am = $time_start_am ?? '';
-$time_end_am = $time_end_am ?? '';
-$time_start_pm = $time_start_pm ?? '';
-$time_end_pm = $time_end_pm ?? '';
-?>
-
 <div class="container row align-items-start justify-content-center">
 	@include('humanresources.hrdept.navhr')
 	<div class="d-flex justify-content-center align-items-start">
@@ -18,7 +9,7 @@ $time_end_pm = $time_end_pm ?? '';
 			<form method="POST" action="{{ route('attendance.update', $attendance->id) }}" accept-charset="UTF-8" id="form" autocomplete="off" class="" enctype="multipart/form-data">
 				@csrf
 				@method('PATCH')
-				<input type="hidden" name="staff_id" value="<?php echo $staff->id; ?>">
+				<input type="hidden" name="staff_id" value="{{ $staff->id }}">
 
 				<h5>Attendance Edit</h5>
 

@@ -61,17 +61,11 @@ class OvertimeController extends Controller
 						->whereMonth('ot_date', $sa->first()?->month)
 						->where('active', 1)
 						->orderBy('ot_date', 'DESC')
-						// ->ddRawSql();
 						->get();
-						// ->paginate($sa->first()?->totalstaff);
 
-		// $overtime = HROvertime::select('*')
-		// 				// ->whereYear('ot_date', $sa->first()?->ot_date)
-		// 				->where('active', 1)
-		// 				->orderBy('ot_date', 'DESC')
-		// 				->get();
+		// per-user permission filter + date decoration (was inline in the blade)
+		$overtime = app(OvertimeService::class)->indexData($overtime);
 
-	// return view('humanresources.hrdept.overtime.index', ['overtime' => $overtime]);
 	return view('humanresources.hrdept.overtime.index', ['overtime' => $overtime, 'sa' => $sa]);
 }
 
@@ -115,7 +109,18 @@ class OvertimeController extends Controller
 	 */
 	public function show(HROvertime $overtime): View
 	{
-		return view('humanresources.hrdept.overtime.show', ['overtime' => $overtime]);
+		$range = $overtime->belongstoovertimerange;
+
+		return view('humanresources.hrdept.overtime.show', [
+			'overtime' => $overtime,
+			'username' => $overtime->belongstostaff?->hasmanylogin()->where('active', 1)->first()?->username,
+			'name' => $overtime->belongstostaff?->name,
+			'ot_date_fmt' => Carbon::parse($overtime->ot_date)->format('j M Y'),
+			'start_fmt' => $range ? Carbon::parse($range->start)->format('g:i a') : '-',
+			'end_fmt' => $range ? Carbon::parse($range->end)->format('g:i a') : '-',
+			'total_time' => $range?->total_time,
+			'assign_name' => $overtime->belongstoassignstaff?->name,
+		]);
 	}
 
 	/**

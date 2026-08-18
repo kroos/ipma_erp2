@@ -4,9 +4,14 @@ namespace App\Services\HumanResources;
 
 use App\Models\Staff;
 use App\Models\HumanResources\AppraisalPivot;
+use App\Models\HumanResources\HRAppraisalMainQuestion;
 use App\Models\HumanResources\HRAppraisalMark;
+use App\Models\HumanResources\HRAppraisalQuestion;
+use App\Models\HumanResources\HRAppraisalSection;
+use App\Models\HumanResources\HRAppraisalSectionSub;
 use App\Models\HumanResources\OptAppraisalCategories;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 /**
  * Appraisal domain queries — extracted from the appraisal blade files so that
@@ -81,6 +86,10 @@ class AppraisalService
 
 	/**
 	 * Data for showing / editing / printing a single appraisal form (pivot id).
+	 * The section → sub → main-question → question tree is loaded once and
+	 * attached to each pivot row ($appraisal->sections, $section->section_subs,
+	 * $section_sub->main_questions, $main_question->questions) so the blades
+	 * never query inside the loops.
 	 */
 	public function formData(int $id): array
 	{
@@ -97,7 +106,66 @@ class AppraisalService
 			->orderBy('id', 'ASC')
 			->get();
 
+		$this->attachAppraisalTree($appraisals);
+
 		return compact('pivotappraisal', 'category', 'appraisals');
+	}
+
+	/**
+	 * One-shot section → sub → main-question → question tree build, attached to
+	 * each pivot row ($appraisal->sections, $section->section_subs,
+	 * $section_sub->main_questions, $main_question->questions) so the blades
+	 * never query inside the loops. Was N+1 per row in the blades.
+	 */
+	private function attachAppraisalTree($appraisals): void
+	{
+		$sectionIds = $appraisals->pluck('section_id')->filter()->unique()->values();
+
+		$sections = HRAppraisalSection::whereIn('id', $sectionIds)
+			->orderBy('sort', 'ASC')
+			->orderBy('id', 'ASC')
+			->get();
+
+		$sectionSubs = HRAppraisalSectionSub::whereIn('section_id', $sections->pluck('id'))
+			->orderBy('section_id', 'ASC')
+			->orderBy('sort', 'ASC')
+			->orderBy('id', 'ASC')
+			->get();
+
+		$mainQuestions = HRAppraisalMainQuestion::whereIn('section_sub_id', $sectionSubs->pluck('id'))
+			->orderBy('section_sub_id', 'ASC')
+			->orderBy('mark', 'ASC')
+			->orderBy('sort', 'ASC')
+			->get();
+
+		$questions = HRAppraisalQuestion::whereIn('main_question_id', $mainQuestions->pluck('id'))
+			->orderBy('main_question_id', 'ASC')
+			->orderBy('mark', 'ASC')
+			->orderBy('sort', 'ASC')
+			->get();
+
+		$subsBySection = $sectionSubs->groupBy('section_id');
+		$questionsByMain = $questions->groupBy('main_question_id');
+		$mainQuestionsBySub = $mainQuestions->groupBy('section_sub_id');
+
+		foreach ($mainQuestions as $mainQuestion) {
+			$mainQuestion->questions = $questionsByMain->get($mainQuestion->id, collect());
+		}
+
+		foreach ($sectionSubs as $sectionSub) {
+			$sectionSub->main_questions = $mainQuestionsBySub->get($sectionSub->id, collect());
+		}
+
+		$sectionsById = $sections->keyBy('id');
+		foreach ($sections as $section) {
+			$section->section_subs = $subsBySection->get($section->id, collect());
+		}
+
+		foreach ($appraisals as $appraisal) {
+			$appraisal->sections = $sectionsById->has($appraisal->section_id)
+				? collect([$sectionsById->get($appraisal->section_id)])
+				: collect();
+		}
 	}
 
 	/**
@@ -149,6 +217,13 @@ class AppraisalService
     $staff_dept = $staff
       ? $staff->belongstomanydepartment()?->where('main', 1)->first()?->department
       : null;
+
+    if ($staff) {
+      $staff->join_fmt = $staff->join ? Carbon::parse($staff->join)->format('d-m-Y') : null;
+    }
+
+    // decorate the section tree once so mark/create + mark/show never query inline
+    $this->attachAppraisalTree($appraisals);
 
     return [
       'staff' => $staff,

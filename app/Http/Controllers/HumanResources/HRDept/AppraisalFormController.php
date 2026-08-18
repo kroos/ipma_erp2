@@ -57,17 +57,19 @@ class AppraisalFormController extends Controller
 
   /**
    * Display a listing of the resource.
-   */
-  public function index(): View
+   */	public function index(): View
   {
     $categorys = OptAppraisalCategories::all();
 
     $appraisalService = new AppraisalService();
+    $formVersions = $appraisalService->formVersionsByCategory();
 
-    return view('humanresources.hrdept.appraisal.form.index', [
-      'categories' => $categorys,
-      'formVersions' => $appraisalService->formVersionsByCategory(),
+    $categories = $categorys->map(fn ($category) => (object) [
+      'category' => $category,
+      'form_versions' => $formVersions[$category->id] ?? collect(),
     ]);
+
+    return view('humanresources.hrdept.appraisal.form.index', ['categories' => $categories]);
   }
 
   /**

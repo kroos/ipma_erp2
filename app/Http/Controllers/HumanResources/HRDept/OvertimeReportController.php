@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 // load models
 use App\Models\HumanResources\HROvertime;
 use App\Models\HumanResources\OptBranch;
+use App\Services\HumanResources\OvertimeService;
 
 // for controller output
 use Illuminate\Http\RedirectResponse;
@@ -104,7 +105,10 @@ class OvertimeReportController extends Controller
 
 		$otMap = $this->overtimeMap($request->date_start, $request->date_end);
 
-		$pdf = PDF::loadView('humanresources.hrdept.overtime.overtimereport.printpdf', ['overtimes' => $overtimes, 'otMap' => $otMap, 'branch' => $branch, 'title' => $title, 'month' => $month, 'year' => $year, 'date_start' => $date_start, 'date_end' => $date_end]);
+		// precompute report grid (columns, cells, totals) — was inline in the blade
+		$report = app(OvertimeService::class)->reportData($overtimes, $otMap, $date_start, $date_end);
+
+		$pdf = PDF::loadView('humanresources.hrdept.overtime.overtimereport.printpdf', ['overtimes' => $overtimes, 'report' => $report, 'branch' => $branch, 'title' => $title, 'month' => $month, 'year' => $year, 'date_start' => $date_start, 'date_end' => $date_end]);
 		// return $pdf->download('overtime_report ' . $current_datetime . '.pdf');
 		return $pdf->stream();
 	}
@@ -150,7 +154,10 @@ class OvertimeReportController extends Controller
 		$locations = OptBranch::pluck('location', 'id')->toArray();
 		$otMap = $this->overtimeMap($date_start, $date_end);
 
-		return view('humanresources.hrdept.overtime.overtimereport.index', ['overtimes' => $overtimes, 'locations' => $locations, 'otMap' => $otMap, 'branch' => $branch, 'title' => $title, 'month' => $month, 'year' => $year, 'date_start' => $date_start, 'date_end' => $date_end]);
+		// precompute report grid (columns, cells, totals) — was inline in the blade
+		$report = app(OvertimeService::class)->reportData($overtimes, $otMap, $date_start, $date_end);
+
+		return view('humanresources.hrdept.overtime.overtimereport.index', ['overtimes' => $overtimes, 'locations' => $locations, 'report' => $report, 'branch' => $branch, 'title' => $title, 'month' => $month, 'year' => $year, 'date_start' => $date_start, 'date_end' => $date_end]);
 	}
 
 	/**

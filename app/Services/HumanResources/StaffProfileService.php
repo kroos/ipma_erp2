@@ -4,9 +4,25 @@ namespace App\Services\HumanResources;
 
 use App\Models\Staff;
 use App\Models\Login;
+use App\Models\HumanResources\DepartmentPivot;
 use App\Models\HumanResources\HRAttendance;
 use App\Models\HumanResources\HRLeave;
+use App\Models\HumanResources\HRLeaveApprovalFlow;
+use App\Models\HumanResources\OptBranch;
+use App\Models\HumanResources\OptCategory;
+use App\Models\HumanResources\OptCountry;
+use App\Models\HumanResources\OptDivision;
+use App\Models\HumanResources\OptEducationLevel;
+use App\Models\HumanResources\OptGender;
+use App\Models\HumanResources\OptHealthStatus;
 use App\Models\HumanResources\OptLeaveType;
+use App\Models\HumanResources\OptMaritalStatus;
+use App\Models\HumanResources\OptRace;
+use App\Models\HumanResources\OptRelationship;
+use App\Models\HumanResources\OptReligion;
+use App\Models\HumanResources\OptRestdayGroup;
+use App\Models\HumanResources\OptStatus;
+use App\Models\HumanResources\OptTaxExemptionPercentage;
 use App\Models\HumanResources\OptWorkingHour;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -80,10 +96,15 @@ class StaffProfileService
 	{
 		$login = $person->hasmanylogin()->where('active', '1')->first();
 		$spouses = $person->hasmanyspouse()->get();
+		foreach ($spouses as $spouse) {
+			// dob was Carbon-parsed inline in the profile blade — moved here
+			$spouse->dob_fmt = $spouse->dob ? Carbon::parse($spouse->dob)->format('d F Y') : '';
+		}
 		$childrens = $person->hasmanychildren()->get();
 		foreach ($childrens as $sc) {
 			// age was computed inline in the blade — moved here
 			$sc->age = $sc->dob ? Carbon::parse($sc->dob)->toPeriod(now(), 1, 'year')->count() : null;
+			$sc->dob_fmt = $sc->dob ? Carbon::parse($sc->dob)->format('d F Y') : '';
 		}
 		$emergencies = $person->hasmanyemergency()->get();
 
@@ -255,6 +276,8 @@ class StaffProfileService
 			$replacementMap[$al->id] = $leaves;
 			$al->leaves = $leaves;
 			$al->total_days = $leaves->sum('period_day');
+			$al->from_fmt = $al->date_start ? Carbon::parse($al->date_start)->format('j M Y') : '';
+			$al->to_fmt = $al->date_end ? Carbon::parse($al->date_end)->format('j M Y') : '';
 			foreach ($leaves as $lv) {
 				$lv->leave_ref = $this->leaveRef($lv);
 			}
@@ -336,14 +359,14 @@ class StaffProfileService
 
   /**
    * Formatted identity-card dates (were inline Carbon::parse calls in the
-   * show blade).
+   * show blades). Staff show uses 'j M Y', profile show 'd F Y'.
    */
-  public function profileCard(Staff $person): array
+  public function profileCard(Staff $person, string $format = 'j M Y'): array
   {
     return [
-      'dob_fmt' => $person->dob ? Carbon::parse($person->dob)->format('j M Y') : null,
-      'join_fmt' => $person->join ? Carbon::parse($person->join)->format('j M Y') : null,
-      'confirmed_fmt' => $person->confirmed ? Carbon::parse($person->confirmed)->format('j M Y') : null,
+      'dob_fmt' => $person->dob ? Carbon::parse($person->dob)->format($format) : null,
+      'join_fmt' => $person->join ? Carbon::parse($person->join)->format($format) : null,
+      'confirmed_fmt' => $person->confirmed ? Carbon::parse($person->confirmed)->format($format) : null,
     ];
   }
 
@@ -353,6 +376,57 @@ class StaffProfileService
   private function leaveRef(HRLeave $leave): string
   {
     return 'HR9-' . str_pad($leave->leave_no, 5, '0', STR_PAD_LEFT) . '/' . $leave->leave_year;
+  }
+
+  /**
+   * Staff create/edit form data — option maps plus (on edit) the staff's own
+   * related rows and row counts. Every lookup that used to live inline in the
+   * create/edit blades now runs here once.
+   */
+  public function staffFormData(?Staff $staff = null): array
+  {
+    $data = [
+      'genders' => OptGender::orderBy('id')->get(),
+      'maritalStatuses' => OptMaritalStatus::pluck('marital_status', 'id')->toArray(),
+      'religions' => OptReligion::pluck('religion', 'id')->toArray(),
+      'races' => OptRace::pluck('race', 'id')->toArray(),
+      'countries' => OptCountry::pluck('country', 'id')->toArray(),
+      'leaveApprovalFlows' => HRLeaveApprovalFlow::all(),
+    ];
+
+    if ($staff) {
+      $spouses = $staff->hasmanyspouse()->get();
+      $childrens = $staff->hasmanychildren()->get();
+      $emergencies = $staff->hasmanyemergency()->get();
+      $crossbackups = $staff->crossbackupto()->wherePivot('active', 1)->get();
+
+      $data += [
+        'activeStaff' => Staff::where('active', 1)->get(),
+        'spouses' => $spouses,
+        'childrens' => $childrens,
+        'emergencies' => $emergencies,
+        'crossbackups' => $crossbackups,
+        'username' => $staff->hasmanylogin()->where('active', 1)->first()?->username,
+        'mainDept' => $staff->belongstomanydepartment()->wherePivot('main', 1)->first(),
+        'statuses' => OptStatus::pluck('status', 'id')->toArray(),
+        'categories' => OptCategory::pluck('category', 'id')->toArray(),
+        'branches' => OptBranch::pluck('location', 'id')->toArray(),
+        'departments' => DepartmentPivot::pluck('department', 'id')->toArray(),
+        'divisions' => OptDivision::pluck('div', 'id')->toArray(),
+        'restdayGroups' => OptRestdayGroup::pluck('group', 'id')->toArray(),
+        'educationLevels' => OptEducationLevel::all(),
+        'healthStatuses' => OptHealthStatus::all(),
+        'taxExemptionPercentages' => OptTaxExemptionPercentage::all(),
+        'relationships' => OptRelationship::all(),
+        // row counts for the JS add-row counters (1 = at least one empty row slot)
+        'spouseCount' => $spouses->isNotEmpty() ? $spouses->count() : 1,
+        'childrenCount' => $childrens->isNotEmpty() ? $childrens->count() : 1,
+        'emergencyCount' => $emergencies->isNotEmpty() ? $emergencies->count() : 1,
+        'crossbackupCount' => $staff->crossbackupto()->get()->isNotEmpty() ? $staff->crossbackupto()->get()->count() : 1,
+      ];
+    }
+
+    return $data;
   }
 
   /**

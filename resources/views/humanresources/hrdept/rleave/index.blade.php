@@ -1,10 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-// load sql builder
-use Illuminate\Database\Eloquent\Builder;
-?>
 <div class="page-humanresources-hrdept-rleave-index container row align-items-start justify-content-center">
 	@include('humanresources.hrdept.navhr')
 	<h4>Replacement Leave&nbsp; <a class="btn btn-sm btn-outline-secondary" href="{{ route('rleave.create') }}"><i class="fa-solid fa-person-walking-arrow-loop-left fa-beat"></i> Add Replacement Leave</a></h4>
@@ -30,23 +26,17 @@ use Illuminate\Database\Eloquent\Builder;
 			<tbody>
 				@foreach ($replacements as $replacement)
 				<tr>
-					<td>{{ $replacement->belongstostaff?->hasmanylogin()->where('logins.active', 1)->first()?->username }}</td>
+					<td>{{ $replacement->username }}</td>
 					<td class="text-truncate" style="max-width: 200px;" data-toggle="tooltip" title="{{ $replacement->belongstostaff?->name }}">{{ $replacement->belongstostaff?->name }}</td>
-					<td>{{ \Carbon\Carbon::parse($replacement->date_start)->format('j M Y') }}</td>
-					<td>{{ \Carbon\Carbon::parse($replacement->date_end)->format('j M Y') }}</td>
+					<td>{{ $replacement->date_start_fmt }}</td>
+					<td>{{ $replacement->date_end_fmt }}</td>
 					<td class="text-truncate" style="max-width: 200px;" data-toggle="tooltip" title="{{ $replacement->belongstocustomer?->customer }}">{{ Str::limit($replacement->belongstocustomer?->customer, 10, '>') }}</td>
 					<td class="text-truncate" style="max-width: 150px;" data-toggle="tooltip" title="{{ $replacement->reason }}">{{ Str::limit($replacement->reason, 10, '>') }}</td>
 					<td class="text-center">{{ $replacement->leave_total }}</td>
 					<td class="text-center">{{ $replacement->leave_utilize }}</td>
 					<td class="text-center">{{ $replacement->leave_balance }}</td>
 					<td class="text-center">
-						<?php
-						if ($replacement->belongstomanyleave()->count()) {
-							foreach ($replacement->belongstomanyleave()->get() as $val) {
-								echo '<a href="'.route('hrleave.show', $val->id).'">HR9-'.str_pad($val->leave_no, 5, "0", STR_PAD_LEFT ).'/'.$val->leave_year.'</a><br />';
-							}
-						}
-						?>
+						{!! $replacement->leave_refs->implode('') !!}
 					</td>
 					<td class="text-truncate" style="max-width: 100px;" data-toggle="tooltip" title="{{ $replacement->remarks }}">{{ Str::limit($replacement->remarks, 10, '>') }}</td>
 					<td class="text-center">

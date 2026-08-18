@@ -49,7 +49,25 @@ class HolidayCalendarController extends Controller
 	 */
 	public function index():View
 	{
-		return view('humanresources.hrdept.setting.holidaycalendar.index');
+		$years = HRHolidayCalendar::groupByRaw('YEAR(date_start)')->selectRaw('YEAR(date_start) as year')->orderBy('date_start', 'DESC')->get()
+			->map(function ($tp) {
+				return (object) [
+					'year' => $tp->year,
+					'rows' => HRHolidayCalendar::whereYear('date_start', $tp->year)->orderBy('date_start', 'ASC')->get()
+						->map(function ($t) {
+							return (object) [
+								'id' => $t->id,
+								'from_fmt' => Carbon::parse($t->date_start)->format('D, j M Y'),
+								'to_fmt' => Carbon::parse($t->date_end)->format('D, j M Y'),
+								'holiday' => $t->holiday,
+								'duration' => Carbon::parse($t->date_start)->daysUntil($t->date_end, 1)->count() . ' day/s',
+								'remarks' => $t->remarks,
+							];
+						}),
+				];
+			});
+
+		return view('humanresources.hrdept.setting.holidaycalendar.index', ['years' => $years]);
 	}
 
 	/**

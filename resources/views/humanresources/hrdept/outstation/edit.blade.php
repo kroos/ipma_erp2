@@ -1,17 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-use \App\Models\HumanResources\OptWorkingHour;
-use \App\Models\Staff;
-use \App\Models\Customer;
-use \Carbon\Carbon;
-
-
-$s = $outstation->belongstostaff;
-$c = Customer::orderBy('customer')->pluck('customer', 'id')->toArray();
-?>
-
 <div class="col-sm-12 row">
 	@include('humanresources.hrdept.navhr')
 	<h4>Add Staff For Outstation</h4>
@@ -22,7 +11,7 @@ $c = Customer::orderBy('customer')->pluck('customer', 'id')->toArray();
 	<div class="form-group row mb-3 @error('staff') has-error @enderror">
 		<label for="staff" class="col-sm-2 col-form-label">Outstation Staff : </label>
 		<div class="col-md-5">
-			<input type="text" name="staff" value="{{ $s->name }}" id="staff" class="form-control form-control-sm col-auto @error('staff') is-invalid @enderror" readonly>
+			<input type="text" name="staff" value="{{ $staffName }}" id="staff" class="form-control form-control-sm col-auto @error('staff') is-invalid @enderror" readonly>
 		</div>
 	</div>
 

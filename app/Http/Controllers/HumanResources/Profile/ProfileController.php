@@ -14,8 +14,6 @@ use Illuminate\View\View;
 // load models
 use App\Models\Login;
 use App\Models\Staff;
-use App\Models\HumanResources\HRAttendance;
-use App\Models\HumanResources\DepartmentPivot;
 
 // load services
 use App\Services\HumanResources\StaffProfileService;
@@ -75,34 +73,24 @@ class ProfileController extends Controller
 			$month = $current_month;
 		}
 
-		$attendance = HRAttendance::join('staffs', 'hr_attendances.staff_id', '=', 'staffs.id')
-			->where('hr_attendances.staff_id', $profile->id)
-			->whereYear('hr_attendances.attend_date', '=', $year)
-			->whereMonth('hr_attendances.attend_date', '=', $month)
-			->select('hr_attendances.remarks as attend_remark', 'hr_attendances.*', 'staffs.*')
-			->get();
-
-		$wh_group = $profile->belongstomanydepartment()->wherePivot('main', 1)->first();
-		$wh_group_id = $wh_group->wh_group_id;
-		$dept = $wh_group;
+		$dept = $profile->belongstomanydepartment()->wherePivot('main', 1)->first();
 
 		$service = new StaffProfileService();
 
 		return view('humanresources.profile.show', [
 			'profile' => $profile,
-			'attendance' => $attendance,
-			'wh_group' => $wh_group_id,
 			'dept' => $dept,
 			'year' => $year,
 			'month' => $month,
+			'attendanceRows' => $service->attendanceRows($profile, $year, $month),
 		] + $service->leaveEntitlements($profile)
 			+ $service->familyAndAuth($profile)
 			+ $service->attendanceYears($profile)
-			+ $service->attendanceDecor($attendance, $wh_group_id)
 			+ $service->leaveTables($profile)
 			+ $service->replacementTable($profile)
 			+ $service->unpaidLeaves($profile)
-			+ $service->leaveTypeMap());
+			+ $service->leaveTypeMap()
+			+ $service->profileCard($profile, 'd F Y'));
 	}
 
 	/**

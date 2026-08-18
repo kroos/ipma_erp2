@@ -158,7 +158,39 @@ class LeaveApprovalService
 
             $leave->username = $usernameMap[$leave->staff_id]?->username ?? null;
             return true;
-        })->values();
+        })->values()->map(fn ($leave) => $this->decorateLeaveRow($leave));
+    }
+
+    /**
+     * Per-row display decoration for the hrdept leave list (index / reject / cancel).
+     * Was a duplicated <?php ?> block inside each blade loop: date/time + duration
+     * display strings, the HR9 leave reference, and the applied-date format.
+     */
+    public function decorateLeaveRow($leave)
+    {
+        // time-off (9) or half-day (half_type 1/2) → show time on start/end
+        if (($leave->leave_type_id == 9) || ($leave->leave_type_id != 9 && $leave->half_type_id == 2) || ($leave->leave_type_id != 9 && $leave->half_type_id == 1)) {
+            $leave->dts = Carbon::parse($leave->date_time_start)->format('j M Y g:i a');
+            $leave->dte = Carbon::parse($leave->date_time_end)->format('j M Y g:i a');
+
+            if ($leave->leave_type_id != 9) {
+                // half day: same duration label for both half types
+                $leave->dper = $leave->period_day . ' Day';
+            } else {
+                // time off: derive duration from period_time
+                $i = Carbon::parse($leave->period_time);
+                $leave->dper = $i->hour . ' hour, ' . $i->minute . ' minutes';
+            }
+        } else {
+            $leave->dts = Carbon::parse($leave->date_time_start)->format('j M Y');
+            $leave->dte = Carbon::parse($leave->date_time_end)->format('j M Y');
+            $leave->dper = $leave->period_day . ' day/s';
+        }
+
+        $leave->leave_ref = 'HR9-' . str_pad($leave->leave_no, 5, '0', STR_PAD_LEFT) . '/' . $leave->leave_year;
+        $leave->applied_fmt = Carbon::parse($leave->created_at)->format('j M Y');
+
+        return $leave;
     }
 
     /**
@@ -409,6 +441,13 @@ class LeaveApprovalService
         $leavtype = $leav->belongstooptleavetype;
         $username = $staff?->hasmanylogin()?->where('active', 1)->first()?->username;
         $amend = $leav->hasmanyleaveamend()->get();
+
+        // M2: modal display decoration (was inline Carbon/str_pad in _approval_modal)
+        $leav->leave_ref = 'HR9-' . str_pad($leav->leave_no, 5, '0', STR_PAD_LEFT) . '/' . $leav->leave_year;
+        $leav->created_fmt = Carbon::parse($leav->created_at ?? now())->format('d-m-Y');
+        $leav->entitlement_year = Carbon::parse($leav->date_time_start)->format('Y');
+        $backup?->each(fn ($b) => $b->created_fmt = $b->created_at ? Carbon::parse($b->created_at)->format('j M Y') : null);
+        $amend->each(fn ($a) => $a->created_fmt = $a->created_at ? Carbon::parse($a->created_at)->format('d-m-Y') : null);
 
             $row = get_defined_vars();
             unset($row['approvals'], $row['grid'], $row['row'], $row['a']);
@@ -663,6 +702,13 @@ class LeaveApprovalService
         $username = $staff1?->hasmanylogin()?->where('active', 1)->first()?->username;
         $amend = $leav->hasmanyleaveamend()->get();
 
+        // M2: modal display decoration (was inline Carbon/str_pad in _approval_modal)
+        $leav->leave_ref = 'HR9-' . str_pad($leav->leave_no, 5, '0', STR_PAD_LEFT) . '/' . $leav->leave_year;
+        $leav->created_fmt = Carbon::parse($leav->created_at ?? now())->format('d-m-Y');
+        $leav->entitlement_year = Carbon::parse($leav->date_time_start)->format('Y');
+        $backup?->each(fn ($b) => $b->created_fmt = $b->created_at ? Carbon::parse($b->created_at)->format('j M Y') : null);
+        $amend->each(fn ($a) => $a->created_fmt = $a->created_at ? Carbon::parse($a->created_at)->format('d-m-Y') : null);
+
             $row = get_defined_vars();
             unset($row['approvals'], $row['grid'], $row['row'], $row['a']);
             $grid[$a->id] = $row;
@@ -888,6 +934,13 @@ class LeaveApprovalService
         $leavtype = $leav->belongstooptleavetype;
         $username = $staff?->hasmanylogin()?->where('active', 1)->first()?->username;
         $amend = $leav->hasmanyleaveamend()->get();
+
+        // M2: modal display decoration (was inline Carbon/str_pad in _approval_modal)
+        $leav->leave_ref = 'HR9-' . str_pad($leav->leave_no, 5, '0', STR_PAD_LEFT) . '/' . $leav->leave_year;
+        $leav->created_fmt = Carbon::parse($leav->created_at ?? now())->format('d-m-Y');
+        $leav->entitlement_year = Carbon::parse($leav->date_time_start)->format('Y');
+        $backup?->each(fn ($b) => $b->created_fmt = $b->created_at ? Carbon::parse($b->created_at)->format('j M Y') : null);
+        $amend->each(fn ($a) => $a->created_fmt = $a->created_at ? Carbon::parse($a->created_at)->format('d-m-Y') : null);
 
             $row = get_defined_vars();
             unset($row['approvals'], $row['grid'], $row['row'], $row['a']);
@@ -1162,6 +1215,13 @@ class LeaveApprovalService
         $username = $staff?->hasmanylogin()?->where('active', 1)->first()?->username;
         $amend = $leav->hasmanyleaveamend()->get();
 
+        // M2: modal display decoration (was inline Carbon/str_pad in _approval_modal)
+        $leav->leave_ref = 'HR9-' . str_pad($leav->leave_no, 5, '0', STR_PAD_LEFT) . '/' . $leav->leave_year;
+        $leav->created_fmt = Carbon::parse($leav->created_at ?? now())->format('d-m-Y');
+        $leav->entitlement_year = Carbon::parse($leav->date_time_start)->format('Y');
+        $backup?->each(fn ($b) => $b->created_fmt = $b->created_at ? Carbon::parse($b->created_at)->format('j M Y') : null);
+        $amend->each(fn ($a) => $a->created_fmt = $a->created_at ? Carbon::parse($a->created_at)->format('d-m-Y') : null);
+
             $row = get_defined_vars();
             unset($row['approvals'], $row['grid'], $row['row'], $row['a']);
             $grid[$a->id] = $row;
@@ -1228,5 +1288,132 @@ class LeaveApprovalService
             $rows[] = ['DT_RowClass' => $row['u'] ?? '', 'leave_no_link' => $leav ? '<a href="' . route('leave.show', $a->leave_id) . '">HR9-' . str_pad($leav->leave_no, 5, '0', STR_PAD_LEFT) . '/' . $leav->leave_year . '</a>' : '', 'username' => $row['username'] ?? '', 'name' => '<span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="' . e($staffName) . '">' . \Illuminate\Support\Str::words($staffName, 3, ' >') . '</span>', 'leave_type_code' => $row['leavtype']?->leave_type_code ?? '', 'reason' => '<span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="' . e($reasonText) . '">' . \Illuminate\Support\Str::limit($reasonText, 7, ' >') . '</span>', 'date_applied' => \Carbon\Carbon::parse($a->created_at)->format('j M Y'), 'dts' => $row['dts'] ?? '', 'dte' => $row['dte'] ?? '', 'dper' => $row['dper'] ?? '', 'bapp' => $row['bapp'] ?? '', 'supp' => $row['supp'] ?? '', 'hodd' => $row['hodd'] ?? '', 'dirr' => $row['dirr'] ?? '', 'approve' => $can ? '<button type="button" class="btn btn-sm btn-outline-secondary approve-btn" data-id="' . $a->id . '"><i class="bi bi-box-arrow-in-down"></i></button>' : '', 'modal_html' => $modalHtml];
         }
         return $rows;
+    }
+
+    /**
+     * Data for the leave show pages (hrdept + staff leave). All lookups,
+     * date formatting and approval-step computation that used to live in
+     * the show blades live here.
+     */
+    public function showData(HRLeave $hrleave): array
+    {
+        $staff = $hrleave->belongstostaff()?->first();
+        $login = Login::where([['staff_id', $hrleave->staff_id], ['active', 1]])->first();
+
+        // approval steps (only the ones that exist), in order
+        $steps = [
+            ['label' => 'SUPERVISOR', 'record' => $hrleave->hasmanyleaveapprovalsupervisor?->first()],
+            ['label' => 'HOD', 'record' => $hrleave->hasmanyleaveapprovalhod?->first()],
+            ['label' => 'DIRECTOR', 'record' => $hrleave->hasmanyleaveapprovaldir?->first()],
+            ['label' => 'HR', 'record' => $hrleave->hasmanyleaveapprovalhr?->first()],
+        ];
+
+        $approvals = collect();
+        foreach ($steps as $step) {
+            $record = $step['record'];
+            if (!$record) {
+                continue;
+            }
+            $status = $record->leave_status_id ? OptLeaveStatus::find($record->leave_status_id)->status : 'Pending';
+            $approvals->push((object) [
+                'label' => $step['label'],
+                'name' => $record->belongstostaff?->name,
+                'updated_at' => $record->updated_at,
+                'status' => $status,
+                'color' => $this->approvalColor($status),
+            ]);
+        }
+
+        $count = $approvals->count();
+        $width = $count != 0 ? 100 / $count : 100;
+
+        // backup + approved date
+        $backup = $hrleave->hasmanyleaveapprovalbackup?->first();
+        if ($backup) {
+            $backup_name = $backup->belongstostaff?->name;
+            $approved_date = ($backup->created_at == $backup->updated_at)
+                ? '-'
+                : Carbon::parse($backup->updated_at)->format('d F Y h:i a');
+        } else {
+            $backup_name = '-';
+            $approved_date = '-';
+        }
+
+        // attendance remarks for the leave period
+        $start = Carbon::parse($hrleave->date_time_start)->format('Y-m-d');
+        $end = Carbon::parse($hrleave->date_time_end)->format('Y-m-d');
+        $hrremarksattendance = HRAttendance::where(function (Builder $query) use ($start, $end) {
+            $query->whereDate('attend_date', '>=', $start)
+                ->whereDate('attend_date', '<=', $end);
+        })
+            ->where('staff_id', $hrleave->staff_id)
+            ->where(function (Builder $query) {
+                $query->whereNotNull('remarks')->orWhereNotNull('hr_remarks');
+            })
+            ->get();
+
+        // HR visibility (div + dept + admin)
+        $user = auth()->user()->belongstostaff;
+        $auth = $user?->div_id;
+        $auth_dept = $user?->belongstomanydepartment()->first()->id;
+        $auth_admin = $user?->authorise_id;
+        $canViewAttendance = (in_array($auth, ['1', '2', '5']) && in_array($auth_dept, ['14', '31'])) || $auth_admin == '1';
+
+        // main leave status + colour
+        $leave_status_temp = $hrleave?->belongstooptleavestatus?->status;
+        if ($leave_status_temp == 'Approved' || $leave_status_temp == 'Waived') {
+            $leave_status = $leave_status_temp;
+            $leave_color = 'width: 20%; background-color: #e6e6e6; color: green';
+        } elseif ($leave_status_temp == 'Rejected' || $leave_status_temp == 'Cancelled') {
+            $leave_status = $leave_status_temp;
+            $leave_color = 'width: 20%; background-color: #e6e6e6; color: red';
+        } else {
+            $leave_status = 'Pending';
+            $leave_color = 'width: 20%; background-color: #e6e6e6; color: #999900';
+        }
+
+        // amend notes
+        $amend_notes = $hrleave->hasmanyleaveamend()->get()->map(fn ($amend) => (object) [
+            'amend_note' => $amend->amend_note,
+            'created_fmt' => Carbon::parse($amend->created_at)->format('j M Y'),
+        ]);
+
+        return [
+            'staff_name' => $staff?->name,
+            'username' => $login?->username,
+            'leave_ref' => 'HR9-' . str_pad($hrleave->leave_no, 5, '0', STR_PAD_LEFT) . '/' . $hrleave->leave_year,
+            'date_start' => $this->leaveDateFmt($hrleave->date_time_start),
+            'date_end' => $this->leaveDateFmt($hrleave->date_time_end),
+            'total_leave' => ($hrleave->period_day !== 0.0 && $hrleave->period_time == null)
+                ? $hrleave->period_day . ' Days'
+                : $hrleave->period_time,
+            'backup_name' => $backup_name,
+            'approved_date' => $approved_date,
+            'approvals' => $approvals,
+            'width' => $width,
+            'hrremarksattendance' => $hrremarksattendance,
+            'canViewAttendance' => $canViewAttendance,
+            'leave_status' => $leave_status,
+            'leave_color' => $leave_color,
+            'amend_notes' => $amend_notes,
+        ];
+    }
+
+    private function leaveDateFmt($datetime): string
+    {
+        return Carbon::parse($datetime)->format('H:i') == '00:00'
+            ? Carbon::parse($datetime)->format('d F Y')
+            : Carbon::parse($datetime)->format('d F Y h:i a');
+    }
+
+    private function approvalColor(string $status): string
+    {
+        if ($status == 'Approved' || $status == 'Waived') {
+            return 'background-color:transparent; color:green';
+        }
+        if ($status == 'Rejected' || $status == 'Cancelled') {
+            return 'background-color:transparent; color:red';
+        }
+        return 'background-color:transparent; color:#999900';
     }
 }

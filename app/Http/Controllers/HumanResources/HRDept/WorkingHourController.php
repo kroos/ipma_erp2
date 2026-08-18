@@ -41,7 +41,38 @@ class WorkingHourController extends Controller
 	 */
 	public function index():View
 	{
-		return view('humanresources.hrdept.setting.workinghour.index');
+		$groups = OptWorkingHour::groupBy('year')->select('year')->orderBy('year', 'DESC')->get();
+
+		$years = $groups->map(function ($tp) {
+			$normal = OptWorkingHour::where('group', 0)->where('year', $tp->year)->orderBy('year', 'DESC')->orderBy('effective_date_start')->get();
+			$maintenance = OptWorkingHour::where('group', 1)->where('year', $tp->year)->orderBy('year', 'DESC')->orderBy('effective_date_start')->get();
+
+			return [
+				'year' => $tp->year,
+				'normal' => $normal->map(fn ($t) => $this->decorateWorkingHourRow($t)),
+				'maintenance' => $maintenance->map(fn ($t) => $this->decorateWorkingHourRow($t)),
+			];
+		});
+
+		return view('humanresources.hrdept.setting.workinghour.index', compact('years'));
+	}
+
+	/**
+	 * Working-hour row display values (were inline Carbon::parse in the blade).
+	 */
+	private function decorateWorkingHourRow($t): array
+	{
+		return [
+			'id' => $t->id,
+			'year' => $t->year,
+			'time_start_am' => Carbon::parse($t->time_start_am)->format('g:i a'),
+			'time_end_am' => Carbon::parse($t->time_end_am)->format('g:i a'),
+			'time_start_pm' => Carbon::parse($t->time_start_pm)->format('g:i a'),
+			'time_end_pm' => Carbon::parse($t->time_end_pm)->format('g:i a'),
+			'effective_date_start' => Carbon::parse($t->effective_date_start)->format('D, j M Y'),
+			'effective_date_end' => Carbon::parse($t->effective_date_end)->format('D, j M Y'),
+			'remarks' => $t->remarks,
+		];
 	}
 
 	/**

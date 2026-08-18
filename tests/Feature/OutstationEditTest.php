@@ -93,6 +93,31 @@ class OutstationEditTest extends TestCase
 
     private function createSchema(): void
     {
+        // Models used by this test carry the Auditable trait, whose logActivity()
+        // inserts into activity_logs on every create/update/delete — without the
+        // table present the writes fail and spam the log with "Audit log failed".
+        Schema::create('activity_logs', function (Blueprint $table) {
+            $table->integer('id', true);
+            $table->integer('staff_id')->nullable();
+            $table->string('event', 64);
+            $table->string('model_type');
+            $table->unsignedBigInteger('model_id')->index();
+            $table->string('route_name')->nullable();
+            $table->string('method', 10)->nullable();
+            $table->string('url')->nullable();
+            $table->string('ip_address')->nullable();
+            $table->string('user_agent')->nullable();
+            $table->string('guard')->nullable();
+            $table->boolean('is_critical')->default(false);
+            $table->string('description')->nullable();
+            $table->json('changes')->nullable();
+            $table->json('snapshot')->nullable();
+            $table->json('meta')->nullable();
+            $table->dateTime('created_at')->nullable();
+            $table->dateTime('updated_at')->nullable();
+            $table->dateTime('deleted_at')->nullable();
+        });
+
         Schema::create('customers', function (Blueprint $table) {
             $table->integer('id', true);
             $table->string('customer')->nullable();

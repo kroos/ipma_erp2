@@ -29,8 +29,6 @@
 				<div class="scrollable-div-1">
 					@foreach($staffs as $staff)
 
-					<?php $markers = $markersByEvaluatee[$staff->id] ?? collect(); ?>
-
 					<div class="row hover">
 						<div class="col-12 d-flex justify-content-between align-items-center">
 							<span>{{ $staff->username }} - {{ $staff->name }}</span>
@@ -81,7 +79,7 @@
 						</div>
 					</div>
 
-					@foreach($markers as $marker)
+					@foreach($staff->markers as $marker)
 					<div class="row hover">
 						<div class="col-12 d-flex justify-content-between align-items-center">
 							<span>&nbsp;&nbsp;<i class="bi-x-diamond-fill" style="font-size: 12px;"></i>&nbsp;&nbsp;{{ $marker->username }} - {{ $marker->name }}</span>

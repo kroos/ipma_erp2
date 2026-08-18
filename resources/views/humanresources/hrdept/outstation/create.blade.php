@@ -1,27 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-use \App\Models\HumanResources\OptWorkingHour;
-use \App\Models\Staff;
-use \App\Models\Customer;
-
-use \Carbon\Carbon;
-
-$staffs = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
-			->where('staffs.active', 1)
-			->where('logins.active', 1)
-			->where(function ($query) {
-				$query->where('staffs.div_id', '!=', 2)
-				->orWhereNull('staffs.div_id');
-			})
-			->select('staffs.id as staffID', 'staffs.*', 'logins.*')
-			->orderBy('logins.username', 'asc')
-			->get();
-
-$c = Customer::orderBy('customer')->pluck('customer', 'id')->toArray();
-?>
-
 <div class="page-humanresources-hrdept-outstation-create col-sm-12 row">
 	@include('humanresources.hrdept.navhr')
 	<h4>Add Staff For Outstation</h4>

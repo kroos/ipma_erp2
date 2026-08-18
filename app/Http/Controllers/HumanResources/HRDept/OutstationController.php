@@ -10,6 +10,7 @@ use App\Models\HumanResources\HROutstation;
 use App\Models\HumanResources\HRAttendance;
 use App\Models\Staff;
 use App\Models\Login;
+use App\Models\Customer;
 
 // for controller output
 use Illuminate\Http\RedirectResponse;
@@ -53,6 +54,16 @@ class OutstationController extends Controller
 		$usernames = Login::whereIn('staff_id', $staffIds)->where('active', 1)->pluck('username', 'staff_id');
 		$staffNames = Staff::whereIn('id', $staffIds)->pluck('name', 'id');
 
+		// decorate display dates (were inline Carbon::parse in the blade)
+		$outstationsNow->each(function ($o) {
+			$o->date_from_fmt = Carbon::parse($o->date_from)->format('D, j M Y');
+			$o->date_to_fmt = Carbon::parse($o->date_to)->format('D, j M Y');
+		});
+		$outstationsLast->each(function ($o) {
+			$o->date_from_fmt = Carbon::parse($o->date_from)->format('D, j M Y');
+			$o->date_to_fmt = Carbon::parse($o->date_to)->format('D, j M Y');
+		});
+
 		return view('humanresources.hrdept.outstation.index', compact('outstationsNow', 'outstationsLast', 'usernames', 'staffNames', 'nowyear', 'lastyear'));
 	}
 
@@ -61,7 +72,20 @@ class OutstationController extends Controller
 	 */
 	public function create(): View
 	{
-		return view('humanresources.hrdept.outstation.create');
+		$staffs = Staff::join('logins', 'staffs.id', '=', 'logins.staff_id')
+			->where('staffs.active', 1)
+			->where('logins.active', 1)
+			->where(function ($query) {
+				$query->where('staffs.div_id', '!=', 2)
+				->orWhereNull('staffs.div_id');
+			})
+			->select('staffs.id as staffID', 'staffs.*', 'logins.*')
+			->orderBy('logins.username', 'asc')
+			->get();
+
+		$c = Customer::orderBy('customer')->pluck('customer', 'id')->toArray();
+
+		return view('humanresources.hrdept.outstation.create', ['staffs' => $staffs, 'c' => $c]);
 	}
 
 	/**
@@ -97,7 +121,13 @@ class OutstationController extends Controller
 	 */
 	public function edit(HROutstation $outstation): View
 	{
-		return view('humanresources.hrdept.outstation.edit', ['outstation' => $outstation]);
+		$c = Customer::orderBy('customer')->pluck('customer', 'id')->toArray();
+
+		return view('humanresources.hrdept.outstation.edit', [
+			'outstation' => $outstation,
+			'c' => $c,
+			'staffName' => $outstation->belongstostaff?->name,
+		]);
 	}
 
 	/**

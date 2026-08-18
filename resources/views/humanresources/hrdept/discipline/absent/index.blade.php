@@ -1,16 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-// use \App\Models\HumanResources\HRLeaveAnnual;
-use \App\Models\Staff;
-use \App\Models\HumanResources\HRAttendance;
-use \App\Models\HumanResources\OptTcms;
-
-use Illuminate\Database\Eloquent\Builder;
-
-use \Carbon\Carbon;
-?>
 <div class="container row align-items-start justify-content-center">
 	@include('humanresources.hrdept.navhr')
 	<h4>Staff Absent Record</h4>
@@ -19,22 +9,11 @@ use \Carbon\Carbon;
 		@foreach($absents as $tp)
 			<thead>
 				<tr>
-					<th class="text-primary" colspan="8">Staff Absent On Year {{ $tp->ayear }}</th>
+					<th class="text-primary" colspan="7">Staff Absent On Year {{ $tp['ayear'] }}</th>
 				</tr>
-				<?php
-				$absentss = HRAttendance::join('logins', 'hr_attendances.staff_id', '=', 'logins.staff_id')
-								->where('logins.active', 1)
-								->whereIn('attendance_type_id', [1,2])
-								->whereYear('attend_date', $tp->ayear)
-								->groupBy('hr_attendances.staff_id')
-								->orderBy('logins.username', 'ASC')
-								->orderBy('attend_date', 'DESC')
-								->get();
-								// ->ddRawSql();
-				?>
-				@foreach($absentss as $value)
+				@foreach($tp['staffs'] as $value)
 					<tr>
-						<th class="text-success" colspan="8">Absent Staff on {{ $tp->ayear }} For {{ $value->username }} {{ Staff::find($value->staff_id)?->name }}</th>
+						<th class="text-success" colspan="7">Absent Staff on {{ $tp['ayear'] }} For {{ $value['username'] }} {{ $value['name'] }}</th>
 					</tr>
 					<tr>
 						<th>ID</th>
@@ -46,39 +25,21 @@ use \Carbon\Carbon;
 						<th>Remarks</th>
 					</tr>
 				</thead>
-				<?php
-				$absentsss = HRAttendance::where('hr_attendances.staff_id', $value->staff_id)
-								->whereIn('attendance_type_id', [1,2])
-								->whereYear('attend_date', $tp->ayear)
-								// ->orderBy('logins.username', 'ASC')
-								->orderBy('attend_date', 'DESC')
-								->get();
-								// ->ddRawSql();
-				$dur = 0;
-				?>
-				@foreach($absentsss as $t)
+				@foreach($value['rows'] as $t)
 				<tbody>
 					<tr>
-						<td>{{ $value->username }}</td>
-						<td data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="{{ $t->belongstostaff?->name }}">
-							{{ Str::words($t->belongstostaff?->name, 3, ' >') }}
+						<td>{{ $value['username'] }}</td>
+						<td data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-html="true" data-bs-title="{{ $t->name }}">
+							{{ Str::words($t->name, 3, ' >') }}
 						</td>
-						<td>{{ \Carbon\Carbon::parse($t->attend_date)->format('j M Y') }}</td>
+						<td>{{ $t->date_fmt }}</td>
 						<td>
-							{{ OptTcms::find($t->attendance_type_id)->leave_short }}
-							<?php
-								if ($t->attendance_type_id == 1) {
-									$durr = 1;
-								} elseif ($t->attendance_type_id == 2) {
-									$durr = 0.5;
-								}
-								$dur += $durr;
-							?>
+							{{ $t->leave_short }}
 						</td>
 						<td>
 							@if($t->leave_id)
 								<a href="{{ route('hrleave.show', $t->leave_id) }}" target="_blank">
-									HR9-{{ str_pad($t->belongstoleave->leave_no, 5, "0", STR_PAD_LEFT) }}/{{ $t->belongstoleave->leave_year }}
+									{{ $t->leave_ref }}
 								</a>
 							@endif
 						</td>
@@ -101,12 +62,12 @@ use \Carbon\Carbon;
 					<tr>
 						<th colspan="2"></th>
 						<th>Total</th>
-						<th>{{ $dur }} day/s</th>
+						<th>{{ $value['dur'] }} day/s</th>
 						<th colspan="3"></th>
 					</tr>
 				</tfoot>
+				@endforeach
 			@endforeach
-		@endforeach
 		</table>
 	</div>
 </div>

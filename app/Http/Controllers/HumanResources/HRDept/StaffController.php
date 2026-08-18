@@ -19,12 +19,6 @@ use Illuminate\Support\Facades\DB;
 
 // load services
 use App\Services\HumanResources\StaffProfileService;
-use App\Models\HumanResources\OptReligion;
-use App\Models\HumanResources\OptGender;
-use App\Models\HumanResources\OptRace;
-use App\Models\HumanResources\OptMaritalStatus;
-use App\Models\HumanResources\OptCountry;
-use App\Models\HumanResources\HRLeaveApprovalFlow;
 
 // load validation
 use App\Http\Requests\HumanResources\Leave\HRLeaveRequestStore;
@@ -68,14 +62,7 @@ class StaffController extends Controller
 	 */
 	public function create(): View
 	{
-		return view('humanresources.hrdept.staff.create', [
-			'genders' => OptGender::orderBy('id')->get(),
-			'maritalStatuses' => OptMaritalStatus::pluck('marital_status', 'id')->toArray(),
-			'religions' => OptReligion::pluck('religion', 'id')->toArray(),
-			'races' => OptRace::pluck('race', 'id')->toArray(),
-			'countries' => OptCountry::pluck('country', 'id')->toArray(),
-			'leaveApprovalFlows' => HRLeaveApprovalFlow::all(),
-		]);
+		return view('humanresources.hrdept.staff.create', (new StaffProfileService())->staffFormData());
 	}
 
 	/**
@@ -199,16 +186,7 @@ class StaffController extends Controller
 	 */
 	public function edit(Staff $staff): View
 	{
-		return view('humanresources.hrdept.staff.edit', [
-			'staff' => $staff,
-			'genders' => OptGender::orderBy('id')->get(),
-			'maritalStatuses' => OptMaritalStatus::pluck('marital_status', 'id')->toArray(),
-			'religions' => OptReligion::pluck('religion', 'id')->toArray(),
-			'races' => OptRace::pluck('race', 'id')->toArray(),
-			'countries' => OptCountry::pluck('country', 'id')->toArray(),
-			'leaveApprovalFlows' => HRLeaveApprovalFlow::all(),
-			'activeStaff' => Staff::where('active', 1)->get(),
-		]);
+		return view('humanresources.hrdept.staff.edit', ['staff' => $staff] + (new StaffProfileService())->staffFormData($staff));
 	}
 
 	/**

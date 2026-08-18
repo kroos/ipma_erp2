@@ -110,7 +110,17 @@ class DisciplineController extends Controller
 	 */
 	public function show(HRDisciplinary $discipline): View
 	{
-		return view('humanresources.hrdept.discipline.show', ['discipline' => $discipline]);
+		$violation = $discipline->belongstooptviolation()->select('violation', 'remarks')->first();
+		$infraction = $discipline->belongstooptinfractions()->select('infraction', 'remarks')->first();
+
+		return view('humanresources.hrdept.discipline.show', [
+			'discipline' => $discipline,
+			'staff' => $discipline->belongstostaff->name,
+			'supervisor' => $discipline->belongstosupervisor->name,
+			'disciplinary_action' => $discipline->belongstooptdisciplinaryaction->disciplinary_action,
+			'violation_text' => $violation ? $violation->violation . ' - ' . $violation->remarks : null,
+			'infraction_text' => $infraction ? $infraction->infraction . ' - ' . $infraction->remarks : null,
+		]);
 	}
 
 

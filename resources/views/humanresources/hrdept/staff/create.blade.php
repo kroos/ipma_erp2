@@ -1,8 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-?>
 
 <div class="container row align-items-start justify-content-center">
 @include('humanresources.hrdept.navhr')
@@ -202,13 +200,14 @@
 					</div>
 				</div>
 				<div class="row emergency_wrap">
-					<div class="row m-1 emergency_row">
+					<div class="row m-1 emergency_row" id="emergency_row_1">
 						<div class="col-sm-1">
-							<button class="btn btn-sm btn-outline-secondary emergency_remove" type="button">
+							<button class="btn btn-sm btn-outline-secondary emergency_remove" data-index="1" type="button">
 								<i class="fas fa-trash" aria-hidden="true"></i>
 							</button>
 						</div>
 						<div class="col-sm-11 form-group {{ $errors->has('staffemergency.*.contact_person') ? 'has-error' : '' }}">
+							<input type="hidden" name="staffemergency[1][id]" value="">
 							<input type="text" name="staffemergency[1][contact_person]" id="ecp_1" class="form-control form-control-sm" placeholder="Name">
 						</div>
 						<div class="col-sm-1"></div>

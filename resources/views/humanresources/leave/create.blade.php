@@ -66,14 +66,6 @@
 
 @endsection
 @section('js')
-
-<?php
-$user = \Auth::user()->belongstostaff;
-$userneedbackup = $user->belongstoleaveapprovalflow?->backup_approval;
-$setHalfDayMC = \App\Models\Setting::find(2)->active;
-$oi = $user->hasmanyleavereplacement()->where('leave_balance', '<>', 0)->get();
-?>
-
 window.data = {
 	route: {
 		leaveType: '{{ route('leaveType.leaveType') }}',
@@ -82,7 +74,7 @@ window.data = {
 		timeleave: '{{ route('leavedate.timeleave') }}',
 		backupperson: '{{ route('backupperson') }}',
 	},
-	ownerId: {{ \Auth::user()->belongstostaff->id }},
+	ownerId: {{ $user->id }},
 	userneedbackup: {{ $userneedbackup == 1 ? 1 : 0 }},
 	setHalfDayMC: {{ $setHalfDayMC == 1 ? 1 : 0 }},
 	replacement: @json($oi),

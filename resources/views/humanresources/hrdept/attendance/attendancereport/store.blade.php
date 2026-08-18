@@ -67,13 +67,15 @@
 						<td>{{ $v1['exception'] }}</td>
 					</tr>
 				@endforeach
+				</tbody>
+				<tfoot>
 					<tr>
 						<td colspan="10" rowspan="1"></td>
 						<td><strong class="text-success">{{ $v['duration_total'] }}</strong></td>
 						<td><strong class="text-success">{{ $v['overtime_total'] }}</strong></td>
 						<td colspan="2" rowspan="1"></td>
 					</tr>
-				</tbody>
+				</tfoot>
 			</table>
 		</div>
 		@endforeach

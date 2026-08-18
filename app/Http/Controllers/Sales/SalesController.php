@@ -50,13 +50,13 @@ class SalesController extends Controller
 
 	public function index(): View
 	{
-		$sales = Sales::all();
+		$sales = app(\App\Services\Sales\SalesService::class)->indexRows(Sales::all());
 		return view('sales.sales.index', ['sales' => $sales]);
 	}
 
 	public function create(): View
 	{
-		return view('sales.sales.create');
+		return view('sales.sales.create', $this->saleFormData(null));
 	}
 
 	public function store(Request $request): RedirectResponse
@@ -153,7 +153,42 @@ class SalesController extends Controller
 
 	public function edit(Sales $sale): View
 	{
-		return view('sales.sales.edit', ['sale' => $sale]);
+		return view('sales.sales.edit', ['sale' => $sale] + $this->saleFormData($sale));
+	}
+
+	/**
+	 * Old values for the create/edit form bridge (delivery checkboxes + jobdesc rows).
+	 * Used to be built inline in sales/sales/_js.blade.php.
+	 */
+	private function saleFormData(?Sales $sale): array
+	{
+		$itemsa = $sale?->belongstomanydelivery()?->get()
+			->map(fn ($module) => [$module->pivot->id, ['sales_delivery_id' => $module->id]]);
+
+		$oldItemsValuec = old('delivery', $itemsa?->toArray() ?? []) ?? [];
+
+		$items = $sale?->hasmanyjobdescription()?->get()
+			->map(function ($applicant) {
+				$modules = $applicant?->belongstomanysalesgetitem()?->get()
+					->map(fn ($module) => [$module->pivot->id, ['sales_get_item_id' => $module->id]])
+					->toArray();
+
+				return [
+					'id' => $applicant->id,
+					'job_description' => $applicant->job_description,
+					'quantity' => $applicant->quantity,
+					'uom_id' => $applicant->uom_id,
+					'machine_id' => $applicant->machine_id,
+					'machine_accessory_id' => $applicant->machine_accessory_id,
+					'remarks' => $applicant->remarks,
+					'gItems' => $modules,
+				];
+			})
+			->toArray() ?? [];
+
+		$salesJD = old('jobdesc', $items);
+
+		return ['oldItemsValuec' => $oldItemsValuec, 'salesJD' => $salesJD];
 	}
 
 	public function update(Request $request, Sales $sale): RedirectResponse

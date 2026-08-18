@@ -42,7 +42,7 @@
 window.data = {
 	route: {
 		progress: '{{ route('progress') }}',
-		create: '{{ route('appraisalexcelreport.create') }}',
+		create: '{{ route('attendanceupload.create') }}',
 		store: '{{ route('attendanceupload.store') }}',
 	},
 	url: {

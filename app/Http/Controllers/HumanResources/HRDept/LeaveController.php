@@ -172,7 +172,7 @@ class LeaveController extends Controller
 	 */
 	public function show(HRLeave $hrleave): View
 	{
-		return view('humanresources.hrdept.leave.show', ['hrleave' => $hrleave]);
+		return view('humanresources.hrdept.leave.show', ['hrleave' => $hrleave] + app(LeaveApprovalService::class)->showData($hrleave));
 	}
 
 	/**
@@ -180,7 +180,91 @@ class LeaveController extends Controller
 	 */
 	public function edit(HRLeave $hrleave): View
 	{
-		return view('humanresources.hrdept.leave.edit', ['hrleave' => $hrleave]);
+		$user = $hrleave->belongstostaff;
+		$userneedbackup = $user->belongstoleaveapprovalflow?->backup_approval;
+		$setHalfDayMC = \App\Models\Setting::find(2)->active;
+		$staff = $user;
+		$login = $staff->hasmanylogin()->where('active', 1)->get()->first();
+
+		$count = 0;
+		$supervisor_no = $hod_no = $director_no = $hr_no = 0;
+
+		$backup = $hrleave->hasmanyleaveapprovalbackup?->first();
+		$supervisor = $hrleave->hasmanyleaveapprovalsupervisor->first();
+		$hod = $hrleave->hasmanyleaveapprovalhod->first();
+		$director = $hrleave->hasmanyleaveapprovaldir->first();
+		$hr = $hrleave->hasmanyleaveapprovalhr->first();
+
+		if ($supervisor) { $count++; $supervisor_no = $count; }
+		if ($hod) { $count++; $hod_no = $count; }
+		if ($director) { $count++; $director_no = $count; }
+		if ($hr) { $count++; $hr_no = $count; }
+
+		$width = $count != 0 ? 100 / $count : 100;
+
+		$date_start = Carbon::parse($hrleave->date_time_start)->format('H:i') == '00:00'
+			? Carbon::parse($hrleave->date_time_start)->format('d F Y')
+			: Carbon::parse($hrleave->date_time_start)->format('d F Y h:i a');
+
+		$date_end = Carbon::parse($hrleave->date_time_end)->format('H:i') == '00:00'
+			? Carbon::parse($hrleave->date_time_end)->format('d F Y')
+			: Carbon::parse($hrleave->date_time_end)->format('d F Y h:i a');
+
+		$total_leave = ($hrleave->period_day !== 0.0 && $hrleave->period_time == null)
+			? $hrleave->period_day . ' Days'
+			: $hrleave->period_time;
+
+		if ($backup) {
+			$backup_name = $backup->belongstostaff->name;
+			$approved_date = ($backup->created_at == $backup->updated_at)
+				? '-'
+				: Carbon::parse($backup->updated_at)->format('d F Y h:i a');
+		} else {
+			$backup_name = '-';
+			$approved_date = '-';
+		}
+
+		$hrremarksattendance = \App\Models\HumanResources\HRAttendance::where(function (Builder $query) use ($hrleave) {
+			$query->whereDate('attend_date', '>=', $hrleave->date_time_start)
+				->whereDate('attend_date', '<=', $hrleave->date_time_end);
+		})
+			->where('staff_id', $hrleave->staff_id)
+			->where(function (Builder $query) {
+				$query->whereNotNull('remarks')->orWhereNotNull('hr_remarks');
+			})
+			->get();
+
+		$leaveTypes = \App\Models\HumanResources\OptLeaveType::pluck('leave_type', 'id')->toArray();
+
+		$replacement = $hrleave->belongstostaff->hasmanyleavereplacement()->get()->map(function ($r) {
+			return ['id' => $r->id, 'leave_balance' => $r->leave_balance, 'date_start' => Carbon::parse($r->date_start)->format('Y-m-d')];
+		})->values()->all();
+
+		$replacementSelected = $hrleave->belongstomanyleavereplacement()->get()->map(function ($lrid) {
+			return $lrid->id;
+		})->first();
+
+		$backup_staff_id = $backup?->staff_id;
+		$staffOptions = Staff::where('active', 1)->get()->map(function ($s) use ($backup_staff_id) {
+			return '<option value="' . $s->id . '"' . ($backup_staff_id == $s->id ? ' selected' : '') . '>' . e($s->name) . '</option>';
+		})->implode('');
+
+		$dateTimeStartYmd = Carbon::parse($hrleave->date_time_start)->format('Y-m-d');
+		$dateTimeStartHis = Carbon::parse($hrleave->date_time_start)->format('H:i:s');
+		$hrleave->leave_ref = 'HR9-' . str_pad($hrleave->leave_no, 5, '0', STR_PAD_LEFT) . '/' . $hrleave->leave_year;
+
+		// form bridge data (was @json($hrleave->only([...])) inline — the @json
+		// directive explodes on commas, so the array must be built here)
+		$hrleaveFormData = $hrleave->only(['leave_cat', 'half_type_id', 'leave_type_id', 'period_day', 'date_time_start', 'date_time_end']);
+
+		return view('humanresources.hrdept.leave.edit', compact(
+			'hrleave', 'user', 'userneedbackup', 'setHalfDayMC', 'staff', 'login',
+			'count', 'supervisor_no', 'hod_no', 'director_no', 'hr_no', 'width',
+			'date_start', 'date_end', 'total_leave', 'backup_name', 'approved_date',
+			'backup', 'supervisor', 'hod', 'director', 'hr', 'hrremarksattendance',
+			'leaveTypes', 'replacement', 'replacementSelected', 'backup_staff_id', 'staffOptions',
+			'dateTimeStartYmd', 'dateTimeStartHis', 'hrleaveFormData',
+		));
 	}
 
 	/**

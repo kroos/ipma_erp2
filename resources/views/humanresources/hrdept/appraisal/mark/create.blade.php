@@ -1,8 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-  <?php use Carbon\Carbon; ?>
-  <div class="page-humanresources-hrdept-appraisal-mark-create container">
+    <div class="page-humanresources-hrdept-appraisal-mark-create container">
     @include('humanresources.hrdept.navhr')
 
     <!-- POPUP NOTIFICATION START -->
@@ -47,8 +46,7 @@
         <td width="20px">:</td>
         <td width="600px">{{ $staff?->name }}</td>
         <td width="150px">Tarikh Masuk</td>
-        <td width="20px">:</td>
-        <td>{{ Carbon::parse($staff?->join)->format('d-m-Y') }}</td>
+        <td width="20px">:</td>		<td>{{ $staff?->join_fmt }}</td>
       </tr>
       <tr>
         <td>Tarikh</td>
@@ -66,22 +64,12 @@
 
     <input type="hidden" name="pivot_apoint_id" value="{{ $id }}">
     <input type="hidden" name="appraisal_category_id" value="{{ $pivotappraisal?->category_id }}">
-    <input type="hidden" name="appraisal_category_version" value="{{ $pivotappraisal?->version }}">
-
-    @foreach ($appraisals as $appraisal)
-      <?php
-      $sections = App\Models\HumanResources\HRAppraisalSection::where('id', $appraisal?->section_id)->get();
-      ?>
-
-      @foreach ($sections as $section)
+    <input type="hidden" name="appraisal_category_version" value="{{ $pivotappraisal?->version }}">	@foreach ($appraisals as $appraisal)
+      @foreach ($appraisal->sections as $section)
         <?php
         $no = 1;
-        $section_subs = App\Models\HumanResources\HRAppraisalSectionSub::where('section_id', $section?->id)
-            ->orderBy('section_id', 'ASC')
-            ->orderBy('sort', 'ASC')
-            ->orderBy('id', 'ASC')
-            ->get();
         ?>
+
 
 
 
@@ -107,17 +95,11 @@
               <td align="center" colspan="3" style="background-color: #e6e6e6;">
                 <b>PENERANGAN</b>
               </td>
-            </tr>
-
-            @foreach ($section_subs as $section_sub)
+            </tr>			@foreach ($section->section_subs as $section_sub)
               <?php
               $no_sub = 'a';
-              $main_questions = App\Models\HumanResources\HRAppraisalMainQuestion::where('section_sub_id', $section_sub->id)
-                  ->orderBy('section_sub_id', 'ASC')
-                  ->orderBy('mark', 'ASC')
-                  ->orderBy('sort', 'ASC')
-                  ->get();
               ?>
+
 
               <tr>
                 <td align="center" class="td-border-left-right">
@@ -126,18 +108,11 @@
                 <td colspan="3" class="td-border-right">
                   {{ $section_sub->section_sub }}
                 </td>
-              </tr>
-
-              @foreach ($main_questions as $main_question)
+              </tr>				@foreach ($section_sub->main_questions as $main_question)
                 <?php
-                $questions = App\Models\HumanResources\HRAppraisalQuestion::where('main_question_id', $main_question->id)
-                    ->orderBy('main_question_id', 'ASC')
-                    ->orderBy('mark', 'ASC')
-                    ->orderBy('sort', 'ASC')
-                    ->get();
-
                 $mark1 = 0;
                 ?>
+
 
                 <tr>
                   <td align="center" class="td-border-left-right" style="vertical-align:text-top;">
@@ -146,9 +121,7 @@
                   <td colspan="3" class="td-border-right">
                     {{ $main_question->main_question }}
                   </td>
-                </tr>
-
-                @foreach ($questions as $question)
+                </tr>				@foreach ($main_question->questions as $question)
                   <?php
                   $loop1 = $markByQuestion[$question->id] ?? null;
 
@@ -240,14 +213,13 @@
               <td align="center" style="background-color: #e6e6e6;" width="50px">
                 <b>5</b>
               </td>
-            </tr>
-
-            @foreach ($section_subs as $section_sub)
+            </tr>			@foreach ($section->section_subs as $section_sub)
               <?php
               $loop2 = $markBySectionSub[$section_sub->id] ?? null;
 
               $total_mark2 = $total_mark2 + 5;
               ?>
+
 
               <input type="hidden" name="arrayid2[]" value="{{ 'id2' . $no }}">
               <input type="hidden" name="{{ 'id2' . $no }}" value="{{ $section_sub->id }}">
@@ -297,11 +269,11 @@
             </tr>
           </table>
 
-          <table width="100%">
-            @foreach ($section_subs as $section_sub)
+          <table width="100%">			@foreach ($section->section_subs as $section_sub)
               <?php
               $loop3 = $markBySectionSub[$section_sub->id] ?? null;
               ?>
+
 
               <input type="hidden" name="arrayid3[]" value="{{ 'id3' . $no }}">
               <input type="hidden" name="{{ 'id3' . $no }}" value="{{ $section_sub->id }}">
@@ -340,15 +312,7 @@
             </tr>
           </table>
 
-          <table width="100%">
-            @foreach ($section_subs as $section_sub)
-              <?php
-              $main_questions = App\Models\HumanResources\HRAppraisalMainQuestion::where('section_sub_id', $section_sub->id)
-                  ->orderBy('section_sub_id', 'ASC')
-                  ->orderBy('mark', 'ASC')
-                  ->orderBy('sort', 'ASC')
-                  ->get();
-              ?>
+          <table width="100%">			@foreach ($section->section_subs as $section_sub)
 
               <tr>
                 <td width="30px">
@@ -359,7 +323,8 @@
                 </td>
               </tr>
 
-              @foreach ($main_questions as $main_question)
+              @foreach ($section_sub->main_questions as $main_question)
+
                 <?php
                 $loop4 = $markByMainQuestion[$main_question->id] ?? null;
                 ?>

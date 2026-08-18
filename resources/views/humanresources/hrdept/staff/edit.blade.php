@@ -1,8 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-?>
 
 <div class="container row justify-content-center align-items-start">
 @include('humanresources.hrdept.navhr')
@@ -203,12 +201,12 @@
 					</div>
 				</div>
 				<div class="row spouse_wrap">
-					@if($staff->hasmanyspouse()->get()->count())
+					@if($spouses->count())
 						<?php $i=1 ?>
-						@foreach($staff->hasmanyspouse()->get() as $spouse)
-							<div class="row m-1 spouse_row">
+						@foreach($spouses as $spouse)
+							<div class="row m-1 spouse_row" id="spouse_row_{{ $i }}">
 								<div class="col-sm-1">
-									<button class="btn btn-sm btn-outline-secondary spouse_delete" data-id="{{ $spouse->id }}" type="button">
+									<button class="btn btn-sm btn-outline-secondary spouse_remove" data-index="{{ $i }}" type="button">
 										<i class="fas fa-trash" aria-hidden="true"></i>
 									</button>
 								</div>
@@ -244,12 +242,12 @@
 					</div>
 				</div>
 				<div class="row children_wrap">
-					@if($staff->hasmanychildren()->get()->count())
+					@if($childrens->count())
 						<?php $i=1 ?>
-						@foreach($staff->hasmanychildren()->get() as $child)
-							<div class="row m-1 children_row">
+						@foreach($childrens as $child)
+							<div class="row m-1 children_row" id="children_row_{{ $i }}">
 								<div class="col-sm-1">
-									<button class="btn btn-sm btn-outline-secondary children_delete" data-id="{{ $child->id }}" type="button">
+									<button class="btn btn-sm btn-outline-secondary children_remove" data-index="{{ $i }}" type="button">
 										<i class="fas fa-trash" aria-hidden="true"></i>
 									</button>
 								</div>
@@ -259,7 +257,7 @@
 								</div>
 								<div class="col-sm-1"></div>
 								<div class="col-sm-7 form-group {{ $errors->has('staffchildren.*.dob') ? 'has-error' : '' }}" style="position: relative">
-									<input type="text" name="staffchildren[1][dob]" value="{{ old('staffchildren[$i][dob]', $child->dob) }}" id="cdo_{{ $i }}" class="form-control form-control-sm" placeholder="Date Of Birth">
+									<input type="text" name="staffchildren[{{ $i }}][dob]" value="{{ old('staffchildren.' . $i . '.dob', $child->dob) }}" id="cdo_{{ $i }}" class="form-control form-control-sm" placeholder="Date Of Birth">
 								</div>
 								<div class="col-sm-4 form-group {{ $errors->has('staffchildren.*.gender_id') ? 'has-error' : '' }}">
 									<select name="staffchildren[{{ $i }}][gender_id]" id="cge_{{ $i }}" class="form-select form-select-sm" placeholder="Gender">
@@ -273,7 +271,7 @@
 								<div class="col-sm-7 form-group {{ $errors->has('staffchildren.*.education_level_id') ? 'has-error' : '' }}">
 									<select name="staffchildren[{{ $i }}][education_level_id]" id="cel_{{ $i }}" class="form-select form-select-sm" placeholder="Education Level">
 										<option value="">Education Level</option>
-									@foreach(\App\Models\HumanResources\OptEducationLevel::all() as $el)
+									@foreach($educationLevels as $el)
 										<option value="{{ $el->id }}" {{ ($el->id == $child->education_level_id)?'selected':'' }}>{{ $el->education_level }}</option>
 									@endforeach
 									</select>
@@ -281,7 +279,7 @@
 								<div class="col-sm-4 form-group {{ $errors->has('staffchildren.*.health_status_id') ? 'has-error' : '' }}">
 									<select name="staffchildren[{{ $i }}][health_status_id]" id="chs_{{ $i }}" class="form-select form-select-sm" placeholder="Health Status">
 										<option value="">Health Status</option>
-									@foreach(\App\Models\HumanResources\OptHealthStatus::all() as $hs)
+									@foreach($healthStatuses as $hs)
 										<option value="{{ $hs->id }}" {{ ($hs->id == $child->health_status_id)?'selected':NULL }}>{{ $hs->health_status }}</option>
 									@endforeach
 									</select>
@@ -295,7 +293,7 @@
 								<div class="col-sm-6 form-group {{ $errors->has('staffchildren.*.tax_exemption_percentage_id') ? 'has-error' : '' }}">
 									<select name="staffchildren[{{ $i }}][tax_exemption_percentage_id]" id="ctep_{{ $i }}" class="form-select form-select-sm" placeholder="Tax Exemption Percentage">
 										<option value="">Tax Exemption Percentage</option>
-									@foreach(\App\Models\HumanResources\OptTaxExemptionPercentage::all() as $tep)
+									@foreach($taxExemptionPercentages as $tep)
 										<option value="{{ $tep->id }}" {{ ($tep->id == $child->tax_exemption_percentage_id)?'selected':NULL }}>{{ $tep->tax_exemption_percentage }}</option>
 									@endforeach
 									</select>
@@ -321,12 +319,12 @@
 					</div>
 				</div>
 				<div class="row emergency_wrap">
-					@if($staff->hasmanyemergency()->get()->count())
+					@if($emergencies->count())
 						<?php $i=1 ?>
-						@foreach($staff->hasmanyemergency()->get() as $emerg)
-							<div class="row m-1 emergency_row">
+						@foreach($emergencies as $emerg)
+							<div class="row m-1 emergency_row" id="emergency_row_{{ $i }}">
 								<div class="col-sm-1">
-									<button class="btn btn-sm btn-outline-secondary emergency_delete" data-id="{{ $emerg->id }}" type="button">
+									<button class="btn btn-sm btn-outline-secondary emergency_remove" data-index="{{ $i }}" type="button">
 										<i class="fas fa-trash" aria-hidden="true"></i>
 									</button>
 								</div>
@@ -340,8 +338,7 @@
 								</div>
 								<div class="col-sm-6 form-group {{ $errors->has('staffemergency.*.relationship_id') ? 'has-error' : '' }}">
 									<select name="staffemergency[{{ $i }}][relationship_id]" id="ere_{{ $i }}" class="form-select form-select-sm" placeholder="Relationship">
-											<option value="">Relationship</option>
-										@foreach(\App\Models\HumanResources\OptRelationship::all() as $rel)
+											<option value="">Relationship</option>												@foreach($relationships as $rel)
 											<option value="{{ $rel->id }}" {{ ($rel->id == $emerg->relationship_id)?'selected':NULL }}>{{ $rel->relationship }}</option>
 										@endforeach
 									</select>
@@ -378,7 +375,7 @@
 				<div class="col-sm-7">
 					<select name="status_id" id="sta" class="form-select form-select-sm col-sm-12 @error('status_id') is-invalid @enderror">
 						<option value="">Please choose</option>
-						@foreach(\App\Models\HumanResources\OptStatus::pluck('status', 'id')->toArray() as $k1 => $v1)
+						@foreach($statuses as $k1 => $v1)
 							<option value="{{ $k1 }}" {{ (old('status_id', $staff->status_id) == $k1)?'selected':NULL }}>{{ $v1 }}</option>
 						@endforeach
 					</select>
@@ -388,7 +385,7 @@
 			<div class="form-group row mb-3 {{ $errors->has('username') ? 'has-error' : '' }}">
 				<label for="unam" class="col-form-label col-sm-4">Username : </label>
 				<div class="col-sm-7">
-					<input type="text" name="username" value="{{ old('username', $staff->hasmanylogin()->where('active', 1)->first()->username) }}" id="unam" class="form-control form-control-sm col-sm-12 @error('username') is-invalid @enderror" placeholder="Username">
+					<input type="text" name="username" value="{{ old('username', $username) }}" id="unam" class="form-control form-control-sm col-sm-12 @error('username') is-invalid @enderror" placeholder="Username">
 				</div>
 			</div>
 
@@ -405,8 +402,8 @@
 				<div class="col-sm-7">
 					<select name="category_id" id="cat" class="form-select form-select-sm col-sm-12 @error('category_id') is-invalid @enderror">
 						<option value="">Please choose</option>
-						@foreach(\App\Models\HumanResources\OptCategory::pluck('category', 'id')->toArray() as $k1 => $v1)
-							<option value="{{ $k1 }}" {{ (old('category_id', $staff->belongstomanydepartment()->wherePivot('main', 1)->first()->category_id) == $k1)?'selected':NULL }}>{{ $v1 }}</option>
+						@foreach($categories as $k1 => $v1)
+							<option value="{{ $k1 }}" {{ (old('category_id', $mainDept?->category_id) == $k1)?'selected':NULL }}>{{ $v1 }}</option>
 						@endforeach
 					</select>
 				</div>
@@ -417,8 +414,8 @@
 				<div class="col-sm-7">
 					<select name="branch_id" id="bra" class="form-select form-select-sm col-sm-12 @error('branch_id') is-invalid @enderror">
 						<option value="">Please choose</option>
-						@foreach(\App\Models\HumanResources\OptBranch::pluck('location', 'id')->toArray() as $k1 => $v1)
-							<option value="{{ $k1 }}" {{ (old('branch_id', $staff->belongstomanydepartment()->wherePivot('main', 1)->first()->branch_id) == $k1)?'selected':NULL }}>{{ $v1 }}</option>
+						@foreach($branches as $k1 => $v1)
+							<option value="{{ $k1 }}" {{ (old('branch_id', $mainDept?->branch_id) == $k1)?'selected':NULL }}>{{ $v1 }}</option>
 						@endforeach
 					</select>
 				</div>
@@ -429,8 +426,8 @@
 				<div class="col-sm-7">
 					<select name="pivot_dept_id" id="dep" class="form-select form-select-sm col-sm-12 @error('pivot_dept_id') is-invalid @enderror">
 						<option value="">Please choose</option>
-						@foreach(\App\Models\HumanResources\DepartmentPivot::pluck('department', 'id')->toArray() as $k1 => $v1)
-							<option value="{{ $k1 }}" {{ (old('pivot_dept_id', $staff->belongstomanydepartment()->wherePivot('main', 1)->first()->id) == $k1)?'selected':NULL }}>{{ $v1 }}</option>
+						@foreach($departments as $k1 => $v1)
+							<option value="{{ $k1 }}" {{ (old('pivot_dept_id', $mainDept?->id) == $k1)?'selected':NULL }}>{{ $v1 }}</option>
 						@endforeach
 					</select>
 				</div>
@@ -441,7 +438,7 @@
 				<div class="col-sm-7">
 					<select name="div_id" id="him" class="form-select form-select-sm col-sm-12 @error('div_id') is-invalid @enderror">
 						<option value="">Please choose</option>
-						@foreach(\App\Models\HumanResources\OptDivision::pluck('div', 'id')->toArray() as $k1 => $v1)
+						@foreach($divisions as $k1 => $v1)
 							<option value="{{ $k1 }}" {{ (old('div_id', $staff->div_id) == $k1)?'selected':NULL }}>{{ $v1 }}</option>
 						@endforeach
 					</select>
@@ -453,7 +450,7 @@
 				<div class="col-sm-7">
 					<select name="restday_group_id" id="rdg" class="form-select form-select-sm col-sm-12 @error('restday_group_id') is-invalid @enderror">
 						<option value="">Please choose</option>
-						@foreach(\App\Models\HumanResources\OptRestdayGroup::pluck('group', 'id')->toArray() as $k1 => $v1)
+						@foreach($restdayGroups as $k1 => $v1)
 							<option value="{{ $k1 }}" {{ (old('restday_group_id', $staff->restday_group_id) == $k1)?'selected':NULL }}>{{ $v1 }}</option>
 						@endforeach
 					</select>
@@ -490,17 +487,18 @@
 					</div>
 				</div>
 				<div class="row m-0 p-0 crossbackup_wrap">
-					@if($staff->crossbackupto()->wherePivot('active', 1)->get()->count())
+					@if($crossbackups->count())
 						<?php $i=1 ?>
-						@foreach($staff->crossbackupto()->wherePivot('active', 1)->get() as $cb)
-							<div class="row m-1 p-0 crossbackup_row">
+						@foreach($crossbackups as $cb)
+							<div class="row m-1 p-0 crossbackup_row" id="crossbackup_row_{{ $i }}">
 								<div class="col-sm-1">
-									<button type="button" class="btn btn-sm btn-outline-secondary crossbackup_delete" data-id="{{ $cb->id }}">
+									<button type="button" class="btn btn-sm btn-outline-secondary crossbackup_remove" data-index="{{ $i }}">
 										<i class="fas fa-trash" aria-hidden="true"></i>
 									</button>
 								</div>
 								<div class="col-sm-10 form-group {{ $errors->has('crossbackup.*.backup_staff_id') ? 'has-error' : '' }}">
 									<input type="hidden" name="crossbackup[{{ $i }}][active]" value="1">
+									<input type="hidden" name="crossbackup[{{ $i }}][id]" value="{{ $cb->id }}">
 									<select name="crossbackup[{{ $i }}][backup_staff_id]" id="sta_{{ $i }}" class="form-select form-select-sm" placeholder="Cross Backup Personnel">
 										<option value="">Cross Backup Personnel</option>
 										@foreach($activeStaff as $st)
@@ -526,12 +524,6 @@
 @endsection
 
 @section('js')
-<?php
-$spouseCount = ($staff->hasmanyspouse()->get()->isNotEmpty()) ? $staff->hasmanyspouse()->get()->count() : 1;
-$childrenCount = ($staff->hasmanychildren()->get()->isNotEmpty()) ? $staff->hasmanychildren()->get()->count() : 1;
-$emergencyCount = ($staff->hasmanyemergency()->get()->isNotEmpty()) ? $staff->hasmanyemergency()->get()->count() : 1;
-$crossbackupCount = ($staff->crossbackupto()->get()->isNotEmpty()) ? $staff->crossbackupto()->get()->count() : 1;
-?>
 window.data = {
 	route: {
 		department: '{{ route('department.department') }}',

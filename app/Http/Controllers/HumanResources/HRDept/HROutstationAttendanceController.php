@@ -69,6 +69,14 @@ class HROutstationAttendanceController extends Controller
 				->get()
 				->mapWithKeys(fn ($o) => [$o->id => $o->belongstocustomer?->customer]);
 
+		// decorate display dates (were inline Carbon::parse in the blade)
+		$hroa->each(function ($v) {
+			$v->date_attend_fmt = $v->date_attend ? Carbon::parse($v->date_attend)->format('j M Y') : null;
+			$v->in_fmt = $v->in ? Carbon::parse($v->in)->format('g:i a') : null;
+			$v->out_fmt = $v->out ? Carbon::parse($v->out)->format('g:i a') : null;
+			$v->date_confirm_fmt = $v->date_confirm ? Carbon::parse($v->date_confirm)->format('j M Y') : null;
+		});
+
 		return view('humanresources.hrdept.outstation.outstationattendance.index', compact('hroa', 'usernames', 'staffNames', 'outstationCustomers'));
 	}
 

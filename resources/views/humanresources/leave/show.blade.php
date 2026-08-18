@@ -1,120 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-
-use \App\Models\HumanResources\HRAttendance;
-use Illuminate\Database\Eloquent\Builder;
-use \App\Models\HumanResources\OptLeaveStatus;
-
-$staff = $leave->belongstostaff()?->first();
-$login = \App\Models\Login::where([['staff_id', $leave->staff_id], ['active', 1]])->first();
-
-$count = 0;
-$supervisor_no = 0;
-$hod_no = 0;
-$director_no = 0;
-$hr_no = 0;
-
-$backup = $leave->hasmanyleaveapprovalbackup?->first();
-$supervisor = $leave->hasmanyleaveapprovalsupervisor?->first();
-$hod = $leave->hasmanyleaveapprovalhod?->first();
-$director = $leave->hasmanyleaveapprovaldir?->first();
-$hr = $leave->hasmanyleaveapprovalhr?->first();
-
-if ($supervisor) {
-  $count++;
-  $supervisor_no = $count;
-}
-
-if ($hod) {
-  $count++;
-  $hod_no = $count;
-}
-
-if ($director) {
-  $count++;
-  $director_no = $count;
-}
-
-if ($hr) {
-  $count++;
-  $hr_no = $count;
-}
-
-if ($count != 0) {
-  $width = 100 / $count;
-} else {
-  $width = 100;
-}
-
-if ((\Carbon\Carbon::parse($leave->date_time_start)->format('H:i')) == '00:00') {
-  $date_start = \Carbon\Carbon::parse($leave->date_time_start)->format('d F Y');
-} else {
-  $date_start = \Carbon\Carbon::parse($leave->date_time_start)->format('d F Y h:i a');
-}
-
-if ((\Carbon\Carbon::parse($leave->date_time_end)->format('H:i')) == '00:00') {
-  $date_end = \Carbon\Carbon::parse($leave->date_time_end)->format('d F Y');
-} else {
-  $date_end = \Carbon\Carbon::parse($leave->date_time_end)->format('d F Y h:i a');
-}
-
-if ($leave->period_day !== 0.0 && $leave->period_time == NULL) {
-  $total_leave = $leave->period_day . ' Days';
-} else {
-  $total_leave = $leave->period_time;
-}
-
-if ($backup) {
-  $backup_name = $backup->belongstostaff?->name;
-
-  if ($backup->created_at == $backup->updated_at) {
-    $approved_date = '-';
-  } else {
-    $approved_date = \Carbon\Carbon::parse($backup->updated_at)->format('d F Y h:i a');
-  }
-} else {
-  $backup_name = '-';
-  $approved_date = '-';
-}
-
-$start = \Carbon\Carbon::parse($leave->date_time_start)->format('Y-m-d');
-$end = \Carbon\Carbon::parse($leave->date_time_end)->format('Y-m-d');
-$hr_remark = HRAttendance::where('staff_id', '=', $leave->staff_id)
-  ->whereBetween('attend_date', [$start, $end])
-  ->where('hr_remarks', '!=', NULL)
-  ->select('hr_remarks')
-  ->first();
-
-$auth = \Auth::user()->belongstostaff?->div_id; // 1/2/5
-$auth_dept = \Auth::user()->belongstostaff?->belongstomanydepartment()->first()->id; // 14/31
-$auth_admin = \Auth::user()->belongstostaff?->authorise_id; // 1
-
-$hrremarksattendance = HRAttendance::where(function (Builder $query) use ($start, $end) {
-  $query->whereDate('attend_date', '>=', $start)
-    ->whereDate('attend_date', '<=', $end);
-})
-  ->where('staff_id', $leave->staff_id)
-  ->where(function (Builder $query) {
-    $query->whereNotNull('remarks')->orWhereNotNull('hr_remarks');
-  })
-  ->get();
-
-$leave_status_temp = $leave?->belongstooptleavestatus?->status;
-
-if ($leave_status_temp == 'Approved' || $leave_status_temp == 'Waived') {
-  $leave_status = $leave_status_temp;
-  $leave_color = "width: 20%; background-color: #e6e6e6; color: green";
-} elseif ($leave_status_temp == 'Rejected' || $leave_status_temp == 'Cancelled') {
-  $leave_status = $leave_status_temp;
-  $leave_color = "width: 20%; background-color: #e6e6e6; color: red";
-} else {
-  $leave_status = "Pending";
-  $leave_color = "width: 20%; background-color: #e6e6e6; color: #999900";
-}
-?>
-
 <div class="page-humanresources-leave-show col-sm-12 row">
   @include('humanresources.hrdept.navhr')
   <h4>Leave Application</h4>
@@ -130,16 +16,16 @@ if ($leave_status_temp == 'Approved' || $leave_status_temp == 'Waived') {
 
     <div class="table">
       <div class="table-row">
-        <div class="table-cell-top" style="width: 25%;">STAFF ID : {{ @$login->username }}</div>
-        <div class="table-cell-top" style="width: 75%;">NAME : {{ @$staff->name }}</div>
+        <div class="table-cell-top" style="width: 25%;">STAFF ID : {{ $username }}</div>
+        <div class="table-cell-top" style="width: 75%;">NAME : {{ $staff_name }}</div>
       </div>
     </div>
 
     <div class="table">
       <div class="table-row">
-        <div class="table-cell-top" style="width: 25%;">LEAVE NO : HR9-{{ @str_pad($leave->leave_no,5,'0',STR_PAD_LEFT) }}/{{ @$leave->leave_year }}</div>
-        <div class="table-cell-top" style="width: 60%;">DATE : {{ @$date_start }} - {{ @$date_end }} </div>
-        <div class="table-cell-top" style="width: 25%;">TOTAL : {{ @$total_leave }} </div>
+        <div class="table-cell-top" style="width: 25%;">LEAVE NO : {{ $leave_ref }}</div>
+        <div class="table-cell-top" style="width: 60%;">DATE : {{ $date_start }} - {{ $date_end }} </div>
+        <div class="table-cell-top" style="width: 25%;">TOTAL : {{ $total_leave }} </div>
       </div>
     </div>
 
@@ -152,12 +38,12 @@ if ($leave_status_temp == 'Approved' || $leave_status_temp == 'Waived') {
 
     <div class="table">
       <div class="table-row">
-        <div class="table-cell-top text-wrap" style="width: 60%;">BACKUP : {{ @$backup_name }}</div>
-        <div class="table-cell-top" style="width: 40%;">BACKUP APPROVED : {{ @$approved_date }} </div>
+        <div class="table-cell-top text-wrap" style="width: 60%;">BACKUP : {{ $backup_name }}</div>
+        <div class="table-cell-top" style="width: 40%;">BACKUP APPROVED : {{ $approved_date }} </div>
       </div>
     </div>
 
-    @if ((in_array($auth, ['1', '2', '5']) && in_array($auth_dept, ['14', '31'])) || $auth_admin == '1')
+    @if ($canViewAttendance)
     @if($hrremarksattendance)
     <div class="table">
       @foreach($hrremarksattendance as $key => $value)
@@ -169,7 +55,7 @@ if ($leave_status_temp == 'Approved' || $leave_status_temp == 'Waived') {
     @endif
     @endif
 
-    @if ((in_array($auth, ['1', '2', '5']) && in_array($auth_dept, ['14', '31'])) || $auth_admin == '1')
+    @if ($canViewAttendance)
     @if($leave->remarks)
     <div class="table">
       <div class="table-row">
@@ -179,12 +65,12 @@ if ($leave_status_temp == 'Approved' || $leave_status_temp == 'Waived') {
     @endif
     @endif
 
-    @if ((in_array($auth, ['1', '2', '5']) && in_array($auth_dept, ['14', '31'])) || $auth_admin == '1')
-    @if($leave->hasmanyleaveamend()->count())
+    @if ($canViewAttendance)
+    @if($amend_notes->count())
     <div class="table">
-      @foreach($leave->hasmanyleaveamend()->get() as $key => $value1)
+      @foreach($amend_notes as $key => $value1)
       <div class="table-row">
-        <div class="table-cell-top" style="width: 100%;">EDIT REMARK : {{ $value1->amend_note }} on {{ \Carbon\Carbon::parse($value1->created_at)->format('j M Y') }}</div>
+        <div class="table-cell-top" style="width: 100%;">EDIT REMARK : {{ $value1->amend_note }} on {{ $value1->created_fmt }}</div>
       </div>
       @endforeach
     </div>
@@ -199,109 +85,28 @@ if ($leave_status_temp == 'Approved' || $leave_status_temp == 'Waived') {
 
     <div class="table">
       <div class="table-row">
-        @for ($a = 1; $a <= $count; $a++) @if ($supervisor_no==$a) <div class="table-cell-top text-center" style="width: {{ $width }}%; background-color: #f2f2f2; font-size: 18px;">SUPERVISOR</div>
-      @elseif ($hod_no == $a)
-      <div class="table-cell-top text-center" style="width: {{ $width }}%; background-color: #f2f2f2; font-size: 18px;">HOD</div>
-      @elseif ($director_no == $a)
-      <div class="table-cell-top text-center" style="width: {{ $width }}%; background-color: #f2f2f2; font-size: 18px;">DIRECTOR</div>
-      @elseif ($hr_no == $a)
-      <div class="table-cell-top text-center" style="width: {{ $width }}%; background-color: #f2f2f2; font-size: 18px;">HR</div>
-      @endif
-      @endfor
+        @foreach ($approvals as $approval)
+      <div class="table-cell-top text-center" style="width: {{ $width }}%; background-color: #f2f2f2; font-size: 18px;">{{ $approval->label }}</div>
+      @endforeach
     </div>
   </div>
 
   <div class="table">
     <div class="table-row" style="height: 40px;">
-      @for ($a = 1; $a <= $count; $a++) 
-        @if ($supervisor_no==$a) 
+      @foreach ($approvals as $approval)
           <div class="table-cell-top-bottom text-center text-decoration-underline text-wrap text-uppercase" style="width: {{ $width }}%; vertical-align: bottom;">
-            {{ @$supervisor->belongstostaff->name }}
+            {{ $approval->name }}
           </div>
-        @elseif ($hod_no == $a)
-          <div class="table-cell-top-bottom text-center text-decoration-underline text-wrap text-uppercase" style="width: {{ $width }}%; vertical-align: bottom;">
-            {{ @$hod->belongstostaff->name }}
-          </div>
-        @elseif ($director_no == $a)
-          <div class="table-cell-top-bottom text-center text-decoration-underline text-wrap text-uppercase" style="width: {{ $width }}%; vertical-align: bottom;">
-            {{ @$director->belongstostaff->name }}
-          </div>
-        @elseif ($hr_no == $a)
-          <div class="table-cell-top-bottom text-center text-decoration-underline text-wrap text-uppercase" style="width: {{ $width }}%; vertical-align: bottom;">
-            {{ @$hr->belongstostaff->name }}
-          </div>
-        @endif
-      @endfor
+      @endforeach
     </div>
   
     <div class="table-row">
-      @for ($a = 1; $a <= $count; $a++) 
-        @if ($supervisor_no==$a)
-          <?php
-          $status = ($supervisor->leave_status_id)?OptLeaveStatus::find(@$supervisor->leave_status_id)->status:'Pending';
-
-          if ($status == 'Approved' || $status == 'Waived') {
-            $color = "background-color:transparent; color:green";
-          } elseif ($status == 'Rejected' || $status == 'Cancelled') {
-            $color = "background-color:transparent; color:red";
-          } else {
-            $color = "background-color:transparent; color:#999900";
-          }
-          ?> 
+      @foreach ($approvals as $approval)
           <div class="table-cell-top1 text-center">
-            {{ @$supervisor->updated_at }}<br />
-            <span style="{{ $color }}">{{ @$status }}</span>
+            {{ $approval->updated_at }}<br />
+            <span style="{{ $approval->color }}">{{ $approval->status }}</span>
           </div>
-        @elseif ($hod_no == $a)
-          <?php
-          $status = ($hod->leave_status_id)?OptLeaveStatus::find(@$hod->leave_status_id)->status:'Pending';
-
-          if ($status == 'Approved' || $status == 'Waived') {
-            $color = "background-color:transparent; color:green";
-          } elseif ($status == 'Rejected' || $status == 'Cancelled') {
-            $color = "background-color:transparent; color:red";
-          } else {
-            $color = "background-color:transparent; color:#999900";
-          }
-          ?> 
-          <div class="table-cell-top1 text-center">
-            {{ @$hod->updated_at }}<br />
-            <span style="{{ $color }}">{{ @$status }}</span>
-          </div>
-        @elseif ($director_no == $a)
-          <?php
-          $status = ($director->leave_status_id)?OptLeaveStatus::find(@$director->leave_status_id)->status:'Pending';
-
-          if ($status == 'Approved' || $status == 'Waived') {
-            $color = "background-color:transparent; color:green";
-          } elseif ($status == 'Rejected' || $status == 'Cancelled') {
-            $color = "background-color:transparent; color:red";
-          } else {
-            $color = "background-color:transparent; color:#999900";
-          }
-          ?>
-          <div class="table-cell-top1 text-center">
-            {{ @$director->updated_at }}<br />
-            <span style="{{ $color }}">{{ @$status }}</span>
-          </div>
-        @elseif ($hr_no == $a)
-          <?php
-          $status = ($hr->leave_status_id)?OptLeaveStatus::find(@$hr->leave_status_id)->status:'Pending';
-
-          if ($status == 'Approved' || $status == 'Waived') {
-            $color = "background-color:transparent; color:green";
-          } elseif ($status == 'Rejected' || $status == 'Cancelled') {
-            $color = "background-color:transparent; color:red";
-          } else {
-            $color = "background-color:transparent; color:#999900";
-          }
-          ?>
-          <div class="table-cell-top1 text-center">
-            {{ @$hr->updated_at }}<br />
-            <span style="{{ $color }}">{{ @$status }}</span>
-          </div>
-        @endif
-      @endfor
+      @endforeach
     </div>
   </div>
 

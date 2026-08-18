@@ -40,15 +40,15 @@ class EntitlementService
 
 			$records = $model::where('year', $year->year)->orderBy('year', 'DESC')->get();
 			foreach ($records as $record) {
-				$isActive = (int) $record->belongstostaff->active === 1;
+				$isActive = (int) $record->belongstostaff?->active === 1;
 
 				$leaves = $this->approvedLeaves($record);
 
 				$row = [
-					'username' => $record->belongstostaff->hasmanylogin()
-									->when($isActive, fn (Builder $query) => $query->where('active', 1))
-									->first()?->username,
-					'name' => $record->belongstostaff->name,
+					'username' => $record->belongstostaff?->hasmanylogin()
+									?->when($isActive, fn (Builder $query) => $query->where('active', 1))
+									?->first()?->username,
+					'name' => $record->belongstostaff?->name,
 					'leave' => $record->{$field},
 					'adjustment' => $record->{$field . '_adjustment'},
 					'utilize' => $record->{$field . '_utilize'},

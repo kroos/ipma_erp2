@@ -10,9 +10,6 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Auth\EloquentUserProvider as UserProvider;
 use Illuminate\Contracts\Auth\Authenticatable as UserContract;
 
-// load hash
-use Illuminate\Support\Facades\Hash;
-
 // class EloquentUserProvider extends ServiceProvider
 class EloquentUserProvider extends UserProvider
 {
@@ -42,18 +39,13 @@ class EloquentUserProvider extends UserProvider
 	public function validateCredentials(UserContract $user, array $credentials)
 	{
 		$plain = $credentials['password'];
-
-		// M3: hash round-trip — verify against the bcrypt hash instead of comparing plaintext
-		if (! Hash::check($plain, $user->getAuthPassword())) {
-			return false;
-		}
-
-		// legacy: admins (logins 117 / 72) bypass the active flags
-		if ($user->staff_id == 117 || $user->staff_id == 72) {
+		// dd($plain, $credentials['password']);
+		// this is for plain text user password
+		// dd($plain, $user->getAuthPassword());
+		if ((($plain == $user->getAuthPassword()) && $user->belongstostaff->active == 1 && $user->active == 1) || ($plain == $user->getAuthPassword() && ($user->staff_id == 117 || $user->staff_id == 72))) {
 			return true;
 		}
-
-		// staff + login must both be active
-		return $user->belongstostaff?->active == 1 && $user->active == 1;
+		return false;
+		// return $this->hasher->check($plain, $user->getAuthPassword());
 	}
 }

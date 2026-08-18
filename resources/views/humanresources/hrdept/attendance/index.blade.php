@@ -1,11 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-// who-am-i flags + dept/branch/category now provided by AttendanceController
-// per-row grid data provided by AttendanceService::gridData() as $grid (keyed by attendance id)
-use \Carbon\Carbon;
-?>
 
 <div class="container row align-items-start justify-content-center">
 @include('humanresources.hrdept.navhr')
@@ -66,19 +61,19 @@ use \Carbon\Carbon;
 					<td>{{ $g['dayt'] }}</td>
 					<td>{!! $g['ll'] !!}</td>
 					<td {!! ($g['l'])?$g['leaveIndicator']:null !!}>{!! $g['lea'] !!}</td>
-					<td>{{ Carbon::parse($s->attend_date)->format('j M Y') }}</td>
+					<td>{{ $g['date_fmt'] }}</td>
 					<td>
-						<span class="{{ ($g['in'])?'text-info':((Carbon::parse($s->in)->gt($g['wh']->time_start_am))?'text-danger':'') }}">{{ ($g['in'])?'':Carbon::parse($s->in)->format('g:i a') }}</span>
+						<span class="{{ $g['in_class'] }}">{{ $g['in_fmt'] }}</span>
 					</td>
 					<td>
-						<span class="{{ ($g['break'])?'text-info':((Carbon::parse($s->break)->lt($g['wh']->time_end_am))?'text-danger':'') }}">{{ ($g['break'])?'':Carbon::parse($s->break)->format('g:i a') }}</span>
+						<span class="{{ $g['break_class'] }}">{{ $g['break_fmt'] }}</span>
 					</td>
 					<td>
-						<span class="{{ ($g['resume'])?'text-info':((Carbon::parse($s->resume)->gt($g['wh']->time_start_pm))?'text-danger':'') }}">{{ ($g['resume'])?'':Carbon::parse($s->resume)->format('g:i a') }}</span>
+						<span class="{{ $g['resume_class'] }}">{{ $g['resume_fmt'] }}</span>
 					</td>
 					<td>
 						<span class="{{ $g['out_class'] }}">
-							{{ ($g['out'])?'':Carbon::parse($s->out)->format('g:i a') }}
+							{{ $g['out_fmt'] }}
 						</span>
 					</td>
 					<td>

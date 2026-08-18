@@ -1,13 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<?php
-
-use \Carbon\Carbon;
-
-
-?>
-
 <div class="page-humanresources-hrdept-attendance-attendancedailyreport-index container">
 	@include('humanresources.hrdept.navhr')
 	<h4>Attendance Daily Report</h4>

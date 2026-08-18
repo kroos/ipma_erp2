@@ -27,6 +27,9 @@ use Illuminate\Support\Str;
 // load custom helper
 use App\Helpers\UnavailableDateTime;
 
+// load service
+use App\Services\HumanResources\LeaveApprovalService;
+
 // load Carbon
 use \Carbon\Carbon;
 use \Carbon\CarbonPeriod;
@@ -56,7 +59,12 @@ class HRLeaveController extends Controller
 	 */
 	public function create(): View
 	{
-		return view('humanresources.leave.create');
+		$user = \Auth::user()->belongstostaff;
+		$userneedbackup = $user->belongstoleaveapprovalflow?->backup_approval;
+		$setHalfDayMC = \App\Models\Setting::find(2)->active;
+		$oi = $user->hasmanyleavereplacement()->where('leave_balance', '<>', 0)->get();
+
+		return view('humanresources.leave.create', compact('user', 'userneedbackup', 'setHalfDayMC', 'oi'));
 	}
 
 	/**
@@ -1462,7 +1470,7 @@ class HRLeaveController extends Controller
 	 */
 	public function show(HRLeave $leave): View
 	{
-		return view('humanresources.leave.show', ['leave' => $leave]);
+		return view('humanresources.leave.show', ['leave' => $leave] + app(LeaveApprovalService::class)->showData($leave));
 	}
 
 	/**

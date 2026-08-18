@@ -54,14 +54,20 @@ class AppraisalApointController extends Controller
 
   /**
    * Display a listing of the resource.
-   */
-  public function index(): View
+   */	public function index(): View
   {
     $departments = DepartmentPivot::all();
 
     $appraisalService = new AppraisalService();
+    $data = $appraisalService->apointIndexData();
 
-    return view('humanresources.hrdept.appraisal.apoint.index', ['departments' => $departments] + $appraisalService->apointIndexData());
+    // attach each evaluatee's markers directly so the blade never looks up the map
+    $data['staffs'] = $data['staffs']->map(function ($staff) use ($data) {
+      $staff->markers = $data['markersByEvaluatee'][$staff->id] ?? collect();
+      return $staff;
+    });
+
+    return view('humanresources.hrdept.appraisal.apoint.index', ['departments' => $departments] + $data);
   }
 
   /**

@@ -263,7 +263,7 @@ let userneedbackup = `
 		<label for="backupperson" class="col-sm-4 col-form-label">Replacement : </label>
 		<div class="col-sm-8 backup">
 			<select name="staff_id" id="backupperson" class="form-select form-select-sm ${errors.staff_id ? 'is-invalid' : ''}" placeholder="Please choose" autocomplete="off">
-				${staffOptions}
+				${window.data.staffOptions}
 			</select>
 		</div>
 	</div>
@@ -334,9 +334,9 @@ $(document).ready(function(){
 				<div class="form-group row m-2 ${errors.staff_id ? 'has-error' : ''}">
 					<label for="backupperson" class="col-sm-4 col-form-label">Replacement : </label>
 					<div class="col-sm-8 backup">
-						<select name="staff_id" id="backupperson" class="form-select form-select-sm ${errors.staff_id ? 'is-invalid' : ''}" placeholder="Please choose" autocomplete="off">
-							${staffOptions}
-						</select>
+					<select name="staff_id" id="backupperson" class="form-select form-select-sm ${errors.staff_id ? 'is-invalid' : ''}" placeholder="Please choose" autocomplete="off">
+						${window.data.staffOptions}
+					</select>
 					</div>
 				</div>
 				` : ''}
@@ -448,7 +448,7 @@ $(document).ready(function(){
 			if (this.checked) {
 				if( $('.removetest').length == 0 ) {
 					$('#wrappertest').append(`${toggle_time_hrleave(obj)}`);
-					if( moment(window.data.dateTimeStartHis).isSame(moment(obj.time_start_am, 'HH:mm:ss')) ) {
+					if( moment(window.data.dateTimeStartHis, 'HH:mm:ss').isSame(moment(obj.time_start_am, 'HH:mm:ss')) ) {
 						// console.log('ppagi');
 						$('#am').prop('checked', true);
 					} else {
@@ -459,7 +459,7 @@ $(document).ready(function(){
 			}
 		});
 
-		if( moment(window.data.dateTimeStartHis).isSame(moment(obj.time_start_am, 'HH:mm:ss')) ) {
+		if( moment(window.data.dateTimeStartHis, 'HH:mm:ss').isSame(moment(obj.time_start_am, 'HH:mm:ss')) ) {
 			// console.log('ppagi');
 			$('#am').prop('checked', true);
 			$('#pm').prop('checked', false);

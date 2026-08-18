@@ -51,6 +51,10 @@ class ReplacementLeaveController extends Controller
 		$rep = HRLeaveReplacement::whereYear('date_start', now()->format('Y'))->orderBy('id', 'desc')->get()->count();
 		// dd($rep);
 		$replacements = HRLeaveReplacement::whereYear('date_start', now()->format('Y'))->orderBy('id', 'desc')->paginate($rep);
+
+		// decorate rows (username + date/ref formatting was inline in the blade)
+		$replacements->setCollection(app(ReplacementLeaveService::class)->indexRows($replacements->getCollection()));
+
 		return view('humanresources.hrdept.rleave.index', compact('replacements'));
 	}
 
